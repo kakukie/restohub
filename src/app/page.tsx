@@ -228,7 +228,7 @@ export default function Home() {
           <div className="flex flex-col items-center p-6 bg-emerald-50 rounded-xl">
             <CheckCircle className="h-8 w-8 text-emerald-600 mb-4" />
             <h3 className="font-bold mb-2">Email</h3>
-            <p>support@meenuin.com</p>
+            <p>support@meenuin.biz.id</p>
           </div>
         </div>
       </div>
@@ -541,7 +541,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 py-8 text-center text-slate-500 text-sm">
-        <p>© 2024 Meenuin Technology. All rights reserved.</p>
+        <p>© 2026 Meenuin Technology. All rights reserved.</p>
         <p className="mt-2 text-xs font-mono text-emerald-600 bg-emerald-50 inline-block px-2 py-1 rounded">
           v3.0.0 Meenuin • Build 2401
         </p>
