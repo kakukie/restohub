@@ -50,6 +50,18 @@ export default function Home() {
       try {
         const userData = JSON.parse(storedUser)
         setUser(userData)
+
+        // [REAL APP] Fetch latest data from API
+        // Fetch restaurants (for Super Admin or general catalog)
+        fetch('/api/restaurants')
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.data) {
+              useAppStore.getState().setRestaurants(data.data)
+            }
+          })
+          .catch(err => console.error('Failed to fetch restaurants:', err))
+
       } catch (error) {
         console.error('Failed to parse stored user:', error)
         localStorage.removeItem('user')
@@ -99,33 +111,22 @@ export default function Home() {
 
     setLoading(true)
     try {
-      const { users, restaurants } = useAppStore.getState()
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      })
 
-      // Hardcoded default restaurant admin users
-      const defaultUsers = [
-        { id: 'u2', name: 'Resto Admin', email: 'resto@admin.com', role: 'RESTAURANT_ADMIN', restaurantId: '1', password: 'resto123' },
-        { id: 'u2-alt', name: 'Resto Admin (Alt)', email: 'u@resto.com', role: 'RESTAURANT_ADMIN', restaurantId: '1', password: 'password' },
-        { id: 'u4', name: 'Sushi Admin', email: 'sushi@admin.com', role: 'RESTAURANT_ADMIN', restaurantId: '2', password: 'sushi123' },
-        { id: 'u5', name: 'Pizza Admin', email: 'pizza@admin.com', role: 'RESTAURANT_ADMIN', restaurantId: '3', password: 'pizza123' },
-      ] as any[]
+      const data = await response.json()
 
-      const effectiveUsers = [...defaultUsers, ...(users || []).filter(u => u.role === 'RESTAURANT_ADMIN')]
-
-      let foundUser = effectiveUsers.find(u => u.email === formData.email)
-
-      if (!foundUser || foundUser.password !== formData.password) {
-        throw new Error('Email atau password salah')
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed')
       }
 
-      // Check restaurant status
-      if (foundUser.restaurantId) {
-        const restaurant = restaurants.find(r => r.id === foundUser.restaurantId)
-        if (restaurant && restaurant.status !== 'ACTIVE') {
-          throw new Error(`Status restoran: ${restaurant.status}. Silakan tunggu approval admin.`)
-        }
-      }
-
-      const userData = { ...foundUser, name: foundUser.name || 'Admin' }
+      const userData = data.user
       localStorage.setItem('user', JSON.stringify(userData))
       setUser(userData)
       toast({ title: 'Selamat Datang!', description: `Login sebagai ${userData.name}` })
@@ -154,44 +155,36 @@ export default function Home() {
 
     setLoading(true)
     try {
-      const { addRestaurant, addUser } = useAppStore.getState()
-
       if (!formData.name || !formData.email || !formData.password) {
         throw new Error('Silakan isi semua field')
       }
 
-      const newRestoId = `resto_${Date.now()}`
-      const newUserId = `user_${Date.now()}`
-      const slug = formData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          plan: (formData as any).plan || 'FREE_TRIAL',
+          role: 'RESTAURANT_ADMIN'
+        })
+      })
 
-      const newRestaurant = {
-        id: newRestoId,
-        name: formData.name,
-        description: 'New Restaurant',
-        address: '',
-        phone: formData.phone || '',
-        package: (formData as any).plan || 'FREE_TRIAL',
-        rating: 5.0,
-        adminEmail: formData.email,
-        status: 'PENDING' as const,
-        slug
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registrasi gagal')
       }
 
-      const newUser = {
-        id: newUserId,
-        name: formData.name,
-        email: formData.email,
-        role: 'RESTAURANT_ADMIN' as const,
-        restaurantId: newRestoId,
-        password: formData.password
-      }
-
-      addRestaurant(newRestaurant)
-      addUser(newUser)
+      // Note: We don't utilize addRestaurant/addUser store actions here because 
+      // the data is now in the database. When the super admin loads their dashboard,
+      // they should fetch from the API.
 
       toast({
         title: 'Registrasi Berhasil!',
-        description: 'Menunggu approval dari admin. Kami akan menghubungi Anda.',
+        description: 'Akun Anda telah dibuat. Silakan login.',
       })
 
       setActiveTab('login')

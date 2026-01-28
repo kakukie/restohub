@@ -1,66 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
 
 // GET /api/restaurants - Get all restaurants
 export async function GET(request: NextRequest) {
   try {
-    // Mock data for demo - replace with actual database queries
-    const restaurants = [
-      {
-        id: '1',
-        name: 'Warung Rasa Nusantara',
-        description: 'Authentic Indonesian cuisine with traditional recipes',
-        address: 'Jl. Sudirman No. 123, Jakarta',
-        phone: '+62 21 1234 5678',
-        email: 'info@warungrasa.com',
-        isActive: true,
-        totalMenuItems: 45,
-        totalOrders: 1250,
-        totalRevenue: 125000000
-      },
-      {
-        id: '2',
-        name: 'Sushi Master',
-        description: 'Fresh and delicious Japanese sushi',
-        address: 'Jl. Asia Afrika No. 45, Bandung',
-        phone: '+62 22 9876 5432',
-        email: 'contact@sushimaster.com',
-        isActive: true,
-        totalMenuItems: 38,
-        totalOrders: 890,
-        totalRevenue: 89000000
-      },
-      {
-        id: '3',
-        name: 'Pizza Paradise',
-        description: 'Italian pizza with premium ingredients',
-        address: 'Jl. Diponegoro No. 67, Surabaya',
-        phone: '+62 31 4567 8901',
-        email: 'hello@pizzaparadise.com',
-        isActive: false,
-        totalMenuItems: 32,
-        totalOrders: 567,
-        totalRevenue: 45000000
-      }
-    ]
-
     const searchParams = request.nextUrl.searchParams
     const search = searchParams.get('search')
 
-    let filteredRestaurants = restaurants
+    const where = search ? {
+      OR: [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { description: { contains: search, mode: 'insensitive' as const } },
+        { address: { contains: search, mode: 'insensitive' as const } }
+      ]
+    } : {}
 
-    if (search) {
-      filteredRestaurants = restaurants.filter(rest =>
-        rest.name.toLowerCase().includes(search.toLowerCase()) ||
-        rest.description?.toLowerCase().includes(search.toLowerCase()) ||
-        rest.address?.toLowerCase().includes(search.toLowerCase())
-      )
-    }
+    const restaurants = await prisma.restaurant.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: { menuItems: true, orders: true }
+        }
+      }
+    })
+
+    // Transform data to match expected frontend format if necessary
+    // or just return as is. The database schema mostly aligns.
+    // We need to map `_count` to flat properties if the frontend expects them.
+    const formattedRestaurants = restaurants.map(r => ({
+      ...r,
+      totalMenuItems: r._count.menuItems,
+      totalOrders: r._count.orders,
+      totalRevenue: 0 // We would need to aggregate orders for this. For now implementation, 0 or simple aggregation if feasible.
+    }))
 
     return NextResponse.json({
       success: true,
-      data: filteredRestaurants
+      data: formattedRestaurants
     })
   } catch (error) {
+    console.error('Error fetching restaurants:', error)
     return NextResponse.json({
       success: false,
       error: 'Failed to fetch restaurants'

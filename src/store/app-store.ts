@@ -141,6 +141,7 @@ interface AppState {
   getRestaurantBySlug: (slug: string) => Restaurant | undefined
 
   // Data Actions
+  setRestaurants: (restaurants: Restaurant[]) => void
   addRestaurant: (resto: Restaurant) => void
   updateRestaurant: (id: string, updates: Partial<Restaurant>) => void
   addOrder: (order: Order) => void
@@ -401,6 +402,8 @@ export const useAppStore = create<AppState>()(
       getTotalCartItems: () => get().cart.reduce((total, item) => total + item.quantity, 0),
 
       getRestaurantBySlug: (slug) => get().restaurants.find(r => r.slug === slug),
+
+      setRestaurants: (restaurants) => set({ restaurants }),
 
       addUser: (user) => set((state) => ({ users: [...state.users, user] })),
 

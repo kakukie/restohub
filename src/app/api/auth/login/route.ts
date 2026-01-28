@@ -1,0 +1,69 @@
+import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
+import { comparePassword } from '@/lib/auth'
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json()
+        const { email, password } = body
+
+        if (!email || !password) {
+            return NextResponse.json(
+                { success: false, error: 'Email and Password are required' },
+                { status: 400 }
+            )
+        }
+
+        // Find User
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: {
+                restaurants: true // Include restaurants to help frontend redirect
+            }
+        })
+
+        if (!user || !user.password) {
+            return NextResponse.json(
+                { success: false, error: 'Invalid email or password' },
+                { status: 401 }
+            )
+        }
+
+        // Check Password
+        const isValid = await comparePassword(password, user.password)
+        if (!isValid) {
+            return NextResponse.json(
+                { success: false, error: 'Invalid email or password' },
+                { status: 401 }
+            )
+        }
+
+        // Retrieve the first restaurant (since we currently handle single-restaurant admins)
+        // If Super Admin, restaurantId might be irrelevant or we'll handle differently on frontend.
+        const restaurant = user.restaurants[0]
+
+        // Construct response data
+        const userData = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            restaurantId: restaurant?.id, // Important for frontend context
+            token: 'mock-token-for-now' // In a real app, generate JWT here
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: 'Login successful',
+            user: userData
+        })
+
+    } catch (error: any) {
+        console.error('Login Error:', error)
+        return NextResponse.json(
+            { success: false, error: 'Internal Server Error' },
+            { status: 500 }
+        )
+    }
+}
