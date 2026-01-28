@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Clear Meenuin Storage</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .danger {
+            background: #ef4444;
+        }
+
+        .danger:hover {
+            background: #dc2626;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .storage-item {
+            background: #f9fafb;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+
+        .count {
+            font-weight: bold;
+            color: #10b981;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧹 Meenuin Storage Cleaner</h1>
+        <p class="subtitle">Force clear all cached data and localStorage</p>
+
+        <div class="info">
+            <strong>⚠️ Use this if:</strong>
+            <ul>
+                <li>Login credentials don't work</li>
+                <li>Slug URLs show "Not Found"</li>
+                <li>Menu items are mixed between restaurants</li>
+                <li>Changes from deployment not visible</li>
+            </ul>
+        </div>
+
+        <div id="storageInfo"></div>
+
+        <button onclick="clearAll()">🗑️ Clear All Storage</button>
+        <button onclick="clearLocalStorageOnly()">📦 Clear LocalStorage Only</button>
+        <button onclick="clearCookies()">🍪 Clear Cookies</button>
+        <button class="danger" onclick="hardReset()">⚡ HARD RESET (All + Reload)</button>
+
+        <div id="success" class="success"></div>
+
+        <div class="info" style="margin-top: 30px;">
+            <strong>After clearing:</strong><br>
+            1. Close this tab<br>
+            2. Open <a href="http://localhost:3000" target="_blank">http://localhost:3000</a><br>
+            3. Login with new credentials
+        </div>
+    </div>
+
+    <script>
+        function showStorageInfo() {
+            const info = document.getElementById('storageInfo');
+            let html = '<div class="info"><strong>Current Storage:</strong><br>';
+
+            let count = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                html += `<div class="storage-item">${key}</div>`;
+                count++;
+            }
+
+            html += `<br><span class="count">${count} items found</span></div>`;
+            info.innerHTML = html;
+        }
+
+        function showSuccess(message) {
+            const success = document.getElementById('success');
+            success.textContent = '✅ ' + message;
+            success.style.display = 'block';
+            setTimeout(() => {
+                success.style.display = 'none';
+            }, 3000);
+        }
+
+        function clearAll() {
+            localStorage.clear();
+            sessionStorage.clear();
+            showSuccess('All storage cleared!');
+            showStorageInfo();
+        }
+
+        function clearLocalStorageOnly() {
+            localStorage.clear();
+            showSuccess('LocalStorage cleared!');
+            showStorageInfo();
+        }
+
+        function clearCookies() {
+            document.cookie.split(";").forEach(function (c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            showSuccess('Cookies cleared!');
+        }
+
+        function hardReset() {
+            if (confirm('This will clear ALL data and reload the page. Continue?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+
+                // Clear cookies
+                document.cookie.split(";").forEach(function (c) {
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                });
+
+                // Clear cache
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        names.forEach(name => caches.delete(name));
+                    });
+                }
+
+                alert('✅ Hard reset complete! Page will reload...');
+                window.location.href = 'http://localhost:3000';
+            }
+        }
+
+        // Show storage info on load
+        showStorageInfo();
+    </script>
+</body>
+
+</html>

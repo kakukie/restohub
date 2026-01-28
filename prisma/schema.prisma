@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  RESTAURANT_ADMIN
+  CUSTOMER
+}
+
+enum PaymentMethodType {
+  QRIS
+  GOPAY
+  OVO
+  DANA
+  LINKAJA
+  SHOPEEPAY
+  CASH
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  phone         String?
+  password      String?
+  role          UserRole @default(CUSTOMER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  restaurants   Restaurant[]
+  orders        Order[]
+}
+
+model Restaurant {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  address       String?
+  phone         String?
+  email         String?
+  logo          String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  adminId       String
+  admin         User     @relation(fields: [adminId], references: [id])
+  categories    Category[]
+  menuItems     MenuItem[]
+  paymentMethods PaymentMethod[]
+  orders        Order[]
+}
+
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  displayOrder  Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItems     MenuItem[]
+}
+
+model MenuItem {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  price         Float
+  image         String?
+  isAvailable   Boolean  @default(true)
+  displayOrder  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categoryId    String
+  category      Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems    OrderItem[]
+}
+
+model Order {
+  id            String       @id @default(cuid())
+  orderNumber   String       @unique
+  totalAmount   Float
+  notes         String?
+  tableNumber   String?
+  status        OrderStatus  @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  customerId    String
+  customer      User        @relation(fields: [customerId], references: [id])
+  restaurantId  String
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])
+  orderItems    OrderItem[]
+  payment       Payment?
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  quantity      Int
+  price         Float
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  orderId       String
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId    String
+  menuItem      MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+model PaymentMethod {
+  id            String          @id @default(cuid())
+  type          PaymentMethodType
+  isActive      Boolean         @default(true)
+  qrCode        String?
+  merchantId    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  restaurantId  String
+  restaurant    Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  payments      Payment[]
+}
+
+model Payment {
+  id            String          @id @default(cuid())
+  amount        Float
+  type          PaymentMethodType
+  status        PaymentStatus   @default(PENDING)
+  transactionId String?
+  paymentDate   DateTime?
+  receiptData   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  orderId       String          @unique
+  order         Order           @relation(fields: [orderId], references: [id])
+  methodId      String
+  method        PaymentMethod   @relation(fields: [methodId], references: [id])
+}
