@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Meenuin - Digital Restaurant Platform",
-    description: "AI-powered restaurant management with modern React stack",
+    description: "Comprehensive restaurant management platform for modern businesses",
     url: "https://meenuin.com",
     siteName: "Meenuin",
     type: "website",

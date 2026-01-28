@@ -75,7 +75,16 @@ export default function Home() {
       case 'SUPER_ADMIN':
         return <SuperAdminDashboard />
       default:
-        return null
+        return (
+          <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+            <h1 className="text-2xl font-bold text-red-500">Error: Invalid User Role</h1>
+            <p>Your account has an unknown role: {user.role}</p>
+            <Button onClick={() => {
+              localStorage.removeItem('user')
+              window.location.reload()
+            }}>Logout & Reset</Button>
+          </div>
+        )
     }
   }
 

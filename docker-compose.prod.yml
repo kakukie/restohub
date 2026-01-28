@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Main Application
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+    container_name: meenuin-app
+    restart: always
+    # ports:  <-- Removed to prevent conflict and force traffic through Nginx
+    #   - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # DATABASE_URL provided via .env
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://meenuin.biz.id:8443}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://meenuin.biz.id:8443}
+    volumes:
+      - app-uploads:/app/public/uploads
+    networks:
+      - meenuin-prod-net
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: meenuin-nginx
+    restart: always
+    ports:
+      - "8080:80" # Alternative HTTP Port
+      - "8443:443" # Alternative HTTPS Port
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - meenuin-prod-net
+
+networks:
+  meenuin-prod-net:
+    driver: bridge
+
+volumes:
+  app-uploads:
