@@ -20,6 +20,8 @@ interface MenuItem {
   image?: string
   categoryName: string
   categoryId: string
+  isBestSeller?: boolean
+  isRecommended?: boolean
 }
 
 interface Restaurant {
@@ -79,7 +81,9 @@ export default function PublicMenuPage() {
           price: 35000,
           categoryName: 'Main Course',
           categoryId: '1',
-          image: '/menu-nasi-goreng.png'
+          image: '/menu-nasi-goreng.png',
+          isBestSeller: true,
+          isRecommended: true
         },
         {
           id: '2',
@@ -421,9 +425,21 @@ export default function PublicMenuPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <CardTitle className="text-lg mb-1">{item.name}</CardTitle>
-                        <Badge variant="outline" className="text-xs mb-2">
-                          {item.categoryName}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          <Badge variant="outline" className="text-xs">
+                            {item.categoryName}
+                          </Badge>
+                          {item.isBestSeller && (
+                            <Badge className="text-xs bg-orange-500 hover:bg-orange-600 border-none text-white">
+                              Best Seller
+                            </Badge>
+                          )}
+                          {item.isRecommended && (
+                            <Badge className="text-xs bg-blue-500 hover:bg-blue-600 border-none text-white">
+                              Recommended
+                            </Badge>
+                          )}
+                        </div>
                         <CardDescription className="text-sm">
                           {item.description}
                         </CardDescription>

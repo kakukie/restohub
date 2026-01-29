@@ -31,6 +31,10 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 
+# Copy scripts
+COPY --from=builder /app/scripts ./scripts
+RUN chmod +x ./scripts/start.sh
+
 # Create non-root user (optional but good)
 RUN groupadd -r nodejs && useradd -r -g nodejs nextjs
 RUN chown -R nextjs:nodejs /app
@@ -39,4 +43,4 @@ USER nextjs
 EXPOSE 3000
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server.js"]
+CMD ["./scripts/start.sh"]
