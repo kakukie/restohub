@@ -94,24 +94,42 @@ export default function RestaurantAdminDashboard() {
 
   }, [allOrders, prevPendingCount])
 
-  const menuItems = allMenuItems.filter(i => i.restaurantId === restaurantId)
-  const categories = allCategories // Categories might be shared or filtered too, let's assume shared for now or mock filter
-  const { helpdeskSettings } = useAppStore()
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(currentRestaurant?.paymentMethods || [])
-  const { systemAnnouncements } = useAppStore()
+  const { helpdeskSettings, systemAnnouncements } = useAppStore()
+
+  // Real Data State
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [activeTab, setActiveTab] = useState('menu')
 
-  useEffect(() => {
-    if (currentRestaurant?.paymentMethods) {
-      setPaymentMethods(currentRestaurant.paymentMethods)
-    }
-  }, [currentRestaurant])
+  // Fetch all data
+  const fetchDashboardData = useCallback(async () => {
+    if (!restaurantId) return
+    try {
+      const [resMenu, resCat, resOrder, resPay] = await Promise.all([
+        fetch(`/api/menu-items?restaurantId=${restaurantId}`),
+        fetch(`/api/categories?restaurantId=${restaurantId}`),
+        fetch(`/api/orders?restaurantId=${restaurantId}`),
+        fetch(`/api/restaurants/${restaurantId}/payment-methods`)
+      ])
 
-  const updateRestaurantPaymentMethods = (methods: PaymentMethod[]) => {
-    setPaymentMethods(methods)
-    updateRestaurant(restaurantId, { paymentMethods: methods })
-  }
+      const [dataMenu, dataCat, dataOrder, dataPay] = await Promise.all([
+        resMenu.json(), resCat.json(), resOrder.json(), resPay.json()
+      ])
+
+      if (dataMenu.success) setMenuItems(dataMenu.data)
+      if (dataCat.success) setCategories(dataCat.data)
+      if (dataOrder.success) setOrders(dataOrder.data)
+      if (dataPay.success) setPaymentMethods(dataPay.data)
+
+    } catch (e) { console.error("Sync Error", e) }
+  }, [restaurantId])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [fetchDashboardData])
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
     const file = e.target.files?.[0]
@@ -124,8 +142,9 @@ export default function RestaurantAdminDashboard() {
     }
   }
 
-  // Derived state for current restaurant orders
-  const orders = allOrders.filter(o => o.restaurantId === restaurantId)
+  // Derived state for current restaurant orders (if filtering needed, but we fetch filtered)
+  // const orders = allOrders.filter... <- REMOVED
+
 
   const [stats, setStats] = useState({
     totalMenuItems: 0,
@@ -173,65 +192,61 @@ export default function RestaurantAdminDashboard() {
   const [categoryForm, setCategoryForm] = useState<Partial<Category>>({})
   const [paymentMethodForm, setPaymentMethodForm] = useState<Partial<PaymentMethod>>({})
 
-  const handleSaveMenuItem = () => {
+  const handleSaveMenuItem = async () => {
     if (!menuItemForm.name || !menuItemForm.price || !menuItemForm.categoryId) {
       toast({ title: 'Validation Error', description: 'Please fill all required fields', variant: 'destructive' })
       return
     }
 
-    const category = categories.find(c => c.id === menuItemForm.categoryId)
-
-    if (editingMenuItem) {
-      updateMenuItem(editingMenuItem.id, {
-        ...menuItemForm,
-        categoryName: category?.name
-      })
-      toast({ title: 'Success', description: 'Menu item updated' })
-    } else {
-      addMenuItem({
-        id: crypto.randomUUID(),
-        restaurantId,
-        name: menuItemForm.name,
-        description: menuItemForm.description || '',
-        price: menuItemForm.price,
-        categoryId: menuItemForm.categoryId,
-        categoryName: category?.name,
-        isAvailable: true,
-        displayOrder: menuItems.length + 1,
-        image: menuItemForm.image,
-        isRecommended: menuItemForm.isRecommended,
-        isBestSeller: menuItemForm.isBestSeller
-      })
-      toast({ title: 'Success', description: 'Menu item added' })
-    }
-    setMenuItemDialogOpen(false)
-    setEditingMenuItem(null)
-    setMenuItemForm({})
-  }
-
-  const handleDeleteMenuItem = (id: string) => {
-    deleteMenuItem(id)
-    toast({ title: 'Deleted', description: 'Menu item removed' })
-  }
-
-  const fetchPaymentMethods = useCallback(async () => {
-    if (!restaurantId) return
     try {
-      const res = await fetch(`/api/restaurants/${restaurantId}/payment-methods`)
+      const payload = { ...menuItemForm, restaurantId }
+      let res
+
+      if (editingMenuItem) {
+        res = await fetch('/api/menu-items', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingMenuItem.id, ...payload })
+        })
+      } else {
+        res = await fetch('/api/menu-items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+      }
+
       const data = await res.json()
       if (data.success) {
-        setPaymentMethods(data.data)
-        // Also sync to global store so other tabs/components see it
-        updateRestaurant(restaurantId, { paymentMethods: data.data })
+        await fetchDashboardData()
+        setMenuItemDialogOpen(false)
+        setEditingMenuItem(null)
+        setMenuItemForm({})
+        toast({ title: 'Success', description: 'Menu item saved' })
+      } else {
+        throw new Error(data.error)
       }
     } catch (error) {
-      console.error('Failed to fetch payment methods', error)
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to save menu item' })
     }
-  }, [restaurantId, updateRestaurant])
+  }
 
-  useEffect(() => {
-    fetchPaymentMethods()
-  }, [fetchPaymentMethods])
+  const handleDeleteMenuItem = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this item?')) return
+    try {
+      const res = await fetch(`/api/menu-items?id=${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        await fetchDashboardData()
+        toast({ title: 'Deleted', description: 'Menu item removed' })
+      } else {
+        throw new Error('Failed')
+      }
+    } catch (error) {
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to delete menu item' })
+    }
+  }
+
+
 
   // Legacy mock init removed. Real data only.
 
@@ -1561,7 +1576,7 @@ function RestaurantSettingsForm({ restaurantId }: { restaurantId: string }) {
 
   const handleSave = async () => {
     try {
-      const res = await fetch('/api/restaurants', {
+      const res = await fetch(`/api/restaurants/${restaurant.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: restaurant.id, ...form })

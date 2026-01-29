@@ -1,77 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
 
-// GET /api/categories - Get categories
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const restaurantId = searchParams.get('restaurantId')
 
-    // Mock data for demo
-    const categories = [
-      {
-        id: '1',
-        name: 'Main Course',
-        description: 'Main dishes',
-        displayOrder: 1,
-        isActive: true
-      },
-      {
-        id: '2',
-        name: 'Appetizer',
-        description: 'Starters and snacks',
-        displayOrder: 2,
-        isActive: true
-      },
-      {
-        id: '3',
-        name: 'Beverage',
-        description: 'Drinks',
-        displayOrder: 3,
-        isActive: true
-      }
-    ]
+    const where: any = {}
+    if (restaurantId) where.restaurantId = restaurantId
 
-    return NextResponse.json({
-      success: true,
-      data: categories
+    const categories = await prisma.category.findMany({
+      where,
+      orderBy: { displayOrder: 'asc' }
     })
+
+    return NextResponse.json({ success: true, data: categories })
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch categories'
-    }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
   }
 }
 
-// POST /api/categories - Create a new category
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description } = body
+    const { name, restaurantId } = body
 
-    if (!name) {
-      return NextResponse.json({
-        success: false,
-        error: 'Name is required'
-      }, { status: 400 })
-    }
+    const count = await prisma.category.count({ where: { restaurantId } })
 
-    const newCategory = {
-      id: crypto.randomUUID(),
-      name,
-      description,
-      displayOrder: 0,
-      isActive: true
-    }
+    const newCategory = await prisma.category.create({
+      data: {
+        name,
+        restaurantId,
+        displayOrder: count + 1
+      }
+    })
 
-    return NextResponse.json({
-      success: true,
-      data: newCategory
-    }, { status: 201 })
+    return NextResponse.json({ success: true, data: newCategory }, { status: 201 })
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to create category'
-    }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id, ...updates } = body
+
+    const updated = await prisma.category.update({
+      where: { id },
+      data: updates
+    })
+    return NextResponse.json({ success: true, data: updated })
+  } catch (error) {
+    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const id = searchParams.get('id')
+  if (!id) return NextResponse.json({ success: false }, { status: 400 })
+
+  try {
+    await prisma.category.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return NextResponse.json({ success: false }, { status: 500 })
   }
 }
