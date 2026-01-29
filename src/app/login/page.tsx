@@ -89,7 +89,6 @@ export default function RestaurantAdminLoginPage() {
                     restaurant: userRestaurant
                 }
 
-                localStorage.setItem('user', JSON.stringify(userToStore))
                 setUser(userToStore as any)
                 toast({ title: 'Login Berhasil', description: `Selamat datang, ${foundUser.name}` })
                 router.push('/') // Redirect to home which handles dashboard rendering

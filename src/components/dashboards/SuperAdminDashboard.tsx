@@ -1017,6 +1017,13 @@ export default function SuperAdminDashboard() {
                     ))}
                   </div>
                 </ScrollArea>
+                <div className="p-4 border-t bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Showing {filteredRestaurants.length} of {restaurants.length} restaurants</span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled>Previous</Button>
+                    <Button variant="outline" size="sm" disabled>Next</Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

@@ -87,7 +87,6 @@ export default function AdminLoginPage() {
                 return
             }
 
-            localStorage.setItem('user', JSON.stringify(userData))
             setUser(userData)
             toast({ title: 'Welcome back!', description: `Logged in as ${userData.name}` })
 

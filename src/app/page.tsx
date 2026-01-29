@@ -120,7 +120,6 @@ export default function Home() {
       }
 
       const userData = data.user
-      localStorage.setItem('user', JSON.stringify(userData))
       setUser(userData)
       setShowDashboard(true)
       toast({ title: 'Selamat Datang!', description: `Login sebagai ${userData.name}` })
