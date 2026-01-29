@@ -233,6 +233,7 @@ export default function SuperAdminDashboard() {
 
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false)
   const [notificationMessage, setNotificationMessage] = useState('')
+  const [notificationChannel, setNotificationChannel] = useState<'EMAIL' | 'WHATSAPP'>('EMAIL')
   const [selectedRestoForAction, setSelectedRestoForAction] = useState<{ id: string, status: 'ACTIVE' | 'REJECTED', name: string } | null>(null)
 
   const handleToggleRestaurantStatus = (id: string, isActive: boolean, restaurantName: string) => {
@@ -241,6 +242,7 @@ export default function SuperAdminDashboard() {
     setNotificationMessage(isActive
       ? `Selamat! Restoran ${restaurantName} telah disetujui. Silakan login untuk melengkapi profil Anda.`
       : `Mohon maaf, registrasi restoran ${restaurantName} belum dapat kami setujui saat ini.`)
+    setNotificationChannel('EMAIL') // Default
     setNotificationDialogOpen(true)
   }
 
@@ -262,7 +264,7 @@ export default function SuperAdminDashboard() {
         updateRestaurantStatus(selectedRestoForAction.id, selectedRestoForAction.status) // Update local store too
         toast({
           title: 'Status Updated',
-          description: `Restaurant ${selectedRestoForAction.status}. Notification sent (Simulated).`
+          description: `Restaurant ${selectedRestoForAction.status}. Notified via ${notificationChannel} (Simulated).`
         })
       } else {
         throw new Error(data.error)
@@ -325,7 +327,7 @@ export default function SuperAdminDashboard() {
     setQrCodeDialogOpen(true)
   }
 
-  const handlePasswordReset = () => {
+  const handlePasswordReset = async () => { // Async
     if (!resetEmail) {
       toast({ title: 'Error', description: 'Email is required', variant: 'destructive' })
       return
@@ -339,12 +341,38 @@ export default function SuperAdminDashboard() {
       return
     }
 
-    resetPassword(resetEmail, newPassword)
-    toast({ title: 'Success', description: 'Password reset successfully' })
-    setPasswordResetOpen(false)
-    setResetEmail('')
-    setNewPassword('')
-    setConfirmPassword('')
+    // Find user ID by email
+    const targetUser = users.find(u => u.email.toLowerCase() === resetEmail.toLowerCase())
+    if (!targetUser) {
+      toast({ title: 'Error', description: 'User not found in local records', variant: 'destructive' })
+      return
+    }
+
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: targetUser.id,
+          password: newPassword
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        // Update local store?
+        // Ideally we should re-fetch users or update local user
+        resetPassword(resetEmail, newPassword) // Keep local store in sync
+        toast({ title: 'Success', description: 'Password reset successfully (DB & Local)' })
+        setPasswordResetOpen(false)
+        setResetEmail('')
+        setNewPassword('')
+        setConfirmPassword('')
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' })
+    }
   }
 
   const handleLogout = () => {
@@ -658,17 +686,38 @@ export default function SuperAdminDashboard() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setUserDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => {
+            <Button onClick={async () => {
               if (editingUserData) {
-                updateUser(editingUserData.id, {
-                  name: editingUserData.name,
-                  email: editingUserData.email,
-                  role: editingUserData.role as any,
-                  password: editingUserData.password || undefined
-                })
-                toast({ title: 'Success', description: 'User updated successfully' })
-                setUserDialogOpen(false)
-                setEditingUserData(null)
+                try {
+                  const res = await fetch('/api/users', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      id: editingUserData.id,
+                      name: editingUserData.name,
+                      email: editingUserData.email,
+                      role: editingUserData.role,
+                      password: editingUserData.password || undefined
+                    })
+                  })
+                  const data = await res.json()
+
+                  if (data.success) {
+                    updateUser(editingUserData.id, {
+                      name: editingUserData.name,
+                      email: editingUserData.email,
+                      role: editingUserData.role as any,
+                      password: editingUserData.password || undefined
+                    })
+                    toast({ title: 'Success', description: 'User updated successfully' })
+                    setUserDialogOpen(false)
+                    setEditingUserData(null)
+                  } else {
+                    throw new Error(data.error)
+                  }
+                } catch (err: any) {
+                  toast({ title: 'Error', description: 'Failed to update user: ' + err.message, variant: 'destructive' })
+                }
               }
             }}>Save Changes</Button>
           </DialogFooter>
@@ -686,7 +735,32 @@ export default function SuperAdminDashboard() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Message (Email/WhatsApp)</Label>
+              <Label>Notification Channel</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="channel"
+                    checked={notificationChannel === 'EMAIL'}
+                    onChange={() => setNotificationChannel('EMAIL')}
+                    className="w-4 h-4 text-emerald-600"
+                  />
+                  <span>Email</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="channel"
+                    checked={notificationChannel === 'WHATSAPP'}
+                    onChange={() => setNotificationChannel('WHATSAPP')}
+                    className="w-4 h-4 text-emerald-600"
+                  />
+                  <span>WhatsApp</span>
+                </label>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Message</Label>
               <textarea
                 className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={notificationMessage}

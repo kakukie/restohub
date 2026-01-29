@@ -20,6 +20,22 @@ async function main() {
     })
     console.log({ superAdmin })
 
+    // 1b. Create Permanent Real Super Admin
+    const realSuperAdminPassword = await bcrypt.hash('superadmin123', 10)
+    const realSuperAdmin = await prisma.user.upsert({
+        where: { email: 'super@meenuin.biz.id' },
+        update: {
+            password: realSuperAdminPassword // Ensure password is set/reset on seed
+        },
+        create: {
+            name: 'Super Admin Utama',
+            email: 'super@meenuin.biz.id',
+            password: realSuperAdminPassword,
+            role: 'SUPER_ADMIN',
+        },
+    })
+    console.log({ realSuperAdmin })
+
     // 2. Create Demo Restaurant Admin
     const restoPassword = await bcrypt.hash('resto123', 10)
     const restoAdmin = await prisma.user.upsert({
