@@ -51,23 +51,32 @@ export default function SuperAdminDashboard() {
   // Use store restaurants 
   const restaurants = allRestaurants
 
-  const { setRestaurants } = useAppStore()
+  const { setRestaurants, setUsers } = useAppStore()
 
   // Fetch data on mount
   useEffect(() => {
-    const fetchRestaurants = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/api/restaurants')
-        const data = await res.json()
-        if (data.success) {
-          setRestaurants(data.data)
+        // Fetch Restaurants
+        const resResto = await fetch('/api/restaurants')
+        const dataResto = await resResto.json()
+        if (dataResto.success) {
+          setRestaurants(dataResto.data)
         }
+
+        // Fetch Users (Admins)
+        const resUsers = await fetch('/api/users')
+        const dataUsers = await resUsers.json()
+        if (dataUsers.success) {
+          setUsers(dataUsers.data)
+        }
+
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error)
       }
     }
-    fetchRestaurants()
-  }, [setRestaurants])
+    fetchData()
+  }, [setRestaurants, setUsers])
 
   // State definitions
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null)

@@ -13,7 +13,7 @@
     "db:reset": "prisma migrate reset"
   },
   "prisma": {
-    "seed": "bun prisma/seed.ts"
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

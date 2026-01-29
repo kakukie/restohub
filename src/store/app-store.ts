@@ -142,6 +142,7 @@ interface AppState {
 
   // Data Actions
   setRestaurants: (restaurants: Restaurant[]) => void
+  setUsers: (users: User[]) => void
   addRestaurant: (resto: Restaurant) => void
   updateRestaurant: (id: string, updates: Partial<Restaurant>) => void
   addOrder: (order: Order) => void
@@ -404,6 +405,7 @@ export const useAppStore = create<AppState>()(
       getRestaurantBySlug: (slug) => get().restaurants.find(r => r.slug === slug),
 
       setRestaurants: (restaurants) => set({ restaurants }),
+      setUsers: (users) => set({ users }),
 
       addUser: (user) => set((state) => ({ users: [...state.users, user] })),
 
