@@ -173,7 +173,7 @@ const INITIAL_USERS: User[] = [
   {
     id: 'u1',
     name: 'Manager Meenuin',
-    email: 'manager@meenuin.com',
+    email: 'manager@meenuin.biz.id',
     role: 'SUPER_ADMIN',
     password: 'manager123'
   },
@@ -347,7 +347,7 @@ export const useAppStore = create<AppState>()(
       subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS,
       helpdeskSettings: {
         whatsapp: '6281234567890',
-        email: 'support@meenuin.com'
+        email: 'support@meenuin.biz.id'
       },
       systemAnnouncements: [],
 

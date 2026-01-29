@@ -235,9 +235,7 @@ export default function Home() {
       <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-emerald-600 p-2 rounded-lg">
-              <Utensils className="h-5 w-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">
               Meenuin
             </span>

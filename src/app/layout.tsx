@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Meenuin - Digital Restaurant Platform",
     description: "Comprehensive restaurant management platform for modern businesses",
-    url: "https://meenuin.com",
+    url: "https://meenuin.biz.id",
     siteName: "Meenuin",
     type: "website",
   },

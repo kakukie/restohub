@@ -125,7 +125,7 @@ export default function AdminLoginPage() {
                         <Label className="text-gray-300">Email</Label>
                         <Input
                             type="email"
-                            placeholder="admin@meenuin.com"
+                            placeholder="admin@meenuin.biz.id"
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-500"
