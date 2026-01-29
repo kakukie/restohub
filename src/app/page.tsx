@@ -136,6 +136,7 @@ export default function Home() {
       const userData = data.user
       localStorage.setItem('user', JSON.stringify(userData))
       setUser(userData)
+      setShowDashboard(true)
       toast({ title: 'Selamat Datang!', description: `Login sebagai ${userData.name}` })
 
     } catch (error: any) {
@@ -245,30 +246,7 @@ export default function Home() {
             <a href="#features" className="hover:text-emerald-600">Fitur</a>
             <a href="#pricing" className="hover:text-emerald-600">Harga</a>
             <a href="#contact" className="hover:text-emerald-600">Contact</a>
-            {user && (
-              <Button
-                variant="outline"
-                className="ml-2 text-emerald-600 border-emerald-600 hover:bg-emerald-50"
-                onClick={() => {
-                  if (user.role === 'SUPER_ADMIN') window.location.href = '/admin'
-                  // For others, we might render dashboard dynamically or redirect to a dedicated user page if we had one. 
-                  // Since user wanted "no redirect", we just render dashboard component conditionally via state or separate route? 
-                  // Re-reading logic: User said "login with super admin ... url remains /admin". 
-                  // "When login with resto account ... no redirect to super admin page".
-                  // Current implementation renders dashboard on `/` if logged in. User wants to STOP this auto-render on `/`.
-                  // So we simply removed the auto-render block below. 
-                  // BUT we need a way to VIEW the dashboard now.
-                  // I will make this button toggle a "viewDashboard" state OR just redirect to a hypothetical /dashboard (but we don't have that route file yet except admin).
-                  // Actually, for now, let's make this button set a query param or state to show dashboard? 
-                  // Simpler: If user is logged in, this button opens the dashboard.
-                  // But since I'm removing the auto-render block, `Home` component will just show landing page.
-                  // I should add a state `showDashboard` initialized to `false`.
-                  setShowDashboard(true)
-                }}
-              >
-                Dashboard
-              </Button>
-            )}
+            <a href="#contact" className="hover:text-emerald-600">Contact</a>
           </div>
         </div>
       </nav>
@@ -418,7 +396,7 @@ export default function Home() {
               <TabsContent value="register">
                 <div className="p-6 pt-4 space-y-4">
                   <div className="space-y-2">
-                    <Label>Nama Restoran</Label>
+                    <Label>Nama Restoran <span className="text-red-500">*</span></Label>
                     <Input
                       name="name"
                       placeholder="Warung Makan Enak"
@@ -428,7 +406,7 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Email</Label>
+                    <Label>Email <span className="text-red-500">*</span></Label>
                     <Input
                       name="email"
                       placeholder="owner@restoran.com"
@@ -438,7 +416,7 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Nomor HP</Label>
+                    <Label>Nomor HP <span className="text-red-500">*</span></Label>
                     <Input
                       name="phone"
                       placeholder="0812..."
@@ -448,7 +426,7 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Password</Label>
+                    <Label>Password <span className="text-red-500">*</span></Label>
                     <Input
                       type="password"
                       name="password"
@@ -456,6 +434,7 @@ export default function Home() {
                       value={formData.password}
                       onChange={handleInputChange}
                     />
+                    <p className="text-xs text-slate-500">Minimal 8 karakter kombinasi huruf, angka, dan simbol.</p>
                   </div>
                   <div className="space-y-2">
                     <Label>Pilih Paket</Label>
