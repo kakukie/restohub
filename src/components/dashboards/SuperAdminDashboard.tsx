@@ -231,12 +231,48 @@ export default function SuperAdminDashboard() {
     toast({ title: 'Notice', description: 'Deletion is disabled in this demo.' })
   }
 
-  const handleToggleRestaurantStatus = (id: string, isActive: boolean) => {
-    updateRestaurantStatus(id, isActive ? 'ACTIVE' : 'REJECTED')
-    toast({
-      title: 'Success',
-      description: `Restaurant status updated`
-    })
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false)
+  const [notificationMessage, setNotificationMessage] = useState('')
+  const [selectedRestoForAction, setSelectedRestoForAction] = useState<{ id: string, status: 'ACTIVE' | 'REJECTED', name: string } | null>(null)
+
+  const handleToggleRestaurantStatus = (id: string, isActive: boolean, restaurantName: string) => {
+    // Open notification dialog first
+    setSelectedRestoForAction({ id, status: isActive ? 'ACTIVE' : 'REJECTED', name: restaurantName })
+    setNotificationMessage(isActive
+      ? `Selamat! Restoran ${restaurantName} telah disetujui. Silakan login untuk melengkapi profil Anda.`
+      : `Mohon maaf, registrasi restoran ${restaurantName} belum dapat kami setujui saat ini.`)
+    setNotificationDialogOpen(true)
+  }
+
+  const confirmStatusUpdate = async () => {
+    if (!selectedRestoForAction) return
+
+    try {
+      const res = await fetch('/api/restaurants', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedRestoForAction.id,
+          status: selectedRestoForAction.status
+        })
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        updateRestaurantStatus(selectedRestoForAction.id, selectedRestoForAction.status) // Update local store too
+        toast({
+          title: 'Status Updated',
+          description: `Restaurant ${selectedRestoForAction.status}. Notification sent (Simulated).`
+        })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+    } finally {
+      setNotificationDialogOpen(false)
+      setSelectedRestoForAction(null)
+    }
   }
 
   const handleOpenSubscriptionDialog = (restaurant: Restaurant) => {
@@ -639,6 +675,32 @@ export default function SuperAdminDashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Notification Dialog */}
+      <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Status & Notify</DialogTitle>
+            <DialogDescription>
+              Send a notification to <b>{selectedRestoForAction?.name}</b> regarding this status change ({selectedRestoForAction?.status}).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Message (Email/WhatsApp)</Label>
+              <textarea
+                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={notificationMessage}
+                onChange={(e) => setNotificationMessage(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotificationDialogOpen(false)}>Cancel</Button>
+            <Button onClick={confirmStatusUpdate}>Send & Update</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
@@ -762,8 +824,8 @@ export default function SuperAdminDashboard() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => updateRestaurantStatus(restaurant.id, 'REJECTED')}>Reject</Button>
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => updateRestaurantStatus(restaurant.id, 'ACTIVE')}>Approve & Activate</Button>
+                          <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleToggleRestaurantStatus(restaurant.id, false, restaurant.name)}>Reject</Button>
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleToggleRestaurantStatus(restaurant.id, true, restaurant.name)}>Approve & Activate</Button>
                         </div>
                       </div>
                     ))}

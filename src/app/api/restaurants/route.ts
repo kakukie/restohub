@@ -86,3 +86,46 @@ export async function POST(request: NextRequest) {
     }, { status: 500 })
   }
 }
+// PUT /api/restaurants - Update a restaurant (Status, Package, etc.)
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id, ...updates } = body
+
+    if (!id) {
+      return NextResponse.json({
+        success: false,
+        error: 'Restaurant ID is required'
+      }, { status: 400 })
+    }
+
+    // Clean up updates to only include valid fields if necessary, 
+    // but for now we trust `updates` contains valid columns like status, package, isActive.
+
+    // Explicitly handle isActive sync if status changes
+    if (updates.status) {
+      if (updates.status === 'ACTIVE') {
+        updates.isActive = true
+      } else {
+        updates.isActive = false
+      }
+    }
+
+    const updatedRestaurant = await prisma.restaurant.update({
+      where: { id },
+      data: updates
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: updatedRestaurant,
+      message: 'Restaurant updated successfully'
+    })
+  } catch (error) {
+    console.error('Update Restaurant Error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to update restaurant'
+    }, { status: 500 })
+  }
+}

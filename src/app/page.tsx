@@ -78,7 +78,11 @@ export default function Home() {
   }
 
   // Dashboard Routing
-  if (user) {
+  // Dashboard View State
+  const [showDashboard, setShowDashboard] = useState(false)
+
+  // Handlers for Dashboard Logic
+  if (showDashboard && user) {
     switch (user.role) {
       case 'CUSTOMER':
         return <CustomerDashboard />
@@ -86,17 +90,6 @@ export default function Home() {
         return <RestaurantAdminDashboard />
       case 'SUPER_ADMIN':
         return <SuperAdminDashboard />
-      default:
-        return (
-          <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-            <h1 className="text-2xl font-bold text-red-500">Error: Invalid User Role</h1>
-            <p>Your account has an unknown role: {user.role}</p>
-            <Button onClick={() => {
-              localStorage.removeItem('user')
-              window.location.reload()
-            }}>Logout & Reset</Button>
-          </div>
-        )
     }
   }
 
@@ -246,10 +239,34 @@ export default function Home() {
               Meenuin
             </span>
           </div>
-          <div className="flex gap-4 text-sm font-medium text-gray-600">
+          <div className="flex gap-4 text-sm font-medium text-gray-600 items-center">
             <a href="#features" className="hover:text-emerald-600">Fitur</a>
             <a href="#pricing" className="hover:text-emerald-600">Harga</a>
             <a href="#contact" className="hover:text-emerald-600">Contact</a>
+            {user && (
+              <Button
+                variant="outline"
+                className="ml-2 text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                onClick={() => {
+                  if (user.role === 'SUPER_ADMIN') window.location.href = '/admin'
+                  // For others, we might render dashboard dynamically or redirect to a dedicated user page if we had one. 
+                  // Since user wanted "no redirect", we just render dashboard component conditionally via state or separate route? 
+                  // Re-reading logic: User said "login with super admin ... url remains /admin". 
+                  // "When login with resto account ... no redirect to super admin page".
+                  // Current implementation renders dashboard on `/` if logged in. User wants to STOP this auto-render on `/`.
+                  // So we simply removed the auto-render block below. 
+                  // BUT we need a way to VIEW the dashboard now.
+                  // I will make this button toggle a "viewDashboard" state OR just redirect to a hypothetical /dashboard (but we don't have that route file yet except admin).
+                  // Actually, for now, let's make this button set a query param or state to show dashboard? 
+                  // Simpler: If user is logged in, this button opens the dashboard.
+                  // But since I'm removing the auto-render block, `Home` component will just show landing page.
+                  // I should add a state `showDashboard` initialized to `false`.
+                  setShowDashboard(true)
+                }}
+              >
+                Dashboard
+              </Button>
+            )}
           </div>
         </div>
       </nav>
