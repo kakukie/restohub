@@ -30,18 +30,9 @@ export default function AdminLoginPage() {
         // useAppStore.persist.rehydrate() // Auto-hydration handles this
         generateCaptcha()
 
-        const storedUser = localStorage.getItem('user')
-        if (storedUser) {
-            try {
-                const userData = JSON.parse(storedUser)
-                if (userData.role === 'SUPER_ADMIN') {
-                    setUser(userData)
-                    // No local state to set like showDashboard because this component *is* the page.
-                    // But maybe we need to ensure the render cycle picks it up.
-                }
-            } catch (error) {
-                console.error('Failed to parse stored user:', error)
-            }
+        // Check if user is already logged in (hydrated from sessionStorage)
+        if (user && user.role === 'SUPER_ADMIN') {
+            // Already handled by the return statement check below
         }
     }, [setUser])
 

@@ -168,125 +168,18 @@ interface AppState {
   clearAnnouncement: () => void
 }
 
-// Initial Mock Data
-const INITIAL_USERS: User[] = [
-  {
-    id: 'u1',
-    name: 'Manager Meenuin',
-    email: 'manager@meenuin.biz.id',
-    role: 'SUPER_ADMIN',
-    password: 'manager123'
-  },
-  {
-    id: 'u2',
-    name: 'Resto Admin 1',
-    email: 'resto@admin.com',
-    role: 'RESTAURANT_ADMIN',
-    restaurantId: '1',
-    password: 'resto123'
-  },
-  {
-    id: 'u2-alt',
-    name: 'Resto Admin (Alt)',
-    email: 'u@resto.com',
-    role: 'RESTAURANT_ADMIN',
-    restaurantId: '1',
-    password: 'password'
-  },
-  {
-    id: 'guest-user',
-    name: 'Guest User',
-    email: 'guest@temp.com',
-    role: 'CUSTOMER',
-    password: ''
-  },
-  {
-    id: 'u3',
-    name: 'Customer Demo',
-    email: 'customer@demo.com',
-    role: 'CUSTOMER',
-    password: 'customer123'
-  },
-  {
-    id: 'u4',
-    name: 'Sushi Admin',
-    email: 'sushi@admin.com',
-    role: 'RESTAURANT_ADMIN',
-    restaurantId: '2',
-    password: 'sushi123'
-  },
-  {
-    id: 'u5',
-    name: 'Pizza Admin',
-    email: 'pizza@admin.com',
-    role: 'RESTAURANT_ADMIN',
-    restaurantId: '3',
-    password: 'pizza123'
-  }
-]
+// Mock data removed in favor of API
+const INITIAL_USERS: User[] = []
+const INITIAL_RESTAURANTS: Restaurant[] = []
+const INITIAL_MENU_ITEMS: MenuItem[] = []
+// Keep plans/categories as defaults if needed, but safe to clear or keep.
+// User requested "clean demo data", so let's keep basic config (Plans/Cats) but remove transactional data.
 
-const INITIAL_RESTAURANTS: Restaurant[] = [
-  {
-    id: '1',
-    name: 'Warung Rasa Nusantara',
-    description: 'Authentic Indonesian cuisine',
-    address: 'Jl. Merdeka No. 1, Jakarta',
-    phone: '08123456781',
-    package: 'PRO',
-    logo: '/restaurant-logo-indo.png',
-    rating: 4.8,
-    adminEmail: 'resto@admin.com',
-    status: 'ACTIVE',
-    slug: 'warung-rasa-nusantara'
-  },
-  {
-    id: '2',
-    name: 'Sushi Master',
-    description: 'Fresh Japanese Sushi',
-    address: 'Jl. Sudirman No. 55, Jakarta',
-    phone: '08123456782',
-    package: 'ENTERPRISE',
-    logo: '/restaurant-logo-japanese.png',
-    rating: 4.6,
-    adminEmail: 'sushi@admin.com',
-    status: 'ACTIVE',
-    slug: 'sushi-master'
-  },
-  {
-    id: '3',
-    name: 'Pizza Paradise',
-    description: 'Best Italian Pizza',
-    address: 'Jl. Thamrin No. 99, Jakarta',
-    phone: '08123456783',
-    package: 'BASIC',
-    logo: '/restaurant-logo-pizza.png',
-    rating: 4.7,
-    adminEmail: 'pizza@admin.com',
-    status: 'ACTIVE',
-    slug: 'pizza-paradise'
-  }
-]
+
+
 
 // Initial Mock Data
-const INITIAL_MENU_ITEMS: MenuItem[] = [
-  // Restaurant 1: Warung Rasa Nusantara
-  { id: '1', restaurantId: '1', name: 'Nasi Goreng Spesial', description: 'Fried rice with special spices', price: 35000, isAvailable: true, displayOrder: 1, categoryId: '1', categoryName: 'Main Course' },
-  { id: '2', restaurantId: '1', name: 'Sate Ayam', description: 'Grilled chicken skewers', price: 25000, isAvailable: true, displayOrder: 2, categoryId: '2', categoryName: 'Appetizer' },
-  { id: '3', restaurantId: '1', name: 'Rendang', description: 'Slow-cooked beef', price: 45000, isAvailable: true, displayOrder: 3, categoryId: '1', categoryName: 'Main Course' },
-  { id: '4', restaurantId: '1', name: 'Es Teh Manis', description: 'Sweet iced tea', price: 8000, isAvailable: true, displayOrder: 4, categoryId: '3', categoryName: 'Beverage' },
 
-  // Restaurant 2: Sushi Master
-  { id: '5', restaurantId: '2', name: 'Salmon Sashimi', description: 'Fresh Norwegian salmon', price: 85000, isAvailable: true, displayOrder: 1, categoryId: '1', categoryName: 'Main Course' },
-  { id: '6', restaurantId: '2', name: 'California Roll', description: 'Crab, avocado, cucumber', price: 45000, isAvailable: true, displayOrder: 2, categoryId: '2', categoryName: 'Appetizer' },
-  { id: '7', restaurantId: '2', name: 'Tuna Nigiri', description: 'Premium tuna sushi', price: 65000, isAvailable: true, displayOrder: 3, categoryId: '1', categoryName: 'Main Course' },
-  { id: '8', restaurantId: '2', name: 'Green Tea', description: 'Traditional Japanese tea', price: 15000, isAvailable: true, displayOrder: 4, categoryId: '3', categoryName: 'Beverage' },
-
-  // Restaurant 3: Pizza Paradise
-  { id: '9', restaurantId: '3', name: 'Margherita Pizza', description: 'Classic tomato and mozzarella', price: 75000, isAvailable: true, displayOrder: 1, categoryId: '1', categoryName: 'Main Course' },
-  { id: '10', restaurantId: '3', name: 'Pepperoni Pizza', description: 'Spicy pepperoni slices', price: 85000, isAvailable: true, displayOrder: 2, categoryId: '1', categoryName: 'Main Course' },
-  { id: '11', restaurantId: '3', name: 'Garlic Bread', description: 'Toasted bread with garlic butter', price: 25000, isAvailable: true, displayOrder: 3, categoryId: '2', categoryName: 'Appetizer' },
-  { id: '12', restaurantId: '3', name: 'Coca Cola', description: 'Chilled soft drink', price: 12000, isAvailable: true, displayOrder: 4, categoryId: '3', categoryName: 'Beverage' }
-]
 
 const INITIAL_CATEGORIES: Category[] = [
   { id: '1', name: 'Main Course', description: 'Main dishes', displayOrder: 1, isActive: true },
@@ -357,7 +250,7 @@ export const useAppStore = create<AppState>()(
       logout: () => {
         set({ user: null, cart: [], selectedRestaurant: null })
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('user') // Clear legacy key
+          // sessionStorage handles itself
         }
       },
 
@@ -506,6 +399,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'app-storage',
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         user: state.user,
         users: state.users,

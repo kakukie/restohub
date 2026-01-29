@@ -66,29 +66,12 @@ export default function Home() {
     // useAppStore.persist.rehydrate() // Auto-hydration handles this
     generateCaptcha()
 
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        setUser(userData)
-        setShowDashboard(true)
-        setShowDashboard(true)
-
-        // [REAL APP] Fetch latest data from API
-        // Fetch restaurants (for Super Admin or general catalog)
-        fetch('/api/restaurants')
-          .then(res => res.json())
-          .then(data => {
-            if (data.success && data.data) {
-              useAppStore.getState().setRestaurants(data.data)
-            }
-          })
-          .catch(err => console.error('Failed to fetch restaurants:', err))
-
-      } catch (error) {
-        console.error('Failed to parse stored user:', error)
-        localStorage.removeItem('user')
-      }
+    // Check active session from store (handled by sessionStorage)
+    if (user) {
+      setShowDashboard(true)
+    } else {
+      // Legacy check cleanup or specific handle if needed
+      // localStorage.removeItem('user') 
     }
   }, [setUser])
 
