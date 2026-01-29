@@ -244,7 +244,6 @@ export default function Home() {
             <a href="#features" className="hover:text-emerald-600">Fitur</a>
             <a href="#pricing" className="hover:text-emerald-600">Harga</a>
             <a href="#contact" className="hover:text-emerald-600">Contact</a>
-            <a href="#contact" className="hover:text-emerald-600">Contact</a>
           </div>
         </div>
       </nav>

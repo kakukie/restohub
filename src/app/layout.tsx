@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   keywords: ["Meenuin", "Restaurant", "SaaS", "Menu Management", "QRIS", "E-wallet", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui"],
   authors: [{ name: "Meenuin Team" }],
   icons: {
-    icon: "/logo.svg",
+    icon: "/favicon.png?v=5",
   },
   openGraph: {
     title: "Meenuin - Digital Restaurant Platform",
