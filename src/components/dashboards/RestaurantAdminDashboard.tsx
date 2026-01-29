@@ -266,7 +266,7 @@ export default function RestaurantAdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        await fetchPaymentMethods()
+        await fetchDashboardData()
         setPaymentMethodDialogOpen(false)
         setPaymentMethodForm({})
         toast({ title: 'Success', description: 'Payment method saved' })
@@ -285,7 +285,7 @@ export default function RestaurantAdminDashboard() {
         method: 'DELETE'
       })
       if (res.ok) {
-        await fetchPaymentMethods()
+        await fetchDashboardData()
         toast({ title: 'Deleted', description: 'Payment method removed' })
       }
     } catch (error) {
@@ -316,30 +316,74 @@ export default function RestaurantAdminDashboard() {
     }
   }
 
-  const handleSaveCategory = () => {
+  const handleSaveCategory = async () => {
     if (!categoryForm.name) return
 
-    if (editingCategory) {
-      updateCategory(editingCategory.id, categoryForm)
-      toast({ title: 'Success', description: 'Category updated' })
-    } else {
-      addCategory({
-        id: crypto.randomUUID(),
-        name: categoryForm.name,
-        description: categoryForm.description,
-        displayOrder: categories.length + 1,
-        isActive: true
+    try {
+      if (editingCategory) {
+        // Update existing category
+        const res = await fetch(`/api/categories`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingCategory.id, ...categoryForm })
+        })
+        const data = await res.json()
+        if (data.success) {
+          toast({ title: 'Success', description: 'Category updated' })
+          await fetchDashboardData() // Refresh data
+        } else {
+          throw new Error(data.error)
+        }
+      } else {
+        // Create new category
+        const res = await fetch(`/api/categories`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: categoryForm.name,
+            description: categoryForm.description,
+            restaurantId
+          })
+        })
+        const data = await res.json()
+        if (data.success) {
+          toast({ title: 'Success', description: 'Category added' })
+          await fetchDashboardData() // Refresh data
+        } else {
+          throw new Error(data.error)
+        }
+      }
+      setCategoryDialogOpen(false)
+      setEditingCategory(null)
+      setCategoryForm({})
+    } catch (error) {
+      toast({
+        title: 'Error',
+        variant: 'destructive',
+        description: 'Failed to save category'
       })
-      toast({ title: 'Success', description: 'Category added' })
     }
-    setCategoryDialogOpen(false)
-    setEditingCategory(null)
-    setCategoryForm({})
   }
 
-  const handleDeleteCategory = (id: string) => {
-    deleteCategory(id)
-    toast({ title: 'Deleted', description: 'Category removed' })
+  const handleDeleteCategory = async (id: string) => {
+    try {
+      const res = await fetch(`/api/categories?id=${id}`, {
+        method: 'DELETE'
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Deleted', description: 'Category removed' })
+        await fetchDashboardData() // Refresh data
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        variant: 'destructive',
+        description: 'Failed to delete category'
+      })
+    }
   }
 
   // ... (keeping other handlers)

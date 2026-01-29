@@ -61,25 +61,38 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Mock restaurant creation
-    const newRestaurant = {
-      id: crypto.randomUUID(),
-      name,
-      description,
-      address,
-      phone,
-      email,
-      isActive: true,
-      totalMenuItems: 0,
-      totalOrders: 0,
-      totalRevenue: 0
-    }
+    // Generate slug from name
+    const slug = name.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+    // Create restaurant in database (adminId will be set when admin is created/linked)
+    const newRestaurant = await prisma.restaurant.create({
+      data: {
+        name,
+        slug,
+        description: description || '',
+        address: address || '',
+        phone: phone || '',
+        email: email || '',
+        isActive: true,
+        status: 'ACTIVE',
+        package: 'BASIC',
+        adminId: '' // Temporary - will be updated when admin is created
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      data: newRestaurant
+      data: {
+        ...newRestaurant,
+        totalMenuItems: 0,
+        totalOrders: 0,
+        totalRevenue: 0
+      }
     }, { status: 201 })
   } catch (error) {
+    console.error('Create Restaurant Error:', error)
     return NextResponse.json({
       success: false,
       error: 'Failed to create restaurant'
