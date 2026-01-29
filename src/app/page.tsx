@@ -184,10 +184,14 @@ export default function Home() {
 
       toast({
         title: 'Registrasi Berhasil!',
-        description: 'Akun Anda telah dibuat. Silakan login.',
+        description: 'Akun Anda telah dibuat dan menunggu persetujuan Admin. Silakan cek email Anda secara berkala.',
+        duration: 5000,
       })
 
-      setActiveTab('login')
+      // setActiveTab('login') // Optional: Keep user on register tab or switch to login? 
+      // User request: "notif berhasil registrasi dan menunggu approval"
+      // Let's keep them on the form but clear it, so they know they are done.
+
       setFormData({ name: '', email: '', phone: '', role: 'RESTAURANT_ADMIN', password: '', plan: 'FREE_TRIAL' })
       generateCaptcha()
 
@@ -536,7 +540,7 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-100 py-8 text-center text-slate-500 text-sm">
         <p>© 2026 Meenuin Technology. All rights reserved.</p>
         <p className="mt-2 text-xs font-mono text-emerald-600 bg-emerald-50 inline-block px-2 py-1 rounded">
-          v3.0.0 Meenuin • Build 2401
+          v3.0.0 Meenuin
         </p>
       </footer>
     </div>

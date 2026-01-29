@@ -42,6 +42,22 @@ export async function POST(request: NextRequest) {
         // If Super Admin, restaurantId might be irrelevant or we'll handle differently on frontend.
         const restaurant = user.restaurants[0]
 
+        // Check Restaurant Status
+        if (user.role === 'RESTAURANT_ADMIN' && restaurant) {
+            if (restaurant.status === 'PENDING') {
+                return NextResponse.json(
+                    { success: false, error: 'Account pending approval. Please wait for admin verification.' },
+                    { status: 403 }
+                )
+            }
+            if (restaurant.status === 'REJECTED' || !restaurant.isActive) {
+                return NextResponse.json(
+                    { success: false, error: 'Account is inactive or suspended.' },
+                    { status: 403 }
+                )
+            }
+        }
+
         // Construct response data
         const userData = {
             id: user.id,

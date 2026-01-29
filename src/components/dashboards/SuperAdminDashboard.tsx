@@ -51,6 +51,24 @@ export default function SuperAdminDashboard() {
   // Use store restaurants 
   const restaurants = allRestaurants
 
+  const { setRestaurants } = useAppStore()
+
+  // Fetch data on mount
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        const res = await fetch('/api/restaurants')
+        const data = await res.json()
+        if (data.success) {
+          setRestaurants(data.data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error)
+      }
+    }
+    fetchRestaurants()
+  }, [setRestaurants])
+
   // State definitions
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null)
   const [planDialogOpen, setPlanDialogOpen] = useState(false)
