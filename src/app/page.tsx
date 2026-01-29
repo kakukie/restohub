@@ -89,13 +89,7 @@ export default function Home() {
     }
   }, [setUser])
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-      </div>
-    )
-  }
+  /* Mounted check removed to allow server rendering and avoid hydration mismatch with loading state blocks */
 
   // Dashboard Routing
   // Dashboard View State
@@ -228,7 +222,7 @@ export default function Home() {
   /* Contact Section moved outside component */
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex flex-col font-sans text-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex flex-col font-sans text-slate-800" suppressHydrationWarning>
 
       {/* Navbar */}
       <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
