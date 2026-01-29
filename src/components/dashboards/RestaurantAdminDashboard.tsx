@@ -214,50 +214,104 @@ export default function RestaurantAdminDashboard() {
     toast({ title: 'Deleted', description: 'Menu item removed' })
   }
 
-  useEffect(() => {
-    // If no methods exist yet, initialize default mock data for demo, BUT save to store immediately
-    if (paymentMethods.length === 0 && currentRestaurant) {
-      const defaults: PaymentMethod[] = [
-        { id: '1', type: 'QRIS', isActive: true, merchantId: 'ID1234567890' },
-        { id: '2', type: 'GOPAY', isActive: true },
-        { id: '3', type: 'OVO', isActive: true },
-        { id: '4', type: 'DANA', isActive: false }
-      ]
-      updateRestaurantPaymentMethods(defaults)
+  const fetchPaymentMethods = useCallback(async () => {
+    if (!restaurantId) return
+    try {
+      const res = await fetch(`/api/restaurants/${restaurantId}/payment-methods`)
+      const data = await res.json()
+      if (data.success) {
+        setPaymentMethods(data.data)
+        // Also sync to global store so other tabs/components see it
+        updateRestaurant(restaurantId, { paymentMethods: data.data })
+      }
+    } catch (error) {
+      console.error('Failed to fetch payment methods', error)
     }
-  }, [])
+  }, [restaurantId, updateRestaurant])
 
-  const handleSavePaymentMethod = () => {
+  useEffect(() => {
+    fetchPaymentMethods()
+  }, [fetchPaymentMethods])
+
+  // Legacy mock init removed. Real data only.
+
+  const handleSavePaymentMethod = async () => {
     if (!paymentMethodForm.type) return
 
-    if (paymentMethodForm.id) {
-      const updated = paymentMethods.map(p => p.id === paymentMethodForm.id ? { ...p, ...paymentMethodForm } as PaymentMethod : p)
-      updateRestaurantPaymentMethods(updated)
-    } else {
-      const newMethod: PaymentMethod = {
-        id: crypto.randomUUID(),
-        type: paymentMethodForm.type,
-        isActive: true, // Auto-active new methods
-        merchantId: paymentMethodForm.merchantId,
-        qrCode: paymentMethodForm.qrCode // Explicitly include qrCode
+    try {
+      let res
+      if (paymentMethodForm.id) {
+        // Edit
+        res = await fetch(`/api/restaurants/${restaurantId}/payment-methods`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentId: paymentMethodForm.id,
+            ...paymentMethodForm
+          })
+        })
+      } else {
+        // Create
+        res = await fetch(`/api/restaurants/${restaurantId}/payment-methods`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...paymentMethodForm,
+            isActive: true
+          })
+        })
       }
-      updateRestaurantPaymentMethods([...paymentMethods, newMethod])
+
+      const data = await res.json()
+      if (data.success) {
+        await fetchPaymentMethods()
+        setPaymentMethodDialogOpen(false)
+        setPaymentMethodForm({})
+        toast({ title: 'Success', description: 'Payment method saved' })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to save payment method' })
     }
-    setPaymentMethodDialogOpen(false)
-    setPaymentMethodForm({})
-    toast({ title: 'Success', description: 'Payment method saved' })
   }
 
-  const handleDeletePaymentMethod = (id: string) => {
-    const updated = paymentMethods.filter(p => p.id !== id)
-    updateRestaurantPaymentMethods(updated)
-    toast({ title: 'Deleted', description: 'Payment method removed' })
+  const handleDeletePaymentMethod = async (id: string) => {
+    if (!confirm('Are you sure?')) return
+    try {
+      const res = await fetch(`/api/restaurants/${restaurantId}/payment-methods?paymentId=${id}`, {
+        method: 'DELETE'
+      })
+      if (res.ok) {
+        await fetchPaymentMethods()
+        toast({ title: 'Deleted', description: 'Payment method removed' })
+      }
+    } catch (error) {
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to delete' })
+    }
   }
 
-  const handleTogglePaymentMethod = (id: string, isActive: boolean) => {
-    const updated = paymentMethods.map(p => p.id === id ? { ...p, isActive } : p)
-    updateRestaurantPaymentMethods(updated)
-    toast({ title: 'Updated', description: `Payment method ${isActive ? 'enabled' : 'disabled'}` })
+  const handleTogglePaymentMethod = async (id: string, isActive: boolean) => {
+    // Optimistic update
+    const previous = [...paymentMethods]
+    setPaymentMethods(curr => curr.map(p => p.id === id ? { ...p, isActive } : p))
+
+    try {
+      const res = await fetch(`/api/restaurants/${restaurantId}/payment-methods`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: id,
+          isActive
+        })
+      })
+      if (!res.ok) throw new Error('Failed')
+      // No need to refetch full list if optimistic worked, but refetching ensures sync
+      // await fetchPaymentMethods() 
+    } catch (error) {
+      setPaymentMethods(previous)
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to update status' })
+    }
   }
 
   const handleSaveCategory = () => {
@@ -1505,9 +1559,24 @@ function RestaurantSettingsForm({ restaurantId }: { restaurantId: string }) {
 
   if (!restaurant) return <div>Restaurant not found</div>
 
-  const handleSave = () => {
-    updateRestaurant(restaurant.id, form)
-    toast({ title: 'Success', description: 'Restaurant settings updated' })
+  const handleSave = async () => {
+    try {
+      const res = await fetch('/api/restaurants', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: restaurant.id, ...form })
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        updateRestaurant(restaurant.id, form)
+        toast({ title: 'Success', description: 'Restaurant settings updated' })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to update settings' })
+    }
   }
 
   return (
