@@ -20,6 +20,7 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
         address: string;
         phone: string;
         logo?: string;
+        slug: string;
         theme: 'modern-emerald' | 'classic-orange' | 'minimal-blue';
     }>({
         name: '',
@@ -27,6 +28,7 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
         address: '',
         phone: '',
         logo: '',
+        slug: '',
         theme: 'modern-emerald'
     })
 
@@ -38,6 +40,7 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
                 address: restaurant.address,
                 phone: restaurant.phone,
                 logo: restaurant.logo,
+                slug: restaurant.slug || '',
                 theme: restaurant.theme as any || 'modern-emerald'
             })
         }
@@ -87,6 +90,31 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
                 <div className="space-y-2">
                     <Label>Phone</Label>
                     <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                    <Label>Menu URL Slug</Label>
+                    <div className="flex gap-2">
+                        <Input
+                            value={form.slug}
+                            onChange={e => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                            placeholder="warung-sari-rasa"
+                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                const autoSlug = form.name.toLowerCase()
+                                    .replace(/[^a-z0-9]+/g, '-')
+                                    .replace(/^-+|-+$/g, '')
+                                setForm({ ...form, slug: autoSlug })
+                            }}
+                        >
+                            Auto
+                        </Button>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                        Your menu will be accessible at: <span className="font-mono text-emerald-600">/menu/{form.slug || 'your-slug'}</span>
+                    </p>
                 </div>
                 <div className="space-y-2">
                     <Label>Logo</Label>
