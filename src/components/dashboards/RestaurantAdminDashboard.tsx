@@ -138,6 +138,19 @@ export default function RestaurantAdminDashboard() {
 
       if (dataMenu.success) setMenuItems(dataMenu.data)
       if (dataCat.success) setCategories(dataCat.data)
+
+      // Also refresh restaurant details if possible, or we might need a dedicated endpoint 
+      // Current implementation might not be fetching restaurant details again?
+      // Let's add that to ensure Slug is fresh.
+      try {
+        const resResto = await fetch(`/api/restaurants/${restaurantId}`)
+        const dataResto = await resResto.json()
+        if (dataResto.success) {
+          useAppStore.getState().updateRestaurant(restaurantId, dataResto.data)
+        }
+      } catch (err) {
+        console.error("Failed to refresh restaurant details", err)
+      }
       if (dataOrder.success) setOrders(dataOrder.data)
       if (dataPay.success) setPaymentMethods(dataPay.data)
       if (dataReport.success) {
@@ -186,7 +199,18 @@ export default function RestaurantAdminDashboard() {
     }
 
     try {
-      const payload = { ...menuItemForm, restaurantId }
+      // Ensure price is a number and validated
+      const price = parseFloat(menuItemForm.price as any)
+      if (isNaN(price)) {
+        toast({ title: 'Validation Error', description: 'Invalid price format', variant: 'destructive' })
+        return
+      }
+
+      const payload = {
+        ...menuItemForm,
+        price: price, // Send as number
+        restaurantId
+      }
       let res
 
       if (editingMenuItem) {
@@ -205,7 +229,8 @@ export default function RestaurantAdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        await fetchDashboardData()
+        await fetchDashboardData() // This refreshes ALL data including currentRestaurant if properly implemented
+        setMenuItemDialogOpen(false)
         setMenuItemDialogOpen(false)
         setEditingMenuItem(null)
         setMenuItemForm({})

@@ -55,21 +55,44 @@ export async function POST(request: NextRequest) {
 }
 
 // PUT /api/menu-items - Update
+// PUT /api/menu-items - Update
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
     const { id, ...updates } = body
 
-    // Validate price if present
-    if (updates.price) updates.price = parseFloat(updates.price)
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Menu Item ID is required' }, { status: 400 })
+    }
+
+    // Validate price if present and ensure it's a float
+    if (updates.price !== undefined) {
+      const parsedPrice = parseFloat(updates.price)
+      if (isNaN(parsedPrice)) {
+        return NextResponse.json({ success: false, error: 'Invalid price format' }, { status: 400 })
+      }
+      updates.price = parsedPrice
+    }
+
+    // Remove potential non-updatable fields if they exist in body by mistake
+    delete updates.createdAt
+    delete updates.updatedAt
+
+    // Check if item exists first
+    const existing = await prisma.menuItem.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Menu item not found' }, { status: 404 })
+    }
 
     const updated = await prisma.menuItem.update({
       where: { id },
       data: updates
     })
+
     return NextResponse.json({ success: true, data: updated })
   } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
+    console.error('Update Menu Item Error:', error)
+    return NextResponse.json({ success: false, error: 'Failed to update menu item' }, { status: 500 })
   }
 }
 
