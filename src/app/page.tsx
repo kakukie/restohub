@@ -66,6 +66,11 @@ export default function Home() {
     // useAppStore.persist.rehydrate() // Auto-hydration handles this
     generateCaptcha()
 
+    // Force cleanup legacy local storage to prevent conflicts
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user')
+    }
+
     // Check active session from store (handled by sessionStorage)
     if (user) {
       setShowDashboard(true)
