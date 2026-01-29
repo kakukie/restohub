@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
         if (user && user.role === 'SUPER_ADMIN') {
             // Already handled by the return statement check below
         }
-    }, [setUser])
+    }, [setUser, user])
 
     const generateCaptcha = () => {
         setCaptchaNum1(Math.floor(Math.random() * 10) + 1)

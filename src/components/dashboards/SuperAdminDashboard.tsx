@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -1017,14 +1017,16 @@ export default function SuperAdminDashboard() {
                     ))}
                   </div>
                 </ScrollArea>
-                <div className="p-4 border-t bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between text-xs text-muted-foreground">
+              </CardContent>
+              <CardFooter className="p-0">
+                <div className="w-full p-4 border-t bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between text-xs text-muted-foreground rounded-b-lg">
                   <span>Showing {filteredRestaurants.length} of {restaurants.length} restaurants</span>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" disabled>Previous</Button>
                     <Button variant="outline" size="sm" disabled>Next</Button>
                   </div>
                 </div>
-              </CardContent>
+              </CardFooter>
             </Card>
           </TabsContent>
 

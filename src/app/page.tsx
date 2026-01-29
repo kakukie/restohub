@@ -78,7 +78,7 @@ export default function Home() {
       // Legacy check cleanup or specific handle if needed
       // localStorage.removeItem('user') 
     }
-  }, [setUser])
+  }, [setUser, user])
 
   /* Mounted check removed to allow server rendering and avoid hydration mismatch with loading state blocks */
 
