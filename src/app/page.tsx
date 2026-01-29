@@ -62,7 +62,8 @@ export default function Home() {
   // Initialize and check session
   useEffect(() => {
     setMounted(true)
-    useAppStore.persist.rehydrate()
+    setMounted(true)
+    // useAppStore.persist.rehydrate() // Auto-hydration handles this
     generateCaptcha()
 
     const storedUser = localStorage.getItem('user')
@@ -70,6 +71,8 @@ export default function Home() {
       try {
         const userData = JSON.parse(storedUser)
         setUser(userData)
+        setShowDashboard(true)
+        setShowDashboard(true)
 
         // [REAL APP] Fetch latest data from API
         // Fetch restaurants (for Super Admin or general catalog)

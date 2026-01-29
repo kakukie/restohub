@@ -235,7 +235,7 @@ const INITIAL_RESTAURANTS: Restaurant[] = [
     package: 'PRO',
     logo: '/restaurant-logo-indo.png',
     rating: 4.8,
-    adminEmail: 'indo@admin.com',
+    adminEmail: 'resto@admin.com',
     status: 'ACTIVE',
     slug: 'warung-rasa-nusantara'
   },
