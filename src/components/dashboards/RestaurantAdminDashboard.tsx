@@ -1429,49 +1429,22 @@ export default function RestaurantAdminDashboard() {
                       <div className="text-right">Revenue</div>
                     </div>
                     <ScrollArea className="h-[300px]">
-                      {(() => {
-                        // Group orders by date
-                        const dailyData: Record<string, { count: number, revenue: number, items: number }> = {};
-                        const daysInMonth = new Date(reportYear, reportMonth, 0).getDate();
+                      {Object.entries(chartData).map(([date, data]: [string, any]) => (
+                        <div key={date} className="grid grid-cols-4 p-3 text-sm border-b last:border-0 hover:bg-gray-50">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            {date}
+                          </div>
+                          <div>{data.count}</div>
+                          <div>-</div>
+                          <div className="text-right font-medium">Rp {data.revenue.toLocaleString('id-ID')}</div>
+                        </div>
+                      ))}
+                      {Object.keys(chartData).length === 0 && (
+                        <div className="p-8 text-center text-gray-500">No sales data for this period</div>
+                      )}
 
-                        for (let i = 1; i <= daysInMonth; i++) {
-                          const dateStr = `${reportYear}-${String(reportMonth).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                          dailyData[dateStr] = { count: 0, revenue: 0, items: 0 };
-                        }
 
-                        orders.forEach(o => {
-                          const d = new Date(o.createdAt);
-                          if (d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear) {
-                            const dateKey = d.toISOString().split('T')[0];
-                            if (dailyData[dateKey]) {
-                              dailyData[dateKey].count++;
-                              dailyData[dateKey].revenue += o.totalAmount;
-                              dailyData[dateKey].items += o.items.reduce((sum, item) => sum + item.quantity, 0);
-                            }
-                          }
-                        });
-
-                        return Object.entries(dailyData)
-                          .filter(([_, data]) => data.count > 0) // Only show days with sales? Or all days? User asked for report history, maybe all days is better or just active ones. Let's show all for completeness or just active. Let's show active to save space + filler for demo.
-                          .sort((a, b) => b[0].localeCompare(a[0]))
-                          .map(([date, data]) => (
-                            <div key={date} className="grid grid-cols-4 p-3 text-sm border-b last:border-0 hover:bg-gray-50">
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                {date}
-                              </div>
-                              <div>{data.count}</div>
-                              <div>{data.items}</div>
-                              <div className="text-right font-medium">Rp {data.revenue.toLocaleString('id-ID')}</div>
-                            </div>
-                          ));
-                      })()}
-                      {orders.filter(o => {
-                        const d = new Date(o.createdAt);
-                        return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
-                      }).length === 0 && (
-                          <div className="p-8 text-center text-gray-500">No sales data for this period</div>
-                        )}
                     </ScrollArea>
                   </div>
                 </CardContent>
