@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   keywords: ["Meenuin", "Restaurant", "SaaS", "Menu Management", "QRIS", "E-wallet", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui"],
   authors: [{ name: "Meenuin Team" }],
   icons: {
-    icon: "/favicon.ico", // Use default or remove if not available
+    icon: "/logo.svg",
   },
   openGraph: {
     title: "Meenuin - Digital Restaurant Platform",
@@ -44,6 +44,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        suppressHydrationWarning
       >
         {children}
         <Toaster />
