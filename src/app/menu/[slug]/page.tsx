@@ -90,14 +90,34 @@ export default function PublicMenuPage() {
     useEffect(() => {
         if (!mounted) return
 
-        // Find restaurant by slug
-        const resto = restaurants.find(r => r.slug === slug || r.id === slug)
-        setRestaurant(resto)
+        const loadData = async () => {
+            // 1. Try local store first (fastest)
+            let existingResto = restaurants.find(r => r.slug === slug || r.id === slug)
 
-        if (resto) {
-            const restoMenu = menuItems.filter(m => m.restaurantId === resto.id && m.isAvailable)
-            setMenu(restoMenu)
+            if (existingResto) {
+                setRestaurant(existingResto)
+                const existingMenu = menuItems.filter(m => m.restaurantId === existingResto.id && m.isAvailable)
+                setMenu(existingMenu)
+                return
+            }
+
+            // 2. Fallback to API
+            try {
+                const res = await fetch(`/api/restaurants/${slug}`)
+                const data = await res.json()
+
+                if (data.success && data.data) {
+                    setRestaurant(data.data)
+                    // Ensure menuItems mapping matches
+                    const apiMenu = data.data.menuItems || []
+                    setMenu(apiMenu)
+                }
+            } catch (error) {
+                console.error("Failed to load restaurant", error)
+            }
         }
+
+        loadData()
     }, [mounted, slug, restaurants, menuItems])
 
     // Loading state

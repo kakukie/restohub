@@ -1463,8 +1463,7 @@ export default function RestaurantAdminDashboard() {
       < QRCodeDialog
         open={qrCodeDialogOpen}
         onOpenChange={setQrCodeDialogOpen}
-        restaurantSlug={currentRestaurant?.slug || restaurantId
-        }
+        restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId}
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
     </div >

@@ -5,6 +5,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -1108,14 +1109,30 @@ export default function SuperAdminDashboard() {
                           <td className="p-4">{u.name}</td>
                           <td className="p-4">{u.email}</td>
                           <td className="p-4"><Badge variant="outline">{u.role}</Badge></td>
-                          <td className="p-4 flex gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => {
-                              setEditingUserData({ id: u.id, name: u.name, email: u.email, role: u.role, password: u.password || '' })
-                              setUserDialogOpen(true)
-                            }}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="text-red-600" onClick={() => {
-                              if (confirm('Are you sure?')) deleteUser(u.id)
-                            }}><Trash2 className="h-4 w-4" /></Button>
+                          <td className="p-4">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => {
+                                  setEditingUserData({ id: u.id, name: u.name, email: u.email, role: u.role, password: u.password || '' })
+                                  setUserDialogOpen(true)
+                                }}>
+                                  <Edit className="mr-2 h-4 w-4" /> Edit User
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600" onClick={() => {
+                                  if (confirm('Are you sure?')) deleteUser(u.id)
+                                }}>
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </td>
                         </tr>
                       ))}
