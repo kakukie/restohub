@@ -19,20 +19,22 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { createdAt: 'desc' },
       include: {
+        admin: {
+          select: { email: true }
+        },
         _count: {
           select: { menuItems: true, orders: true }
         }
       }
     })
 
-    // Transform data to match expected frontend format if necessary
-    // or just return as is. The database schema mostly aligns.
-    // We need to map `_count` to flat properties if the frontend expects them.
+    // Transform data to match expected frontend format
     const formattedRestaurants = restaurants.map(r => ({
       ...r,
+      adminEmail: r.admin?.email || '', // Map relation to flat property
       totalMenuItems: r._count.menuItems,
       totalOrders: r._count.orders,
-      totalRevenue: 0 // We would need to aggregate orders for this. For now implementation, 0 or simple aggregation if feasible.
+      totalRevenue: 0
     }))
 
     return NextResponse.json({
