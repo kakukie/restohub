@@ -65,6 +65,7 @@ model Restaurant {
   phone         String?
   email         String?
   logo          String?
+  package       String?  @default("FREE_TRIAL")
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
