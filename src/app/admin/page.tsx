@@ -72,31 +72,34 @@ export default function AdminLoginPage() {
 
         setLoading(true)
         try {
-            const { users } = useAppStore.getState()
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password
+                })
+            })
 
-            // Admin credentials (hardcoded + store)
-            const adminUsers = [
-                { id: 'u1', name: 'Manager Meenuin', email: 'manager@meenuin.com', role: 'SUPER_ADMIN', password: 'manager123' },
-                { id: 'u_legacy', name: 'Legacy Manager', email: 'manager@restohub.com', role: 'SUPER_ADMIN', password: 'manager123' },
-                ...users.filter(u => u.role === 'SUPER_ADMIN')
-            ]
+            const data = await response.json()
 
-            const foundUser = adminUsers.find(
-                (u) => u.email.toLowerCase() === formData.email.toLowerCase() &&
-                    u.password === formData.password
-            )
-
-            if (foundUser) {
-                const userToStore = { ...foundUser }
-                localStorage.setItem('user', JSON.stringify(userToStore))
-                setUser(userToStore as any)
-                toast({ title: 'Welcome back!', description: `Logged in as ${foundUser.name}` })
-            } else {
-                toast({ title: 'Login Failed', description: 'Invalid admin credentials', variant: 'destructive' })
-                generateCaptcha()
+            if (!response.ok) {
+                throw new Error(data.error || 'Login failed')
             }
-        } catch (error) {
-            toast({ title: 'Error', description: 'An error occurred', variant: 'destructive' })
+
+            const userData = data.user
+            if (userData.role !== 'SUPER_ADMIN') {
+                toast({ title: 'Access Denied', description: 'This portal is for Super Admins only.', variant: 'destructive' })
+                return
+            }
+
+            localStorage.setItem('user', JSON.stringify(userData))
+            setUser(userData)
+            toast({ title: 'Welcome back!', description: `Logged in as ${userData.name}` })
+
+        } catch (error: any) {
+            console.error('Login Error:', error)
+            toast({ title: 'Login Failed', description: error.message, variant: 'destructive' })
             generateCaptcha()
         } finally {
             setLoading(false)

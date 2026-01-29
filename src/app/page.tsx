@@ -162,8 +162,14 @@ export default function Home() {
 
     setLoading(true)
     try {
-      if (!formData.name || !formData.email || !formData.password) {
-        throw new Error('Silakan isi semua field')
+      if (!formData.name || !formData.email || !formData.phone || !formData.password) {
+        throw new Error('Semua field wajib diisi')
+      }
+
+      // Password Validation: Min 8 chars, Letters + Numbers + Special
+      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
+      if (!passwordRegex.test(formData.password)) {
+        throw new Error('Password harus minimal 8 karakter dan mengandung kombinasi huruf, angka, dan simbol.')
       }
 
       const response = await fetch('/api/auth/register', {
@@ -364,6 +370,15 @@ export default function Home() {
                       value={formData.password}
                       onChange={handleInputChange}
                     />
+                    <div className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => toast({ title: 'Reset Password', description: 'Silakan hubungi support@meenuin.biz.id untuk reset password.' })}
+                        className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                      >
+                        Lupa Password?
+                      </button>
+                    </div>
                   </div>
 
                   {/* Captcha */}
