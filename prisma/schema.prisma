@@ -66,6 +66,8 @@ model Restaurant {
   email         String?
   logo          String?
   package       String?  @default("FREE_TRIAL")
+  status        String   @default("PENDING")
+  slug          String   @unique
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
