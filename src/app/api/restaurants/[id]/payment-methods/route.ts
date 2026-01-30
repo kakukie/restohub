@@ -22,8 +22,9 @@ async function getRestaurantId(idOrSlug: string) {
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         const restaurantId = await getRestaurantId(params.id)
         if (!restaurantId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
@@ -39,8 +40,9 @@ export async function GET(
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         const restaurantId = await getRestaurantId(params.id)
         if (!restaurantId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
@@ -68,8 +70,9 @@ export async function POST(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         const body = await request.json()
         const { paymentId, ...updates } = body // Frontend must send paymentId in body
@@ -92,7 +95,7 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
     // We need paymentId to delete. 
     // Usually DELETE body is not standard, but NextJS supports it or use searchParams?

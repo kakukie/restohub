@@ -351,6 +351,7 @@ export default function RestaurantAdminDashboard() {
           ...branchForm,
           adminId: user?.id,
           parentId: parentId,
+          enableSync: branchForm.enableSync,
           // New Admin Fields (only if entered)
           newAdminName: branchForm.createAdmin ? branchForm.newAdminName : undefined,
           newAdminEmail: branchForm.createAdmin ? branchForm.newAdminEmail : undefined,
@@ -1505,7 +1506,18 @@ export default function RestaurantAdminDashboard() {
                         />
                       </div>
 
-                      <div className="border-t pt-4 mt-2">
+                      <div className="border-t pt-4 mt-2 space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="enableSync"
+                            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                            checked={branchForm.enableSync || false}
+                            onChange={(e) => setBranchForm({ ...branchForm, enableSync: e.target.checked })}
+                          />
+                          <Label htmlFor="enableSync" className="cursor-pointer font-medium">Sync Menu & Payments from Main Branch?</Label>
+                        </div>
+
                         <div className="flex items-center space-x-2 mb-4">
                           <input
                             type="checkbox"

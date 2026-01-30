@@ -3,9 +3,10 @@ import prisma from '@/lib/prisma'
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
-    const idOrSlug = params.id // In Next.js [id] captures the segment
+    const params = await props.params;
+    const idOrSlug = params.id
 
     try {
         // Try to find by ID first, then Slug
@@ -52,8 +53,9 @@ export async function GET(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     const idOrSlug = params.id
     try {
         const restaurant = await prisma.restaurant.findFirst({
@@ -88,8 +90,9 @@ export async function DELETE(
 // Let's implement this one to be standard REST.
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         const body = await request.json()
         const { id, ...updates } = body // ID in body might be ignored or checked against params.id
