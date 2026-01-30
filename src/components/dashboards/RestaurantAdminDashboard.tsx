@@ -688,7 +688,7 @@ export default function RestaurantAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden w-full">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-x-hidden w-full">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -753,7 +753,7 @@ export default function RestaurantAdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 pb-32">
+      <main className="container mx-auto px-4 py-8 pb-32 flex-1">
 
         {/* System Announcements */}
         {systemAnnouncements.filter(a => a.isActive).map(announcement => (
@@ -891,7 +891,18 @@ export default function RestaurantAdminDashboard() {
           {/* Menu Items Tab */}
           <TabsContent value="menu" className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Menu Management</h2>
+              <div className="flex flex-col gap-1">
+                <h2 className="text-2xl font-bold">Menu Management</h2>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>Dashboard</span>
+                  <span className="text-gray-300">/</span>
+                  <span>Menu</span>
+                  <span className="text-gray-300">/</span>
+                  <span className={stats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 100) ? 'text-red-500 font-medium' : 'text-emerald-600'}>
+                    {stats.totalMenuItems} / {currentRestaurant?.maxMenuItems || '∞'} Items
+                  </span>
+                </div>
+              </div>
               <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={() => {
