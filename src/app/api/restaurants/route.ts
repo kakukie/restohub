@@ -90,20 +90,81 @@ export async function POST(request: NextRequest) {
     }
 
     // Create restaurant
-    const newRestaurant = await prisma.restaurant.create({
-      data: {
-        name,
-        slug,
-        description: description || '',
-        address: address || '',
-        phone: phone || '',
-        email: email || '',
-        isActive: true,
-        status: 'ACTIVE',
-        package: 'BASIC',
-        adminId: resolvedAdminId || '', // Fallback or assume provided
-        parentId: parentId || null
+    // Use transaction to ensure data sync if requested
+    const newRestaurant = await prisma.$transaction(async (tx) => {
+      const created = await tx.restaurant.create({
+        data: {
+          name,
+          slug,
+          description: description || '',
+          address: address || '',
+          phone: phone || '',
+          email: email || '',
+          isActive: true,
+          status: 'ACTIVE',
+          package: 'BASIC',
+          adminId: resolvedAdminId || '', // Fallback or assume provided
+          parentId: parentId || null
+        }
+      })
+
+      // Sync Data from Parent if it's a branch
+      if (parentId) {
+        // 1. Copy Payment Methods
+        const parentPayments = await tx.paymentMethod.findMany({ where: { restaurantId: parentId } })
+        if (parentPayments.length > 0) {
+          await tx.paymentMethod.createMany({
+            data: parentPayments.map(p => ({
+              restaurantId: created.id,
+              type: p.type,
+              merchantId: p.merchantId,
+              qrCode: p.qrCode,
+              isActive: p.isActive
+            }))
+          })
+        }
+
+        // 2. Copy Categories & Menu Items
+        // We need to fetch categories WITH menu items to preserve relationships
+        const parentCategories = await tx.category.findMany({
+          where: { restaurantId: parentId },
+          include: { menuItems: true }
+        })
+
+        for (const cat of parentCategories) {
+          // Create new Category
+          const newCat = await tx.category.create({
+            data: {
+              name: cat.name,
+              description: cat.description,
+              displayOrder: cat.displayOrder,
+              isActive: cat.isActive,
+              restaurantId: created.id
+            }
+          })
+
+          // Copy Menu Items for this category
+          if (cat.menuItems.length > 0) {
+            await tx.menuItem.createMany({
+              data: cat.menuItems.map(item => ({
+                name: item.name,
+                description: item.description,
+                price: item.price,
+                image: item.image,
+                isAvailable: item.isAvailable,
+                displayOrder: item.displayOrder,
+                displayName: item.displayName,
+                isBestSeller: item.isBestSeller,
+                isRecommended: item.isRecommended,
+                restaurantId: created.id,
+                categoryId: newCat.id // Link to new Category
+              }))
+            })
+          }
+        }
       }
+
+      return created
     })
 
     return NextResponse.json({

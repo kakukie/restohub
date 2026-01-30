@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
 async function getRestaurantId(idOrSlug: string) {
+    if (!idOrSlug) return null
+
     const restaurant = await prisma.restaurant.findFirst({
         where: {
             OR: [
@@ -11,6 +13,10 @@ async function getRestaurantId(idOrSlug: string) {
         },
         select: { id: true }
     })
+
+    if (!restaurant) {
+        console.error(`getRestaurantId failed for input: ${idOrSlug}`)
+    }
     return restaurant?.id
 }
 
