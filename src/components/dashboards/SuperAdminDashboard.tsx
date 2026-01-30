@@ -1079,6 +1079,28 @@ export default function SuperAdminDashboard() {
                                 <Zap className="h-4 w-4 mr-1" />
                                 Edit Plan
                               </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to PERMANENTLY delete ${restaurant.name}?`)) {
+                                    fetch(`/api/restaurants/${restaurant.id}`, { method: 'DELETE' })
+                                      .then(res => res.json())
+                                      .then(data => {
+                                        if (data.success) {
+                                          toast({ title: 'Success', description: 'Restaurant deleted' })
+                                          fetchDashboardData()
+                                        } else {
+                                          toast({ title: 'Error', variant: 'destructive', description: data.error })
+                                        }
+                                      })
+                                      .catch(err => toast({ title: 'Error', variant: 'destructive', description: 'Failed to delete' }))
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
                             </div>
                           </div>
                         </CardHeader>

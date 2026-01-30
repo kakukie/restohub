@@ -19,7 +19,8 @@ export async function GET(
             },
             include: {
                 menuItems: {
-                    where: { isAvailable: true }
+                    where: { isAvailable: true },
+                    include: { category: true } // Include category to get name
                 },
                 categories: true,
                 paymentMethods: {
@@ -38,9 +39,18 @@ export async function GET(
             )
         }
 
+        // Transform data if necessary (e.g. flattening categoryName)
+        const transformedData = {
+            ...restaurant,
+            menuItems: restaurant.menuItems.map(item => ({
+                ...item,
+                categoryName: item.category?.name || 'Other'
+            }))
+        }
+
         return NextResponse.json({
             success: true,
-            data: restaurant
+            data: transformedData
         })
     } catch (error) {
         console.error('Error fetching restaurant:', error)
@@ -64,7 +74,8 @@ export async function DELETE(
                     { id: idOrSlug },
                     { slug: idOrSlug }
                 ]
-            }
+            },
+            select: { id: true }
         })
 
         if (!restaurant) {
@@ -93,20 +104,35 @@ export async function PUT(
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params;
+    const idOrSlug = params.id
+
     try {
         const body = await request.json()
-        const { id, ...updates } = body // ID in body might be ignored or checked against params.id
+        const { id, ...updates } = body // ID in body might be ignored
 
-        // Ensure we update the correct ID
-        const targetId = params.id
+        // 1. Resolve to actual ID
+        const restaurant = await prisma.restaurant.findFirst({
+            where: {
+                OR: [
+                    { id: idOrSlug },
+                    { slug: idOrSlug }
+                ]
+            },
+            select: { id: true }
+        })
+
+        if (!restaurant) {
+            return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+        }
 
         const updated = await prisma.restaurant.update({
-            where: { id: targetId },
+            where: { id: restaurant.id },
             data: updates
         })
 
         return NextResponse.json({ success: true, data: updated })
     } catch (error) {
+        console.error("Update failed:", error)
         return NextResponse.json({ success: false, error: 'Failed to update' }, { status: 500 })
     }
 }
