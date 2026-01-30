@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { comparePassword } from '@/lib/auth'
+import { signAccessToken, signRefreshToken } from '@/lib/jwt'
+import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
     try {
@@ -18,7 +20,7 @@ export async function POST(request: NextRequest) {
         const user = await prisma.user.findUnique({
             where: { email },
             include: {
-                restaurants: true // Include restaurants to help frontend redirect
+                restaurants: true
             }
         })
 
@@ -38,8 +40,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Retrieve the first restaurant (since we currently handle single-restaurant admins)
-        // If Super Admin, restaurantId might be irrelevant or we'll handle differently on frontend.
+        // Retrieve the first restaurant
         const restaurant = user.restaurants[0]
 
         // Check Restaurant Status
@@ -58,6 +59,46 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Generate Tokens
+        const tokenPayload = {
+            userId: user.id,
+            email: user.email,
+            role: user.role,
+            restaurantId: restaurant?.id
+        }
+
+        const accessToken = await signAccessToken(tokenPayload)
+        const refreshToken = await signRefreshToken(tokenPayload)
+
+        // Store Refresh Token in Database
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+
+        await prisma.refreshToken.create({
+            data: {
+                token: refreshToken,
+                userId: user.id,
+                expiresAt,
+            }
+        })
+
+        // Set Cookies
+        const cookieStore = await cookies()
+        cookieStore.set('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 15 * 60, // 15 mins
+            path: '/'
+        })
+
+        cookieStore.set('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60, // 7 days
+            path: '/'
+        })
+
         // Construct response data
         const userData = {
             id: user.id,
@@ -65,8 +106,8 @@ export async function POST(request: NextRequest) {
             email: user.email,
             phone: user.phone,
             role: user.role,
-            restaurantId: restaurant?.id, // Important for frontend context
-            token: 'mock-token-for-now' // In a real app, generate JWT here
+            restaurantId: restaurant?.id,
+            accessToken
         }
 
         return NextResponse.json({

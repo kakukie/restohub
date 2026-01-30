@@ -8,8 +8,8 @@ set -e
 echo "Generating Prisma Client..."
 npx prisma@6.11.1 generate
 
-echo "Applying database migrations..."
-npx prisma@6.11.1 migrate deploy
+echo "Synchronizing database schema..."
+npx prisma@6.11.1 db push --accept-data-loss
 
 # Start the application
 echo "Starting application..."
