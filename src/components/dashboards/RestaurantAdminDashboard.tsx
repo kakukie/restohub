@@ -60,9 +60,7 @@ export default function RestaurantAdminDashboard() {
     setHydrated(true)
   }, [])
 
-  if (!hydrated) {
-    return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div></div>
-  }
+
 
   // Filter data for this restaurant
   // Use optional chaining and fallback
@@ -685,6 +683,10 @@ export default function RestaurantAdminDashboard() {
       FAILED: { label: 'Failed', variant: 'destructive' }
     }
     return statusConfig[status]
+  }
+
+  if (!hydrated) {
+    return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div></div>
   }
 
   return (
