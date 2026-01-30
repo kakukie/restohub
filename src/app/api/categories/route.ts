@@ -1,13 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+async function getRestaurantId(idOrSlug: string) {
+  const restaurant = await prisma.restaurant.findFirst({
+    where: {
+      OR: [
+        { id: idOrSlug },
+        { slug: idOrSlug }
+      ]
+    },
+    select: { id: true }
+  })
+  return restaurant?.id
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const restaurantId = searchParams.get('restaurantId')
+    const restaurantIdParam = searchParams.get('restaurantId')
 
     const where: any = {}
-    if (restaurantId) where.restaurantId = restaurantId
+    if (restaurantIdParam) {
+      const resolvedId = await getRestaurantId(restaurantIdParam)
+      if (!resolvedId) return NextResponse.json({ success: true, data: [] }) // Or 404? Empty list is safer for filter.
+      where.restaurantId = resolvedId
+    }
 
     const categories = await prisma.category.findMany({
       where,
@@ -25,12 +42,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, restaurantId } = body
 
-    const count = await prisma.category.count({ where: { restaurantId } })
+    const resolvedId = await getRestaurantId(restaurantId)
+    if (!resolvedId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+
+    const count = await prisma.category.count({ where: { restaurantId: resolvedId } })
 
     const newCategory = await prisma.category.create({
       data: {
         name,
-        restaurantId,
+        restaurantId: resolvedId,
         displayOrder: count + 1
       }
     })

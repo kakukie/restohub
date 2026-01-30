@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+async function getRestaurantId(idOrSlug: string) {
+    const restaurant = await prisma.restaurant.findFirst({
+        where: {
+            OR: [
+                { id: idOrSlug },
+                { slug: idOrSlug }
+            ]
+        },
+        select: { id: true }
+    })
+    return restaurant?.id
+}
+
 export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
     try {
+        const restaurantId = await getRestaurantId(params.id)
+        if (!restaurantId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+
         const methods = await prisma.paymentMethod.findMany({
-            where: { restaurantId: params.id }
+            where: { restaurantId: restaurantId }
         })
         return NextResponse.json({ success: true, data: methods })
     } catch (error) {
@@ -20,13 +36,16 @@ export async function POST(
     { params }: { params: { id: string } }
 ) {
     try {
+        const restaurantId = await getRestaurantId(params.id)
+        if (!restaurantId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+
         const body = await request.json()
         // Body should be PaymentMethod object
         const { type, merchantId, qrCode, isActive } = body
 
         const newMethod = await prisma.paymentMethod.create({
             data: {
-                restaurantId: params.id,
+                restaurantId: restaurantId,
                 type,
                 merchantId,
                 qrCode,

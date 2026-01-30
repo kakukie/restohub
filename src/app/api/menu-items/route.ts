@@ -1,15 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+async function getRestaurantId(idOrSlug: string) {
+  const restaurant = await prisma.restaurant.findFirst({
+    where: {
+      OR: [
+        { id: idOrSlug },
+        { slug: idOrSlug }
+      ]
+    },
+    select: { id: true }
+  })
+  return restaurant?.id
+}
+
 // GET /api/menu-items - Get menu items
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const restaurantId = searchParams.get('restaurantId')
+    const restaurantIdParam = searchParams.get('restaurantId')
     const categoryId = searchParams.get('categoryId')
 
     const where: any = {}
-    if (restaurantId) where.restaurantId = restaurantId
+
+    if (restaurantIdParam) {
+      const resolvedId = await getRestaurantId(restaurantIdParam)
+      if (!resolvedId) return NextResponse.json({ success: true, data: [] })
+      where.restaurantId = resolvedId
+    }
+
     if (categoryId) where.categoryId = categoryId
 
     const menuItems = await prisma.menuItem.findMany({
@@ -32,7 +51,10 @@ export async function POST(request: NextRequest) {
 
     if (!description) body.description = '' // Handle optional
 
-    const count = await prisma.menuItem.count({ where: { restaurantId } })
+    const resolvedId = await getRestaurantId(restaurantId)
+    if (!resolvedId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+
+    const count = await prisma.menuItem.count({ where: { restaurantId: resolvedId } })
 
     const newItem = await prisma.menuItem.create({
       data: {
@@ -40,7 +62,7 @@ export async function POST(request: NextRequest) {
         description,
         price: parseFloat(price),
         categoryId,
-        restaurantId,
+        restaurantId: resolvedId,
         image,
         isAvailable: isAvailable ?? true,
         displayOrder: count + 1
