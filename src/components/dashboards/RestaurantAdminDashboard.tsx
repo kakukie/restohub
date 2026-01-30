@@ -54,6 +54,16 @@ export default function RestaurantAdminDashboard() {
     updateRestaurant
   } = useAppStore()
 
+  // Hydration check to prevent session loss on refresh
+  const [hydrated, setHydrated] = useState(false)
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
+
+  if (!hydrated) {
+    return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div></div>
+  }
+
   // Filter data for this restaurant
   // Use optional chaining and fallback
   const restaurantId = user?.restaurantId || '1'
@@ -242,7 +252,16 @@ export default function RestaurantAdminDashboard() {
 
       const data = await res.json()
       if (data.success) {
-        await fetchDashboardData() // This refreshes ALL data including currentRestaurant if properly implemented
+        // Targeted refresh instead of full dashboard sync
+        const resRefresh = await fetch(`/api/menu-items?restaurantId=${restaurantId}`)
+        const dataRefresh = await resRefresh.json()
+        if (dataRefresh.success) setMenuItems(dataRefresh.data)
+
+        // Optimistically update stats if adding new item
+        if (!editingMenuItem) {
+          setStats(prev => ({ ...prev, totalMenuItems: prev.totalMenuItems + 1 }))
+        }
+
         setMenuItemDialogOpen(false)
         setMenuItemDialogOpen(false)
         setEditingMenuItem(null)
