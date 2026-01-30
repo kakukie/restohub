@@ -80,9 +80,6 @@ export default function RestaurantAdminLoginPage() {
             if (foundUser) {
                 // Find restaurant
                 const userRestaurant = restaurants.find(r => r.id === foundUser.restaurantId)
-                if (!userRestaurant && foundUser.restaurantId !== 'new') {
-                    // Fallback if restaurant not found in store but ID exists
-                }
 
                 const userToStore = {
                     ...foundUser,
@@ -91,14 +88,15 @@ export default function RestaurantAdminLoginPage() {
 
                 setUser(userToStore as any)
                 toast({ title: 'Login Berhasil', description: `Selamat datang, ${foundUser.name}` })
-                router.push('/') // Redirect to home which handles dashboard rendering
+                window.location.href = '/' // Force full reload to ensure clean state
             } else {
+                console.warn('Login failed: Invalid credentials for', formData.email)
                 toast({ title: 'Login Gagal', description: 'Email atau password salah', variant: 'destructive' })
                 generateCaptcha()
             }
         } catch (error) {
-            console.error(error)
-            toast({ title: 'Error', description: 'Terjadi kesalahan sistem', variant: 'destructive' })
+            console.error('Login Error:', error)
+            toast({ title: 'Error', description: 'Terjadi kesalahan sistem. Silakan coba lagi.', variant: 'destructive' })
         } finally {
             setLoading(false)
         }

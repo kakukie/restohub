@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
 // POST /api/subscription-plans - Create or Init
 export async function POST(request: NextRequest) {
     try {
+        if (!prisma.subscriptionPlan) {
+            return NextResponse.json({ success: false, error: 'System Error: Database model missing.' }, { status: 500 })
+        }
         const body = await request.json()
         // Validation ignored for brevity
         const plan = await prisma.subscriptionPlan.create({
@@ -39,6 +42,9 @@ export async function POST(request: NextRequest) {
 // PUT /api/subscription-plans - Update or Seed
 export async function PUT(request: NextRequest) {
     try {
+        if (!prisma.subscriptionPlan) {
+            return NextResponse.json({ success: false, error: 'System Error: Database model missing.' }, { status: 500 })
+        }
         const body = await request.json()
         const { id, ...updates } = body
 
