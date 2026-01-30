@@ -179,7 +179,44 @@ const INITIAL_USERS: User[] = []
 const INITIAL_RESTAURANTS: Restaurant[] = []
 const INITIAL_MENU_ITEMS: MenuItem[] = []
 const INITIAL_CATEGORIES: Category[] = []
-const INITIAL_SUBSCRIPTION_PLANS: SubscriptionPlan[] = []
+const INITIAL_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
+  {
+    id: 'FREE_TRIAL',
+    name: 'Free Trial',
+    description: 'Perfect for testing Meenuin',
+    price: 0,
+    menuLimit: 10,
+    features: ['10 Menu Items', 'Basic QR Code', 'Email Support'],
+    isActive: true
+  },
+  {
+    id: 'BASIC',
+    name: 'Basic',
+    description: 'For small cafes and stalls',
+    price: 199000,
+    menuLimit: 50,
+    features: ['50 Menu Items', 'Standard QR Code', 'Email Support', 'Basic Analytics'],
+    isActive: true
+  },
+  {
+    id: 'PRO',
+    name: 'Pro',
+    description: 'For growing restaurants',
+    price: 499000,
+    menuLimit: 1000, // Unlimited effectively
+    features: ['Unlimited Menu Items', 'Custom QR Code', 'Priority Support', 'Advanced Analytics', 'Staff Management'],
+    isActive: true
+  },
+  {
+    id: 'ENTERPRISE',
+    name: 'Enterprise',
+    description: 'For large chains and franchises',
+    price: 999000,
+    menuLimit: 10000,
+    features: ['Unlimited Everything', 'White Label Option', 'Dedicated Manager', 'API Access', 'Multi-Branch Support'],
+    isActive: true
+  }
+]
 
 export const useAppStore = create<AppState>()(
   persist(

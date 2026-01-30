@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { restaurantId, items, totalAmount, tableNumber, notes, customerName, customerId } = body
+    const { restaurantId, items, totalAmount, tableNumber, notes, customerName, customerId, paymentMethod } = body
     // items: { menuItemId, quantity, price, notes }[]
 
     // Use transaction
@@ -96,6 +96,39 @@ export async function POST(request: NextRequest) {
         finalCustomerId = guest.id
       }
 
+      // Handle Payment Method
+      let paymentCreateData = undefined
+      if (paymentMethod) {
+        // Find the payment method ID for this restaurant
+        // We assume input matches PaymentMethodType enum (QRIS, CASH, etc.)
+        const pm = await tx.paymentMethod.findFirst({
+          where: {
+            restaurantId,
+            type: paymentMethod,
+            isActive: true
+          }
+        })
+
+        if (pm) {
+          paymentCreateData = {
+            create: {
+              amount: totalAmount,
+              status: 'PENDING', // Default
+              type: paymentMethod,
+              methodId: pm.id
+            }
+          }
+        } else {
+          // Fallback: If 'CASH' is selected but not explicitly in DB payment methods,
+          // we might still want to record it if we find a 'CASH' method? 
+          // Or if strict, we skip.
+          // Let's try to find ANY method of that type? No, must be restaurant specific.
+          // If not found, we create a "Shadow" payment logic?
+          // Best to rely on existing methods.
+          console.warn(`Payment method ${paymentMethod} not found for restaurant ${restaurantId}`)
+        }
+      }
+
       const newOrder = await tx.order.create({
         data: {
           restaurantId,
@@ -104,8 +137,9 @@ export async function POST(request: NextRequest) {
           tableNumber,
           notes,
           orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
-          status: 'PENDING',
+          status: 'PENDING', // Default
           paymentStatus: 'PENDING',
+          payment: paymentCreateData,
           orderItems: {
             create: items.map((item: any) => ({
               menuItemId: item.menuItemId,
@@ -115,7 +149,7 @@ export async function POST(request: NextRequest) {
             }))
           }
         },
-        include: { orderItems: true }
+        include: { orderItems: true, payment: { include: { method: true } } }
       })
 
       return newOrder
