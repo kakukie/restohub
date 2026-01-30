@@ -1449,131 +1449,150 @@ export default function RestaurantAdminDashboard() {
           <TabsContent value="settings" className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Restaurant Settings</h2>
-              <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" onClick={() => setBranchForm({})}>
-                    <Plus className="mr-2 h-4 w-4" /> Create Branch
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Branch</DialogTitle>
-                    <DialogDescription>Create a new outlet linked to this restaurant.</DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label>Branch Name</Label>
-                      <Input
-                        placeholder="e.g. Cabang Jakarta Selatan"
-                        value={branchForm.name || ''}
-                        onChange={e => setBranchForm({ ...branchForm, name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Address</Label>
-                      <Input
-                        placeholder="Full address"
-                        value={branchForm.address || ''}
-                        onChange={e => setBranchForm({ ...branchForm, address: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Phone</Label>
-                      <Input
-                        placeholder="081..."
-                        value={branchForm.phone || ''}
-                        onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
-                      />
-                    </div>
+              <div className="flex gap-2">
+                <Button variant="destructive" onClick={async () => {
+                  if (!confirm('Are you sure you want to DELETE this restaurant? This action cannot be undone.')) return
+                  try {
+                    const res = await fetch(`/api/restaurants/${restaurantId}`, { method: 'DELETE' })
+                    const data = await res.json()
+                    if (data.success) {
+                      toast({ title: 'Deleted', description: 'Restaurant deleted' })
+                      window.location.href = '/dashboard'
+                    } else {
+                      throw new Error(data.error)
+                    }
+                  } catch (e: any) {
+                    toast({ title: 'Error', variant: 'destructive', description: e.message })
+                  }
+                }}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete Restaurant
+                </Button>
+                <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" onClick={() => setBranchForm({})}>
+                      <Plus className="mr-2 h-4 w-4" /> Create Branch
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Branch</DialogTitle>
+                      <DialogDescription>Create a new outlet linked to this restaurant.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
 
-                    <div className="border-t pt-4 mt-2">
-                      <div className="flex items-center space-x-2 mb-4">
-                        <input
-                          type="checkbox"
-                          id="createAdmin"
-                          className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                          checked={branchForm.createAdmin || false}
-                          onChange={(e) => setBranchForm({ ...branchForm, createAdmin: e.target.checked })}
+                        <Label>Branch Name</Label>
+                        <Input
+                          placeholder="e.g. Cabang Jakarta Selatan"
+                          value={branchForm.name || ''}
+                          onChange={e => setBranchForm({ ...branchForm, name: e.target.value })}
                         />
-                        <Label htmlFor="createAdmin" className="cursor-pointer font-medium">Create Separate Admin for Branch?</Label>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Address</Label>
+                        <Input
+                          placeholder="Full address"
+                          value={branchForm.address || ''}
+                          onChange={e => setBranchForm({ ...branchForm, address: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phone</Label>
+                        <Input
+                          placeholder="081..."
+                          value={branchForm.phone || ''}
+                          onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
+                        />
                       </div>
 
-                      {branchForm.createAdmin && (
-                        <div className="space-y-3 pl-2 border-l-2 border-emerald-100 bg-emerald-50/50 p-3 rounded">
-                          <div className="space-y-1">
-                            <Label>Admin Name</Label>
-                            <Input
-                              placeholder="Branch Manager Name"
-                              value={branchForm.newAdminName || ''}
-                              onChange={(e) => setBranchForm({ ...branchForm, newAdminName: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Admin Email</Label>
-                            <Input
-                              type="email"
-                              placeholder="manager@branch.com"
-                              value={branchForm.newAdminEmail || ''}
-                              onChange={(e) => setBranchForm({ ...branchForm, newAdminEmail: e.target.value })}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Password</Label>
-                            <Input
-                              type="password"
-                              placeholder="******"
-                              value={branchForm.newAdminPassword || ''}
-                              onChange={(e) => setBranchForm({ ...branchForm, newAdminPassword: e.target.value })}
-                            />
-                          </div>
+                      <div className="border-t pt-4 mt-2">
+                        <div className="flex items-center space-x-2 mb-4">
+                          <input
+                            type="checkbox"
+                            id="createAdmin"
+                            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                            checked={branchForm.createAdmin || false}
+                            onChange={(e) => setBranchForm({ ...branchForm, createAdmin: e.target.checked })}
+                          />
+                          <Label htmlFor="createAdmin" className="cursor-pointer font-medium">Create Separate Admin for Branch?</Label>
                         </div>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Phone</Label>
-                      <Input
-                        placeholder="Phone number"
-                        value={branchForm.phone || ''}
-                        onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setBranchDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateBranch}>Create Branch</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
 
-            {myBranches.length > 0 && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>My Branches</CardTitle>
-                  <CardDescription>Switch between your restaurant outlets</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {myBranches.map(branch => (
-                      <Button
-                        key={branch.id}
-                        variant={branch.id === restaurantId ? "default" : "outline"}
-                        className="justify-start h-auto py-3 px-4"
-                        onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
-                      >
-                        <div className="text-left">
-                          <div className="font-semibold">{branch.name}</div>
-                          <div className="text-xs opacity-70">{branch.address}</div>
-                        </div>
-                        {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                        {branchForm.createAdmin && (
+                          <div className="space-y-3 pl-2 border-l-2 border-emerald-100 bg-emerald-50/50 p-3 rounded">
+                            <div className="space-y-1">
+                              <Label>Admin Name</Label>
+                              <Input
+                                placeholder="Branch Manager Name"
+                                value={branchForm.newAdminName || ''}
+                                onChange={(e) => setBranchForm({ ...branchForm, newAdminName: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>Admin Email</Label>
+                              <Input
+                                type="email"
+                                placeholder="manager@branch.com"
+                                value={branchForm.newAdminEmail || ''}
+                                onChange={(e) => setBranchForm({ ...branchForm, newAdminEmail: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>Password</Label>
+                              <Input
+                                type="password"
+                                placeholder="******"
+                                value={branchForm.newAdminPassword || ''}
+                                onChange={(e) => setBranchForm({ ...branchForm, newAdminPassword: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phone</Label>
+                        <Input
+                          placeholder="Phone number"
+                          value={branchForm.phone || ''}
+                          onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setBranchDialogOpen(false)}>Cancel</Button>
+                      <Button onClick={handleCreateBranch}>Create Branch</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
 
-            <RestaurantSettingsForm restaurantId={restaurantId} />
+              {myBranches.length > 0 && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle>My Branches</CardTitle>
+                    <CardDescription>Switch between your restaurant outlets</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {myBranches.map(branch => (
+                        <Button
+                          key={branch.id}
+                          variant={branch.id === restaurantId ? "default" : "outline"}
+                          className="justify-start h-auto py-3 px-4"
+                          onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
+                        >
+                          <div className="text-left">
+                            <div className="font-semibold">{branch.name}</div>
+                            <div className="text-xs opacity-70">{branch.address}</div>
+                          </div>
+                          {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <RestaurantSettingsForm restaurantId={restaurantId} />
           </TabsContent>
 
           {/* Reports Tab */}

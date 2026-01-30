@@ -50,6 +50,36 @@ export async function GET(
     }
 }
 
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const idOrSlug = params.id
+    try {
+        const restaurant = await prisma.restaurant.findFirst({
+            where: {
+                OR: [
+                    { id: idOrSlug },
+                    { slug: idOrSlug }
+                ]
+            }
+        })
+
+        if (!restaurant) {
+            return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+        }
+
+        await prisma.restaurant.delete({
+            where: { id: restaurant.id }
+        })
+
+        return NextResponse.json({ success: true, message: 'Restaurant deleted successfully' })
+    } catch (error) {
+        console.error('Error deleting restaurant:', error)
+        return NextResponse.json({ success: false, error: 'Failed to delete restaurant' }, { status: 500 })
+    }
+}
+
 // PUT /api/restaurants/[id] - Update Restaurant
 // Note: We also have PUT /api/restaurants (root) for updates without ID in URL if passed in body?
 // But standard is PUT /api/restaurants/[id].
