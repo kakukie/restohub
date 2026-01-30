@@ -75,6 +75,8 @@ model Restaurant {
   // Limits
   maxMenuItems  Int?     // Null means unlimited
   maxAdmins     Int?     // Null means unlimited
+  allowBranches Boolean  @default(false)
+  maxStaff      Int?     @default(0)
 
   // Relations
   adminId       String

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { hashPassword } from '@/lib/auth'
 
 // GET /api/restaurants - Get all restaurants
 export async function GET(request: NextRequest) {
@@ -70,23 +71,52 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Generate slug from name
+    // Generate cleaner slug (name-randomString)
+    const randomSuffix = Math.random().toString(36).substring(2, 7)
     const slug = name.toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+      .replace(/^-+|-+$/g, '') + `-${randomSuffix}`
 
     let resolvedAdminId = adminId
 
-    // If creating a branch, validate parent and inherit admin
+    // If creating a branch
     if (parentId) {
+      // Validate parent
       const parent = await prisma.restaurant.findUnique({
         where: { id: parentId },
-        select: { adminId: true }
+        select: { adminId: true, allowBranches: true }
       })
+
       if (!parent) {
         return NextResponse.json({ success: false, error: 'Parent restaurant not found' }, { status: 404 })
       }
-      resolvedAdminId = parent.adminId
+
+      // Check if parent is allowed to have branches (Optional enforcement, can be enabled later)
+      // if (!parent.allowBranches) return NextResponse.json({ error: 'Multi-branch not enabled' }, { status: 403 })
+
+      // Handle New Admin Logic
+      if (body.newAdminEmail && body.newAdminPassword) {
+        // Create new User for this branch
+        const existingUser = await prisma.user.findUnique({ where: { email: body.newAdminEmail } })
+        if (existingUser) {
+          return NextResponse.json({ success: false, error: 'Email for new admin already exists' }, { status: 400 })
+        }
+
+        const hashedPassword = await hashPassword(body.newAdminPassword)
+        const newUser = await prisma.user.create({
+          data: {
+            name: body.newAdminName || 'Branch Manager',
+            email: body.newAdminEmail,
+            password: hashedPassword,
+            role: 'RESTAURANT_ADMIN',
+            phone: body.phone || ''
+          }
+        })
+        resolvedAdminId = newUser.id
+      } else {
+        // Inherit Parent Admin
+        resolvedAdminId = parent.adminId
+      }
     }
 
     // Create restaurant
