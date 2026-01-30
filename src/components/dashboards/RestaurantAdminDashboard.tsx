@@ -21,8 +21,8 @@ import QRCodeDialog from '@/components/common/QRCodeDialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Megaphone as MegaphoneIcon, Settings } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
-
-
+import { Order } from '@/store/app-store'
+import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 
 interface OrderItem {
   menuItemId: string
@@ -31,9 +31,6 @@ interface OrderItem {
   quantity: number
   categoryName?: string
 }
-
-import { Order } from '@/store/app-store'
-import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 
 export default function RestaurantAdminDashboard() {
   const {
