@@ -60,8 +60,11 @@ export default function RestaurantAdminDashboard() {
   const { restaurants } = useAppStore()
   const currentRestaurant = restaurants.find(r => r.id === restaurantId)
 
+  // State defined early to be used in derived variables
+  const [orders, setOrders] = useState<Order[]>([])
+
   // Pending Orders Count
-  const pendingOrdersCount = allOrders.filter(o => o.restaurantId === restaurantId && o.status === 'PENDING').length
+  const pendingOrdersCount = orders.filter(o => o.restaurantId === restaurantId && o.status === 'PENDING').length
 
   // Track previous pending count to trigger notifications only on new orders
   const [prevPendingCount, setPrevPendingCount] = useState(0)
@@ -114,6 +117,8 @@ export default function RestaurantAdminDashboard() {
     cancelledOrders: 0,
     cancelledRevenue: 0
   })
+  const [topMenuItems, setTopMenuItems] = useState<any[]>([])
+  const [topPaymentMethods, setTopPaymentMethods] = useState<any[]>([])
 
   // Report date filter state
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1)
@@ -139,9 +144,7 @@ export default function RestaurantAdminDashboard() {
       if (dataMenu.success) setMenuItems(dataMenu.data)
       if (dataCat.success) setCategories(dataCat.data)
 
-      // Also refresh restaurant details if possible, or we might need a dedicated endpoint 
-      // Current implementation might not be fetching restaurant details again?
-      // Let's add that to ensure Slug is fresh.
+      // Also refresh restaurant details if possible
       try {
         const resResto = await fetch(`/api/restaurants/${restaurantId}`)
         const dataResto = await resResto.json()
@@ -156,6 +159,8 @@ export default function RestaurantAdminDashboard() {
       if (dataReport.success) {
         setStats(dataReport.data.stats)
         setChartData(dataReport.data.dailyData)
+        setTopMenuItems(dataReport.data.topMenuItems || [])
+        setTopPaymentMethods(dataReport.data.topPaymentMethods || [])
       }
 
     } catch (e) { console.error("Sync Error", e) }
@@ -1325,15 +1330,16 @@ export default function RestaurantAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {menuItems.slice(0, 5).map((item, idx) => (
-                    <div key={item.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  {topMenuItems.length > 0 ? topMenuItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
                         <span className="font-medium">{item.name}</span>
+                        <Badge variant="outline" className="text-xs">{item.count} sold</Badge>
                       </div>
-                      <span className="text-emerald-600 font-bold">Rp {item.price.toLocaleString('id-ID')}</span>
+                      <span className="text-emerald-600 font-bold">Rp {item.revenue.toLocaleString('id-ID')}</span>
                     </div>
-                  ))}
+                  )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
                 </div>
               </CardContent>
             </Card>
@@ -1345,20 +1351,15 @@ export default function RestaurantAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {['QRIS', 'GOPAY', 'DANA', 'CASH', 'OVO'].map((method, idx) => {
-                    const count = orders.filter(o => o.paymentMethod === method).length
-                    const total = orders.filter(o => o.paymentMethod === method).reduce((acc, o) => acc + o.totalAmount, 0)
-                    return (
-                      <div key={method} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
-                          <span className="font-medium">{method}</span>
-                          <Badge variant="outline" className="text-xs">{count} orders</Badge>
-                        </div>
-                        <span className="text-emerald-600 font-bold">Rp {total.toLocaleString('id-ID')}</span>
+                  {topPaymentMethods.length > 0 ? topPaymentMethods.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
+                        <span className="font-medium">{item.method}</span>
+                        <Badge variant="outline" className="text-xs">{item.count} orders</Badge>
                       </div>
-                    )
-                  })}
+                    </div>
+                  )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
                 </div>
               </CardContent>
             </Card>

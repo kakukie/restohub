@@ -24,6 +24,14 @@ export async function GET(request: NextRequest) {
             where: {
                 restaurantId,
                 createdAt: { gte: startDate, lte: endDate }
+            },
+            include: {
+                orderItems: {
+                    include: { menuItem: true }
+                },
+                payment: {
+                    include: { method: true }
+                }
             }
         })
 
@@ -39,6 +47,33 @@ export async function GET(request: NextRequest) {
             totalMenuItems: await prisma.menuItem.count({ where: { restaurantId } }),
             totalCategories: await prisma.category.count({ where: { restaurantId } })
         }
+
+        // Aggregate Top Menu Items
+        const itemMap = new Map<string, { name: string, count: number, revenue: number }>()
+        validOrders.forEach(o => {
+            o.orderItems.forEach(item => {
+                if (item.menuItem) {
+                    const existing = itemMap.get(item.menuItemId) || { name: item.menuItem.name, count: 0, revenue: 0 }
+                    existing.count += item.quantity
+                    existing.revenue += (item.price * item.quantity)
+                    itemMap.set(item.menuItemId, existing)
+                }
+            })
+        })
+        const topMenuItems = Array.from(itemMap.values())
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5)
+
+        // Aggregate Top Payment Methods
+        const paymentMap = new Map<string, number>()
+        validOrders.forEach(o => {
+            const method = o.payment?.method?.type || 'CASH' // Default or unknown
+            paymentMap.set(method, (paymentMap.get(method) || 0) + 1)
+        })
+        const topPaymentMethods = Array.from(paymentMap.entries())
+            .map(([method, count]) => ({ method, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5)
 
         // 3. Generate Daily Data for Chart
         const dailyData: Record<string, { count: number, revenue: number }> = {}
@@ -74,7 +109,9 @@ export async function GET(request: NextRequest) {
             success: true,
             data: {
                 stats,
-                dailyData
+                dailyData,
+                topMenuItems,
+                topPaymentMethods
             }
         })
 

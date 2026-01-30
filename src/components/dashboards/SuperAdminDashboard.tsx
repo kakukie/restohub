@@ -1083,6 +1083,7 @@ export default function SuperAdminDashboard() {
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => {
+                                  console.log('Attempting to delete restaurant:', restaurant.id);
                                   if (confirm(`Are you sure you want to PERMANENTLY delete ${restaurant.name}?`)) {
                                     fetch(`/api/restaurants/${restaurant.id}`, { method: 'DELETE' })
                                       .then(res => res.json())

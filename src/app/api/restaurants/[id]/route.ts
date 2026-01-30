@@ -66,7 +66,7 @@ export async function DELETE(
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params;
-    const idOrSlug = params.id
+    const idOrSlug = params.id.trim()
     console.log(`[DELETE] Request for idOrSlug: ${idOrSlug}`) // DEBUG LOG
 
     try {
