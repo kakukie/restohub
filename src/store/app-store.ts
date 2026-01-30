@@ -174,63 +174,12 @@ interface AppState {
   clearAnnouncement: () => void
 }
 
-// Mock data removed in favor of API
+// Initial Data
 const INITIAL_USERS: User[] = []
 const INITIAL_RESTAURANTS: Restaurant[] = []
 const INITIAL_MENU_ITEMS: MenuItem[] = []
-// Keep plans/categories as defaults if needed, but safe to clear or keep.
-// User requested "clean demo data", so let's keep basic config (Plans/Cats) but remove transactional data.
-
-
-
-
-// Initial Mock Data
-
-
-const INITIAL_CATEGORIES: Category[] = [
-  { id: '1', name: 'Main Course', description: 'Main dishes', displayOrder: 1, isActive: true },
-  { id: '2', name: 'Appetizer', description: 'Starters and snacks', displayOrder: 2, isActive: true },
-  { id: '3', name: 'Beverage', description: 'Drinks', displayOrder: 3, isActive: true }
-]
-
-const INITIAL_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
-  {
-    id: 'FREE_TRIAL',
-    name: 'Free Trial',
-    description: 'Try all features for free',
-    price: 0,
-    menuLimit: 30,
-    features: ['30 Menu Items', 'Basic Features', '14 Days Access'],
-    isActive: true
-  },
-  {
-    id: 'BASIC',
-    name: 'Basic',
-    description: 'Perfect for small restaurants',
-    price: 99000,
-    menuLimit: 50,
-    features: ['50 Menu Items', 'Basic Analytics', 'Email Support', 'QR Code Generation'],
-    isActive: true
-  },
-  {
-    id: 'PRO',
-    name: 'Pro',
-    description: 'For growing businesses',
-    price: 199000,
-    menuLimit: 100,
-    features: ['100 Menu Items', 'Advanced Analytics', 'Priority Support', 'Custom Branding'],
-    isActive: true
-  },
-  {
-    id: 'ENTERPRISE',
-    name: 'Enterprise',
-    description: 'For large chains',
-    price: 499000,
-    menuLimit: 1000,
-    features: ['Unlimited Menu Items', 'Full Analytics Suite', '24/7 Support', 'API Access', 'Multi-branch Support'],
-    isActive: true
-  }
-]
+const INITIAL_CATEGORIES: Category[] = []
+const INITIAL_SUBSCRIPTION_PLANS: SubscriptionPlan[] = []
 
 export const useAppStore = create<AppState>()(
   persist(

@@ -67,6 +67,8 @@ export async function DELETE(
 ) {
     const params = await props.params;
     const idOrSlug = params.id
+    console.log(`[DELETE] Request for idOrSlug: ${idOrSlug}`) // DEBUG LOG
+
     try {
         const restaurant = await prisma.restaurant.findFirst({
             where: {
@@ -79,8 +81,11 @@ export async function DELETE(
         })
 
         if (!restaurant) {
+            console.log(`[DELETE] Restaurant not found for: ${idOrSlug}`) // DEBUG LOG
             return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
         }
+
+        console.log(`[DELETE] Found restaurant ${restaurant.id}, deleting...`) // DEBUG LOG
 
         await prisma.restaurant.delete({
             where: { id: restaurant.id }
@@ -105,6 +110,7 @@ export async function PUT(
 ) {
     const params = await props.params;
     const idOrSlug = params.id
+    console.log(`[PUT] Request for idOrSlug: ${idOrSlug}`) // DEBUG LOG
 
     try {
         const body = await request.json()
@@ -122,8 +128,11 @@ export async function PUT(
         })
 
         if (!restaurant) {
+            console.log(`[PUT] Restaurant not found for: ${idOrSlug}`) // DEBUG LOG
             return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
         }
+
+        console.log(`[PUT] Updating restaurant ${restaurant.id}`) // DEBUG LOG
 
         const updated = await prisma.restaurant.update({
             where: { id: restaurant.id },

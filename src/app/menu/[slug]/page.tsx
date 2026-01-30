@@ -191,40 +191,44 @@ export default function PublicMenuPage() {
         setProcessingPayment(true)
 
         try {
-            const orderData = {
-                id: crypto.randomUUID(),
-                orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
-                customerId: 'GUEST',
+            // Prepare payload for API
+            const orderPayload = {
+                restaurantId: restaurant?.id,
                 customerName: guestName,
                 customerPhone: guestPhone,
-                restaurantId: restaurant?.id || '',
-                restaurantName: restaurant?.name || '',
-                items: cart,
-                totalAmount: cartTotal,
-                paymentMethod: selectedPaymentMethod,
                 tableNumber,
                 notes,
-                status: 'PENDING' as const,
-                paymentStatus: 'PENDING' as const,
-                createdAt: new Date().toISOString()
+                paymentMethod: selectedPaymentMethod,
+                items: cart.map(item => ({
+                    menuItemId: item.menuItemId,
+                    quantity: item.quantity,
+                    price: item.price,
+                    notes: '' // Add notes field to cart items if needed later
+                })),
+                totalAmount: cartTotal
             }
 
-            addOrder(orderData)
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderPayload)
+            })
 
-            const completedOrderData = {
-                ...orderData,
-                transactionId: `TXN-${Date.now()}`
+            const data = await response.json()
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to place order')
             }
 
-            setCompletedOrder(completedOrderData)
+            setCompletedOrder(data.data)
             setCheckoutDialogOpen(false)
             setOrderConfirmationOpen(true)
             clearCart()
 
             toast({ title: 'Order Placed!', description: 'Your order has been sent to the kitchen.' })
-        } catch (error) {
-            toast({ title: 'Order Failed', description: 'Please try again.', variant: 'destructive' })
+        } catch (error: any) {
+            console.error("Order failed", error)
+            toast({ title: 'Order Failed', description: error.message || 'Please try again.', variant: 'destructive' })
         } finally {
             setProcessingPayment(false)
         }

@@ -659,6 +659,16 @@ export default function RestaurantAdminDashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+
+        {/* System Announcements */}
+        {systemAnnouncements.filter(a => a.isActive).map(announcement => (
+          <Alert key={announcement.id} className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
+            <MegaphoneIcon className="h-4 w-4" />
+            <AlertTitle>System Announcement</AlertTitle>
+            <AlertDescription>{announcement.message}</AlertDescription>
+          </Alert>
+        ))}
+
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
