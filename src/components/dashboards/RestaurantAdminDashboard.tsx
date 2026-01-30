@@ -1856,11 +1856,11 @@ export default function RestaurantAdminDashboard() {
                 </CardContent>
               </Card>
             </TabsContent>
-        </Tabs >
-      </main >
+        </Tabs>
+      </main>
 
       {/* Mobile Bottom Navigation */}
-      < div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2 z-50 grid grid-cols-4 gap-1" >
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2 z-50 grid grid-cols-4 gap-1">
         <button
           onClick={() => setActiveTab('menu')}
           className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'menu' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
@@ -1889,19 +1889,19 @@ export default function RestaurantAdminDashboard() {
           <Settings className="h-5 w-5" />
           <span className="text-[10px] font-medium mt-1">Settings</span>
         </button>
-      </div >
+      </div>
 
       {/* Footer */}
-      < footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm mt-auto" >
+      <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm mt-auto">
         <div className="container mx-auto px-4 py-4">
           <p className="text-sm text-center text-gray-600 dark:text-gray-400">
             © 2024 RestoHub. Digital Restaurant Platform
           </p>
         </div>
-      </footer >
+      </footer>
 
       {/* QR Code Dialog for Restaurant Menu */}
-      < QRCodeDialog
+      <QRCodeDialog
         open={qrCodeDialogOpen}
         onOpenChange={setQrCodeDialogOpen}
         restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId}
