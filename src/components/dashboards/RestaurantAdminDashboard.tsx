@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useAppStore, MenuItem, Category, PaymentMethod } from '@/store/app-store'
-import { Store, Plus, Edit, Trash2, CreditCard, Package, LayoutGrid, LogOut, DollarSign, ShoppingBag, TrendingUp, CheckCircle, XCircle, Clock, QrCode, Printer, BarChart3, FileText, Download, Calendar, LifeBuoy, MessageCircle } from 'lucide-react'
+import { Store, Plus, Edit, Trash2, CreditCard, Package, LayoutGrid, LogOut, DollarSign, ShoppingBag, TrendingUp, CheckCircle, XCircle, Clock, QrCode, Printer, BarChart3, FileText, Download, Calendar, LifeBuoy, MessageCircle, ChefHat, Utensils } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import QRCodeDialog from '@/components/common/QRCodeDialog'

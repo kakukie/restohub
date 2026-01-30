@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// PUT /api/subscription-plans - Update or Seed
+// PUT /api/subscription-plans - Update or Upsert
 export async function PUT(request: NextRequest) {
     try {
         if (!prisma.subscriptionPlan) {
@@ -50,14 +50,24 @@ export async function PUT(request: NextRequest) {
 
         if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 
-        const plan = await prisma.subscriptionPlan.update({
+        // Use upsert to handle cases where the record might be missing (P2025)
+        const plan = await prisma.subscriptionPlan.upsert({
             where: { id },
-            data: updates
+            update: updates,
+            create: {
+                id,
+                name: updates.name || 'Unnamed Plan',
+                description: updates.description || '',
+                price: typeof updates.price === 'number' ? updates.price : parseFloat(updates.price || '0'),
+                menuLimit: typeof updates.menuLimit === 'number' ? updates.menuLimit : parseInt(updates.menuLimit || '0'),
+                features: updates.features || [],
+                isActive: updates.isActive ?? true
+            }
         })
         return NextResponse.json({ success: true, data: plan })
 
     } catch (error) {
-        console.error(error)
+        console.error('Update Error:', error)
         return NextResponse.json({ success: false, error: 'Failed to update plan' }, { status: 500 })
     }
 }
