@@ -62,23 +62,13 @@ export default function Home() {
   // Initialize and check session
   useEffect(() => {
     setMounted(true)
-    setMounted(true)
-    // useAppStore.persist.rehydrate() // Auto-hydration handles this
     generateCaptcha()
 
     // Force cleanup legacy local storage to prevent conflicts
     if (typeof window !== 'undefined') {
       localStorage.removeItem('user')
     }
-
-    // Check active session from store (handled by sessionStorage)
-    if (user) {
-      setShowDashboard(true)
-    } else {
-      // Legacy check cleanup or specific handle if needed
-      // localStorage.removeItem('user') 
-    }
-  }, [setUser, user])
+  }, []) // Remove dependencies to run once
 
   /* Mounted check removed to allow server rendering and avoid hydration mismatch with loading state blocks */
 
@@ -231,9 +221,20 @@ export default function Home() {
             </span>
           </div>
           <div className="flex gap-4 text-sm font-medium text-gray-600 items-center">
-            <a href="#features" className="hover:text-emerald-600">Fitur</a>
-            <a href="#pricing" className="hover:text-emerald-600">Harga</a>
-            <a href="#contact" className="hover:text-emerald-600">Contact</a>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="text-emerald-600 font-semibold">Hi, {user.name}</span>
+                <Button onClick={() => setShowDashboard(true)} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                  Go to Dashboard
+                </Button>
+              </div>
+            ) : (
+              <>
+                <a href="#features" className="hover:text-emerald-600">Fitur</a>
+                <a href="#pricing" className="hover:text-emerald-600">Harga</a>
+                <a href="#contact" className="hover:text-emerald-600">Contact</a>
+              </>
+            )}
           </div>
         </div>
       </nav>
