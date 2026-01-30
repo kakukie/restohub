@@ -1311,551 +1311,552 @@ export default function RestaurantAdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
 
-            {/* Analytics Tab */}
-            <TabsContent value="analytics" className="space-y-4">
-              <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Daily Revenue */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Daily Revenue</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-emerald-600">
-                      Rp {(stats.totalRevenue * 0.1).toLocaleString('id-ID')}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">Today&apos;s earnings</p>
-                    <div className="mt-4 flex items-center text-sm text-green-600">
-                      <TrendingUp className="h-4 w-4 mr-1" />
-                      +12% from yesterday
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Weekly Revenue */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Weekly Revenue</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-blue-600">
-                      Rp {(stats.totalRevenue * 0.45).toLocaleString('id-ID')}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">This week&apos;s total</p>
-                    <div className="mt-4 flex items-center text-sm text-green-600">
-                      <TrendingUp className="h-4 w-4 mr-1" />
-                      +8% from last week
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Monthly Revenue */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Monthly Revenue</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-purple-600">
-                      Rp {stats.totalRevenue.toLocaleString('id-ID')}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">This month&apos;s total</p>
-                    <div className="mt-4 flex items-center text-sm text-green-600">
-                      <TrendingUp className="h-4 w-4 mr-1" />
-                      +15% from last month
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Order Statistics */}
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-4">
+            <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Daily Revenue */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Order Statistics</CardTitle>
+                  <CardTitle className="text-lg">Daily Revenue</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">
-                        {orders.filter(o => o.status === 'PENDING').length}
-                      </div>
-                      <p className="text-sm text-gray-500">Pending</p>
-                    </div>
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {orders.filter(o => o.status === 'PREPARING').length}
-                      </div>
-                      <p className="text-sm text-gray-500">Preparing</p>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {orders.filter(o => o.status === 'COMPLETED').length}
-                      </div>
-                      <p className="text-sm text-gray-500">Completed</p>
-                    </div>
-                    <div className="text-center p-4 bg-red-50 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">
-                        {orders.filter(o => o.status === 'CANCELLED').length}
-                      </div>
-                      <p className="text-sm text-gray-500">Cancelled</p>
-                    </div>
+                  <div className="text-3xl font-bold text-emerald-600">
+                    Rp {(stats.totalRevenue * 0.1).toLocaleString('id-ID')}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Today&apos;s earnings</p>
+                  <div className="mt-4 flex items-center text-sm text-green-600">
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    +12% from yesterday
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Top Menu Items */}
+              {/* Weekly Revenue */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Top Menu Items</CardTitle>
+                  <CardTitle className="text-lg">Weekly Revenue</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {topMenuItems.length > 0 ? topMenuItems.map((item: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
-                          <span className="font-medium">{item.name}</span>
-                          <Badge variant="outline" className="text-xs">{item.count} sold</Badge>
+                  <div className="text-3xl font-bold text-blue-600">
+                    Rp {(stats.totalRevenue * 0.45).toLocaleString('id-ID')}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">This week&apos;s total</p>
+                  <div className="mt-4 flex items-center text-sm text-green-600">
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    +8% from last week
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Monthly Revenue */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Monthly Revenue</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-purple-600">
+                    Rp {stats.totalRevenue.toLocaleString('id-ID')}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">This month&apos;s total</p>
+                  <div className="mt-4 flex items-center text-sm text-green-600">
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    +15% from last month
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Order Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Order Statistics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {orders.filter(o => o.status === 'PENDING').length}
+                    </div>
+                    <p className="text-sm text-gray-500">Pending</p>
+                  </div>
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {orders.filter(o => o.status === 'PREPARING').length}
+                    </div>
+                    <p className="text-sm text-gray-500">Preparing</p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {orders.filter(o => o.status === 'COMPLETED').length}
+                    </div>
+                    <p className="text-sm text-gray-500">Completed</p>
+                  </div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">
+                      {orders.filter(o => o.status === 'CANCELLED').length}
+                    </div>
+                    <p className="text-sm text-gray-500">Cancelled</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Top Menu Items */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Top Menu Items</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {topMenuItems.length > 0 ? topMenuItems.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
+                        <span className="font-medium">{item.name}</span>
+                        <Badge variant="outline" className="text-xs">{item.count} sold</Badge>
+                      </div>
+                      <span className="text-emerald-600 font-bold">Rp {item.revenue.toLocaleString('id-ID')}</span>
+                    </div>
+                  )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Top Payment Methods */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Top Payment Methods</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {topPaymentMethods.length > 0 ? topPaymentMethods.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
+                        <span className="font-medium">{item.method}</span>
+                        <Badge variant="outline" className="text-xs">{item.count} orders</Badge>
+                      </div>
+                    </div>
+                  )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Payment Methods Tab */}
+          <TabsContent value="payments" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Payment Methods</h2>
+              <Dialog open={paymentMethodDialogOpen} onOpenChange={setPaymentMethodDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => setPaymentMethodForm({})} className="bg-green-600 hover:bg-green-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Payment Method
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{paymentMethodForm.id ? 'Edit Payment Method' : 'Add Payment Method'}</DialogTitle>
+                    <DialogDescription>Configure payment details</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="payment-type">Payment Method *</Label>
+                      <Select
+                        value={paymentMethodForm.type || ''}
+                        onValueChange={(value) => setPaymentMethodForm({ ...paymentMethodForm, type: value })}
+                      >
+                        <SelectTrigger id="payment-type">
+                          <SelectValue placeholder="Select payment method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="QRIS">QRIS</SelectItem>
+                          <SelectItem value="GOPAY">GoPay</SelectItem>
+                          <SelectItem value="OVO">OVO</SelectItem>
+                          <SelectItem value="DANA">DANA</SelectItem>
+                          <SelectItem value="LINKAJA">LinkAja</SelectItem>
+                          <SelectItem value="SHOPEEPAY">ShopeePay</SelectItem>
+                          <SelectItem value="CASH">Cash</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {/* QR Code Upload for applicable methods */}
+                    {['QRIS', 'GOPAY', 'DANA', 'OVO', 'SHOPEEPAY', 'LINKAJA'].includes(paymentMethodForm.type || '') && (
+                      <div className="space-y-2">
+                        <Label htmlFor="qr-image">QR Code Image</Label>
+                        <Input
+                          id="qr-image"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, (base64) => setPaymentMethodForm({ ...paymentMethodForm, qrCode: base64 }))}
+                        />
+                        {paymentMethodForm.qrCode && (
+                          <div className="mt-2 relative h-32 w-32 border rounded-lg overflow-hidden bg-white">
+                            <Image
+                              src={paymentMethodForm.qrCode}
+                              alt="QR Preview"
+                              fill
+                              className="object-contain"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-1 right-1 h-6 w-6"
+                              onClick={() => setPaymentMethodForm({ ...paymentMethodForm, qrCode: undefined })}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="merchant-id">Merchant ID (Optional)</Label>
+                      <Input
+                        id="merchant-id"
+                        value={paymentMethodForm.merchantId || ''}
+                        onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, merchantId: e.target.value })}
+                        placeholder="Enter merchant ID"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleSavePaymentMethod} className="bg-green-600 hover:bg-green-700">
+                      {paymentMethodForm.id ? 'Save Changes' : 'Add Payment Method'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paymentMethods.map((method) => (
+                <Card key={method.id} className="border-2">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="text-4xl">{getPaymentMethodIcon(method.type)}</div>
+                        <div>
+                          <CardTitle className="text-lg">{method.type}</CardTitle>
+                          {method.merchantId && (
+                            <CardDescription className="text-sm">
+                              ID: {method.merchantId}
+                            </CardDescription>
+                          )}
                         </div>
-                        <span className="text-emerald-600 font-bold">Rp {item.revenue.toLocaleString('id-ID')}</span>
                       </div>
-                    )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
-                  </div>
-                </CardContent>
-              </Card>
+                      <Switch
+                        checked={method.isActive}
+                        onCheckedChange={(checked) => handleTogglePaymentMethod(method.id, checked)}
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 w-full"
+                      onClick={() => handleDeletePaymentMethod(method.id)}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Remove
+                    </Button>
+                    <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => {
+                      setPaymentMethodForm(method)
+                      setPaymentMethodDialogOpen(true)
+                    }}>
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
 
-              {/* Top Payment Methods */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Top Payment Methods</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {topPaymentMethods.length > 0 ? topPaymentMethods.map((item: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
-                          <span className="font-medium">{item.method}</span>
-                          <Badge variant="outline" className="text-xs">{item.count} orders</Badge>
-                        </div>
-                      </div>
-                    )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Payment Methods Tab */}
-            <TabsContent value="payments" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Payment Methods</h2>
-                <Dialog open={paymentMethodDialogOpen} onOpenChange={setPaymentMethodDialogOpen}>
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Restaurant Settings</h2>
+              <div className="flex gap-2">
+                <Button variant="destructive" onClick={async () => {
+                  if (!confirm('Are you sure you want to DELETE this restaurant? This action cannot be undone.')) return
+                  try {
+                    const res = await fetch(`/api/restaurants/${restaurantId}`, { method: 'DELETE' })
+                    const data = await res.json()
+                    if (data.success) {
+                      toast({ title: 'Deleted', description: 'Restaurant deleted' })
+                      window.location.href = '/dashboard'
+                    } else {
+                      throw new Error(data.error)
+                    }
+                  } catch (e: any) {
+                    toast({ title: 'Error', variant: 'destructive', description: e.message })
+                  }
+                }}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete Restaurant
+                </Button>
+                <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button onClick={() => setPaymentMethodForm({})} className="bg-green-600 hover:bg-green-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Payment Method
+                    <Button variant="outline" onClick={() => setBranchForm({})}>
+                      <Plus className="mr-2 h-4 w-4" /> Create Branch
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>{paymentMethodForm.id ? 'Edit Payment Method' : 'Add Payment Method'}</DialogTitle>
-                      <DialogDescription>Configure payment details</DialogDescription>
+                      <DialogTitle>Create New Branch</DialogTitle>
+                      <DialogDescription>Create a new outlet linked to this restaurant.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
-                        <Label htmlFor="payment-type">Payment Method *</Label>
-                        <Select
-                          value={paymentMethodForm.type || ''}
-                          onValueChange={(value) => setPaymentMethodForm({ ...paymentMethodForm, type: value })}
-                        >
-                          <SelectTrigger id="payment-type">
-                            <SelectValue placeholder="Select payment method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="QRIS">QRIS</SelectItem>
-                            <SelectItem value="GOPAY">GoPay</SelectItem>
-                            <SelectItem value="OVO">OVO</SelectItem>
-                            <SelectItem value="DANA">DANA</SelectItem>
-                            <SelectItem value="LINKAJA">LinkAja</SelectItem>
-                            <SelectItem value="SHOPEEPAY">ShopeePay</SelectItem>
-                            <SelectItem value="CASH">Cash</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {/* QR Code Upload for applicable methods */}
-                      {['QRIS', 'GOPAY', 'DANA', 'OVO', 'SHOPEEPAY', 'LINKAJA'].includes(paymentMethodForm.type || '') && (
-                        <div className="space-y-2">
-                          <Label htmlFor="qr-image">QR Code Image</Label>
-                          <Input
-                            id="qr-image"
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleImageUpload(e, (base64) => setPaymentMethodForm({ ...paymentMethodForm, qrCode: base64 }))}
-                          />
-                          {paymentMethodForm.qrCode && (
-                            <div className="mt-2 relative h-32 w-32 border rounded-lg overflow-hidden bg-white">
-                              <Image
-                                src={paymentMethodForm.qrCode}
-                                alt="QR Preview"
-                                fill
-                                className="object-contain"
-                              />
-                              <Button
-                                variant="destructive"
-                                size="icon"
-                                className="absolute top-1 right-1 h-6 w-6"
-                                onClick={() => setPaymentMethodForm({ ...paymentMethodForm, qrCode: undefined })}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <div className="space-y-2">
-                        <Label htmlFor="merchant-id">Merchant ID (Optional)</Label>
+
+                        <Label>Branch Name</Label>
                         <Input
-                          id="merchant-id"
-                          value={paymentMethodForm.merchantId || ''}
-                          onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, merchantId: e.target.value })}
-                          placeholder="Enter merchant ID"
+                          placeholder="e.g. Cabang Jakarta Selatan"
+                          value={branchForm.name || ''}
+                          onChange={e => setBranchForm({ ...branchForm, name: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Address</Label>
+                        <Input
+                          placeholder="Full address"
+                          value={branchForm.address || ''}
+                          onChange={e => setBranchForm({ ...branchForm, address: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phone</Label>
+                        <Input
+                          placeholder="081..."
+                          value={branchForm.phone || ''}
+                          onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="border-t pt-4 mt-2 space-y-4">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="enableSync"
+                            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                            checked={branchForm.enableSync || false}
+                            onChange={(e) => setBranchForm({ ...branchForm, enableSync: e.target.checked })}
+                          />
+                          <Label htmlFor="enableSync" className="cursor-pointer font-medium">Sync Menu & Payments from Main Branch?</Label>
+                        </div>
+
+                        <div className="flex items-center space-x-2 mb-4">
+                          <input
+                            type="checkbox"
+                            id="createAdmin"
+                            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                            checked={branchForm.createAdmin || false}
+                            onChange={(e) => setBranchForm({ ...branchForm, createAdmin: e.target.checked })}
+                          />
+                          <Label htmlFor="createAdmin" className="cursor-pointer font-medium">Create Separate Admin for Branch?</Label>
+                        </div>
+
+                        {branchForm.createAdmin && (
+                          <div className="space-y-3 pl-2 border-l-2 border-emerald-100 bg-emerald-50/50 p-3 rounded">
+                            <div className="space-y-1">
+                              <Label>Admin Name</Label>
+                              <Input
+                                placeholder="Branch Manager Name"
+                                value={branchForm.newAdminName || ''}
+                                onChange={(e) => setBranchForm({ ...branchForm, newAdminName: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>Admin Email</Label>
+                              <Input
+                                type="email"
+                                placeholder="manager@branch.com"
+                                value={branchForm.newAdminEmail || ''}
+                                onChange={(e) => setBranchForm({ ...branchForm, newAdminEmail: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>Password</Label>
+                              <Input
+                                type="password"
+                                placeholder="******"
+                                value={branchForm.newAdminPassword || ''}
+                                onChange={(e) => setBranchForm({ ...branchForm, newAdminPassword: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Phone</Label>
+                        <Input
+                          placeholder="Phone number"
+                          value={branchForm.phone || ''}
+                          onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
                         />
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button onClick={handleSavePaymentMethod} className="bg-green-600 hover:bg-green-700">
-                        {paymentMethodForm.id ? 'Save Changes' : 'Add Payment Method'}
-                      </Button>
+                      <Button variant="outline" onClick={() => setBranchDialogOpen(false)}>Cancel</Button>
+                      <Button onClick={handleCreateBranch}>Create Branch</Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {paymentMethods.map((method) => (
-                  <Card key={method.id} className="border-2">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="text-4xl">{getPaymentMethodIcon(method.type)}</div>
-                          <div>
-                            <CardTitle className="text-lg">{method.type}</CardTitle>
-                            {method.merchantId && (
-                              <CardDescription className="text-sm">
-                                ID: {method.merchantId}
-                              </CardDescription>
-                            )}
-                          </div>
-                        </div>
-                        <Switch
-                          checked={method.isActive}
-                          onCheckedChange={(checked) => handleTogglePaymentMethod(method.id, checked)}
-                        />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 w-full"
-                        onClick={() => handleDeletePaymentMethod(method.id)}
-                      >
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        Remove
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => {
-                        setPaymentMethodForm(method)
-                        setPaymentMethodDialogOpen(true)
-                      }}>
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            {/* Settings Tab */}
-            <TabsContent value="settings" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Restaurant Settings</h2>
-                <div className="flex gap-2">
-                  <Button variant="destructive" onClick={async () => {
-                    if (!confirm('Are you sure you want to DELETE this restaurant? This action cannot be undone.')) return
-                    try {
-                      const res = await fetch(`/api/restaurants/${restaurantId}`, { method: 'DELETE' })
-                      const data = await res.json()
-                      if (data.success) {
-                        toast({ title: 'Deleted', description: 'Restaurant deleted' })
-                        window.location.href = '/dashboard'
-                      } else {
-                        throw new Error(data.error)
-                      }
-                    } catch (e: any) {
-                      toast({ title: 'Error', variant: 'destructive', description: e.message })
-                    }
-                  }}>
-                    <Trash2 className="mr-2 h-4 w-4" /> Delete Restaurant
-                  </Button>
-                  <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" onClick={() => setBranchForm({})}>
-                        <Plus className="mr-2 h-4 w-4" /> Create Branch
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New Branch</DialogTitle>
-                        <DialogDescription>Create a new outlet linked to this restaurant.</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-
-                          <Label>Branch Name</Label>
-                          <Input
-                            placeholder="e.g. Cabang Jakarta Selatan"
-                            value={branchForm.name || ''}
-                            onChange={e => setBranchForm({ ...branchForm, name: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Address</Label>
-                          <Input
-                            placeholder="Full address"
-                            value={branchForm.address || ''}
-                            onChange={e => setBranchForm({ ...branchForm, address: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Phone</Label>
-                          <Input
-                            placeholder="081..."
-                            value={branchForm.phone || ''}
-                            onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
-                          />
-                        </div>
-
-                        <div className="border-t pt-4 mt-2 space-y-4">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id="enableSync"
-                              className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                              checked={branchForm.enableSync || false}
-                              onChange={(e) => setBranchForm({ ...branchForm, enableSync: e.target.checked })}
-                            />
-                            <Label htmlFor="enableSync" className="cursor-pointer font-medium">Sync Menu & Payments from Main Branch?</Label>
-                          </div>
-
-                          <div className="flex items-center space-x-2 mb-4">
-                            <input
-                              type="checkbox"
-                              id="createAdmin"
-                              className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                              checked={branchForm.createAdmin || false}
-                              onChange={(e) => setBranchForm({ ...branchForm, createAdmin: e.target.checked })}
-                            />
-                            <Label htmlFor="createAdmin" className="cursor-pointer font-medium">Create Separate Admin for Branch?</Label>
-                          </div>
-
-                          {branchForm.createAdmin && (
-                            <div className="space-y-3 pl-2 border-l-2 border-emerald-100 bg-emerald-50/50 p-3 rounded">
-                              <div className="space-y-1">
-                                <Label>Admin Name</Label>
-                                <Input
-                                  placeholder="Branch Manager Name"
-                                  value={branchForm.newAdminName || ''}
-                                  onChange={(e) => setBranchForm({ ...branchForm, newAdminName: e.target.value })}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label>Admin Email</Label>
-                                <Input
-                                  type="email"
-                                  placeholder="manager@branch.com"
-                                  value={branchForm.newAdminEmail || ''}
-                                  onChange={(e) => setBranchForm({ ...branchForm, newAdminEmail: e.target.value })}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label>Password</Label>
-                                <Input
-                                  type="password"
-                                  placeholder="******"
-                                  value={branchForm.newAdminPassword || ''}
-                                  onChange={(e) => setBranchForm({ ...branchForm, newAdminPassword: e.target.value })}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Phone</Label>
-                          <Input
-                            placeholder="Phone number"
-                            value={branchForm.phone || ''}
-                            onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setBranchDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleCreateBranch}>Create Branch</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-
-              {myBranches.length > 0 && (
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle>My Branches</CardTitle>
-                    <CardDescription>Switch between your restaurant outlets</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {myBranches.map(branch => (
-                        <Button
-                          key={branch.id}
-                          variant={branch.id === restaurantId ? "default" : "outline"}
-                          className="justify-start h-auto py-3 px-4"
-                          onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">{branch.name}</div>
-                            <div className="text-xs opacity-70">{branch.address}</div>
-                          </div>
-                          {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
-                        </Button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <RestaurantSettingsForm restaurantId={restaurantId} />
-            </TabsContent>
-
-            {/* Reports Tab */}
-            <TabsContent value="reports" className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold">Sales Reports</h2>
-                <div className="flex items-center gap-2">
-                  <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Select Month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                        <SelectItem key={m} value={m.toString()}>
-                          {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(parseInt(v))}>
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[2024, 2025, 2026].map(y => (
-                        <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" onClick={() => toast({ title: 'Downloading...', description: 'Report download started.' })}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
-                </div>
-              </div>
-
-              {/* Monthly Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {orders.filter(o => {
-                        const d = new Date(o.createdAt);
-                        return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
-                      }).length}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Gross Revenue</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-600">
-                      Rp {orders.filter(o => {
-                        const d = new Date(o.createdAt);
-                        return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
-                      }).reduce((acc, o) => acc + o.totalAmount, 0).toLocaleString('id-ID')}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      Rp {(() => {
-                        const filtered = orders.filter(o => {
-                          const d = new Date(o.createdAt);
-                          return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
-                        });
-                        return filtered.length ? (filtered.reduce((acc, o) => acc + o.totalAmount, 0) / filtered.length).toLocaleString('id-ID', { maximumFractionDigits: 0 }) : '0';
-                      })()}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Daily Breakdown Table */}
-              <Card>
+            {myBranches.length > 0 && (
+              <Card className="mb-6">
                 <CardHeader>
-                  <CardTitle>Daily Breakdown</CardTitle>
-                  <CardDescription>
-                    Sales performance for {new Date(0, reportMonth - 1).toLocaleString('default', { month: 'long' })} {reportYear}
-                  </CardDescription>
+                  <CardTitle>My Branches</CardTitle>
+                  <CardDescription>Switch between your restaurant outlets</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="border rounded-md">
-                    <div className="grid grid-cols-4 bg-gray-50 p-3 font-medium text-sm border-b">
-                      <div>Date</div>
-                      <div>Orders</div>
-                      <div>Items Sold</div>
-                      <div className="text-right">Revenue</div>
-                    </div>
-                    <ScrollArea className="h-[300px]">
-                      {Object.entries(chartData).map(([date, data]: [string, any]) => (
-                        <div key={date} className="grid grid-cols-4 p-3 text-sm border-b last:border-0 hover:bg-gray-50">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-400" />
-                            {date}
-                          </div>
-                          <div>{data.count}</div>
-                          <div>-</div>
-                          <div className="text-right font-medium">Rp {data.revenue.toLocaleString('id-ID')}</div>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {myBranches.map(branch => (
+                      <Button
+                        key={branch.id}
+                        variant={branch.id === restaurantId ? "default" : "outline"}
+                        className="justify-start h-auto py-3 px-4"
+                        onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">{branch.name}</div>
+                          <div className="text-xs opacity-70">{branch.address}</div>
                         </div>
-                      ))}
-                      {Object.keys(chartData).length === 0 && (
-                        <div className="p-8 text-center text-gray-500">No sales data for this period</div>
-                      )}
-
-
-                    </ScrollArea>
+                        {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
+                      </Button>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+            )}
+
+            <RestaurantSettingsForm restaurantId={restaurantId} />
+          </TabsContent>
+
+          {/* Reports Tab */}
+          <TabsContent value="reports" className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <h2 className="text-2xl font-bold">Sales Reports</h2>
+              <div className="flex items-center gap-2">
+                <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Select Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <SelectItem key={m} value={m.toString()}>
+                        {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(parseInt(v))}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[2024, 2025, 2026].map(y => (
+                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={() => toast({ title: 'Downloading...', description: 'Report download started.' })}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </div>
+            </div>
+
+            {/* Monthly Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {orders.filter(o => {
+                      const d = new Date(o.createdAt);
+                      return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+                    }).length}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Gross Revenue</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    Rp {orders.filter(o => {
+                      const d = new Date(o.createdAt);
+                      return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+                    }).reduce((acc, o) => acc + o.totalAmount, 0).toLocaleString('id-ID')}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    Rp {(() => {
+                      const filtered = orders.filter(o => {
+                        const d = new Date(o.createdAt);
+                        return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+                      });
+                      return filtered.length ? (filtered.reduce((acc, o) => acc + o.totalAmount, 0) / filtered.length).toLocaleString('id-ID', { maximumFractionDigits: 0 }) : '0';
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Daily Breakdown Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Daily Breakdown</CardTitle>
+                <CardDescription>
+                  Sales performance for {new Date(0, reportMonth - 1).toLocaleString('default', { month: 'long' })} {reportYear}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md">
+                  <div className="grid grid-cols-4 bg-gray-50 p-3 font-medium text-sm border-b">
+                    <div>Date</div>
+                    <div>Orders</div>
+                    <div>Items Sold</div>
+                    <div className="text-right">Revenue</div>
+                  </div>
+                  <ScrollArea className="h-[300px]">
+                    {Object.entries(chartData).map(([date, data]: [string, any]) => (
+                      <div key={date} className="grid grid-cols-4 p-3 text-sm border-b last:border-0 hover:bg-gray-50">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          {date}
+                        </div>
+                        <div>{data.count}</div>
+                        <div>-</div>
+                        <div className="text-right font-medium">Rp {data.revenue.toLocaleString('id-ID')}</div>
+                      </div>
+                    ))}
+                    {Object.keys(chartData).length === 0 && (
+                      <div className="p-8 text-center text-gray-500">No sales data for this period</div>
+                    )}
+
+
+                  </ScrollArea>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
