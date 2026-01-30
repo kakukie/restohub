@@ -55,29 +55,39 @@ export default function SuperAdminDashboard() {
   const { setRestaurants, setUsers } = useAppStore()
 
   // Fetch data on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch Restaurants
-        const resResto = await fetch('/api/restaurants')
-        const dataResto = await resResto.json()
-        if (dataResto.success) {
-          setRestaurants(dataResto.data)
-        }
-
-        // Fetch Users (Admins)
-        const resUsers = await fetch('/api/users')
-        const dataUsers = await resUsers.json()
-        if (dataUsers.success) {
-          setUsers(dataUsers.data)
-        }
-
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error)
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      // Fetch Restaurants
+      const resResto = await fetch('/api/restaurants')
+      const dataResto = await resResto.json()
+      if (dataResto.success) {
+        setRestaurants(dataResto.data)
       }
+
+      // Fetch Users (Admins)
+      const resUsers = await fetch('/api/users')
+      const dataUsers = await resUsers.json()
+      if (dataUsers.success) {
+        setUsers(dataUsers.data)
+      }
+
+      // Fetch Admin Analytics
+      try {
+        const resAnalytics = await fetch('/api/admin/analytics')
+        const dataAnalytics = await resAnalytics.json()
+        if (dataAnalytics.success) {
+          setAdminAnalytics(dataAnalytics.data)
+        }
+      } catch (err) { console.error("Failed to fetch analytics", err) }
+
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error)
     }
-    fetchData()
   }, [setRestaurants, setUsers])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [fetchDashboardData])
 
   // State definitions
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null)
@@ -98,6 +108,12 @@ export default function SuperAdminDashboard() {
     activeRestaurants: 0,
     inactiveRestaurants: 0
   })
+
+  // Admin Analytics State
+  const [adminAnalytics, setAdminAnalytics] = useState<{
+    topRevenue: any[]
+    topSelling: any[]
+  }>({ topRevenue: [], topSelling: [] })
 
   // Helper for image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
@@ -911,56 +927,72 @@ export default function SuperAdminDashboard() {
 
         {/* Analytics Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Top Revenue */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-600" />
                 Top Restaurants (Revenue)
               </CardTitle>
+              <CardDescription>Highest grossing restaurants</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {topRestaurants.map((resto, i) => (
-                  <div key={resto.id} className="flex items-center justify-between border-b pb-2 last:border-0 hover:bg-gray-50 p-2 rounded">
-                    <div className="flex items-center gap-3">
-                      <div className="font-bold text-gray-500 w-6">#{i + 1}</div>
-                      <div>
-                        <div className="font-medium">{resto.name}</div>
-                        <div className="text-xs text-gray-500">{resto.orderCount} orders</div>
+                {adminAnalytics.topRevenue.length > 0 ? (
+                  adminAnalytics.topRevenue.map((resto, i) => (
+                    <div key={resto.id} className="flex items-center justify-between border-b pb-2 last:border-0 hover:bg-gray-50 p-2 rounded transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold text-sm">
+                          #{i + 1}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">{resto.name}</div>
+                          <div className="text-xs text-gray-500">{resto.totalOrders} total orders</div>
+                        </div>
+                      </div>
+                      <div className="font-bold text-emerald-600">
+                        Rp {resto.totalRevenue.toLocaleString('id-ID')}
                       </div>
                     </div>
-                    <div className="font-bold text-emerald-600">
-                      Rp {resto.revenue.toLocaleString('id-ID')}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">No revenue data available</div>
+                )}
               </div>
             </CardContent>
           </Card>
 
+          {/* Top Selling */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingBag className="h-5 w-5 text-blue-600" />
-                Top Selling Items
+                Top Restaurants (Volume)
               </CardTitle>
+              <CardDescription>Highest order volume</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {topMenuItems.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between border-b pb-2 last:border-0 hover:bg-gray-50 p-2 rounded">
-                    <div className="flex items-center gap-3">
-                      <div className="font-bold text-gray-500 w-6">#{i + 1}</div>
-                      <div>
-                        <div className="font-medium">{item.name}</div>
-                        <div className="text-xs text-gray-500">{item.count} sold</div>
+                {adminAnalytics.topSelling.length > 0 ? (
+                  adminAnalytics.topSelling.map((resto, i) => (
+                    <div key={resto.id} className="flex items-center justify-between border-b pb-2 last:border-0 hover:bg-gray-50 p-2 rounded transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold text-sm">
+                          #{i + 1}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">{resto.name}</div>
+                          <div className="text-xs text-gray-500">Rp {resto.totalRevenue.toLocaleString('id-ID')} revenue</div>
+                        </div>
                       </div>
+                      <Badge variant="secondary" className="font-bold">
+                        {resto.totalOrders} orders
+                      </Badge>
                     </div>
-                    <div className="font-bold text-blue-600">
-                      Rp {item.revenue.toLocaleString('id-ID')}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">No order data available</div>
+                )}
               </div>
             </CardContent>
           </Card>
