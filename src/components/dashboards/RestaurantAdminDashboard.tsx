@@ -116,6 +116,13 @@ export default function RestaurantAdminDashboard() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [activeTab, setActiveTab] = useState('menu')
 
+  // Refresh data when switching to history to ensure sync
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchDashboardData()
+    }
+  }, [activeTab, fetchDashboardData])
+
   // Fetch all data
   const [stats, setStats] = useState({
     totalMenuItems: 0,
@@ -1900,9 +1907,9 @@ export default function RestaurantAdminDashboard() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm mt-auto">
-        <div className="container mx-auto px-4 py-4">
-          <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+      <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             © 2024 RestoHub. Digital Restaurant Platform
           </p>
         </div>

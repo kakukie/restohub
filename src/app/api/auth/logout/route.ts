@@ -19,6 +19,11 @@ export async function POST(request: NextRequest) {
         // Clear Cookies
         cookieStore.delete('accessToken')
         cookieStore.delete('refreshToken')
+        cookieStore.delete('adminToken')
+        cookieStore.delete('restoToken')
+        cookieStore.delete('adminRefreshToken')
+        cookieStore.delete('restoRefreshToken')
+        cookieStore.delete('lastRole')
 
         return NextResponse.json({
             success: true,

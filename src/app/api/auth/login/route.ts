@@ -81,9 +81,13 @@ export async function POST(request: NextRequest) {
             }
         })
 
+        // Determine Cookie Name based on Role
+        const cookieName = user.role === 'SUPER_ADMIN' ? 'adminToken' : 'restoToken'
+        const refreshCookieName = user.role === 'SUPER_ADMIN' ? 'adminRefreshToken' : 'restoRefreshToken'
+
         // Set Cookies
         const cookieStore = await cookies()
-        cookieStore.set('accessToken', accessToken, {
+        cookieStore.set(cookieName, accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
@@ -91,13 +95,16 @@ export async function POST(request: NextRequest) {
             path: '/'
         })
 
-        cookieStore.set('refreshToken', refreshToken, {
+        cookieStore.set(refreshCookieName, refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60, // 7 days
             path: '/'
         })
+
+        // Also set a generic 'userRole' cookie for client-side redirection hints
+        cookieStore.set('lastRole', user.role, { path: '/' })
 
         // Construct response data
         const userData = {
