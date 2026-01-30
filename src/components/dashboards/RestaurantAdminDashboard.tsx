@@ -13,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useAppStore, MenuItem, Category, PaymentMethod } from '@/store/app-store'
+import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/app-store'
 import { Store, Plus, Edit, Trash2, CreditCard, Package, LayoutGrid, LogOut, DollarSign, ShoppingBag, TrendingUp, CheckCircle, XCircle, Clock, QrCode, Printer, BarChart3, FileText, Download, Calendar, LifeBuoy, MessageCircle, ChefHat, Utensils } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
@@ -21,7 +21,6 @@ import QRCodeDialog from '@/components/common/QRCodeDialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Megaphone as MegaphoneIcon, Settings } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
-import { Order } from '@/store/app-store'
 import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 
 interface OrderItem {
@@ -113,12 +112,7 @@ export default function RestaurantAdminDashboard() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [activeTab, setActiveTab] = useState('menu')
 
-  // Refresh data when switching to history to ensure sync
-  useEffect(() => {
-    if (activeTab === 'history') {
-      fetchDashboardData()
-    }
-  }, [activeTab, fetchDashboardData])
+
 
   // Fetch all data
   const [stats, setStats] = useState({
@@ -188,7 +182,7 @@ export default function RestaurantAdminDashboard() {
 
   useEffect(() => {
     fetchDashboardData()
-  }, [fetchDashboardData])
+  }, [fetchDashboardData, activeTab])
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
     const file = e.target.files?.[0]
