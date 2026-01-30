@@ -6,14 +6,21 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const search = searchParams.get('search')
+    const adminId = searchParams.get('adminId')
 
-    const where = search ? {
-      OR: [
+    const where: any = {}
+
+    if (search) {
+      where.OR = [
         { name: { contains: search, mode: 'insensitive' as const } },
         { description: { contains: search, mode: 'insensitive' as const } },
         { address: { contains: search, mode: 'insensitive' as const } }
       ]
-    } : {}
+    }
+
+    if (adminId) {
+      where.adminId = adminId
+    }
 
     const restaurants = await prisma.restaurant.findMany({
       where,
@@ -54,7 +61,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description, address, phone, email } = body
+    const { name, description, address, phone, email, parentId, adminId } = body
 
     if (!name) {
       return NextResponse.json({
@@ -68,7 +75,21 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
 
-    // Create restaurant in database (adminId will be set when admin is created/linked)
+    let resolvedAdminId = adminId
+
+    // If creating a branch, validate parent and inherit admin
+    if (parentId) {
+      const parent = await prisma.restaurant.findUnique({
+        where: { id: parentId },
+        select: { adminId: true }
+      })
+      if (!parent) {
+        return NextResponse.json({ success: false, error: 'Parent restaurant not found' }, { status: 404 })
+      }
+      resolvedAdminId = parent.adminId
+    }
+
+    // Create restaurant
     const newRestaurant = await prisma.restaurant.create({
       data: {
         name,
@@ -80,7 +101,8 @@ export async function POST(request: NextRequest) {
         isActive: true,
         status: 'ACTIVE',
         package: 'BASIC',
-        adminId: '' // Temporary - will be updated when admin is created
+        adminId: resolvedAdminId || '', // Fallback or assume provided
+        parentId: parentId || null
       }
     })
 

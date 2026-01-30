@@ -284,16 +284,16 @@ export default function RestaurantAdminDashboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...paymentMethodForm,
-            isActive: true
+            restaurantId: restaurantId
           })
         })
       }
 
       const data = await res.json()
       if (data.success) {
-        await fetchDashboardData()
         setPaymentMethodDialogOpen(false)
         setPaymentMethodForm({})
+        await fetchDashboardData()
         toast({ title: 'Success', description: 'Payment method saved' })
       } else {
         throw new Error(data.error)
@@ -304,7 +304,7 @@ export default function RestaurantAdminDashboard() {
   }
 
   const handleDeletePaymentMethod = async (id: string) => {
-    if (!confirm('Are you sure?')) return
+    if (!confirm('Are you sure you want to delete this payment method?')) return
     try {
       const res = await fetch(`/api/restaurants/${restaurantId}/payment-methods?paymentId=${id}`, {
         method: 'DELETE'
@@ -312,9 +312,62 @@ export default function RestaurantAdminDashboard() {
       if (res.ok) {
         await fetchDashboardData()
         toast({ title: 'Deleted', description: 'Payment method removed' })
+      } else {
+        throw new Error('Failed to delete')
       }
     } catch (error) {
-      toast({ title: 'Error', variant: 'destructive', description: 'Failed to delete' })
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to delete payment method' })
+    }
+  }
+
+  // --- Multi-Branch Logic ---
+  const [myBranches, setMyBranches] = useState<any[]>([])
+  const [branchDialogOpen, setBranchDialogOpen] = useState(false)
+  const [branchForm, setBranchForm] = useState<any>({})
+
+  useEffect(() => {
+    if (user?.id) {
+      fetch(`/api/restaurants?adminId=${user.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setMyBranches(data.data)
+          }
+        })
+        .catch(console.error)
+    }
+  }, [user?.id, restaurantId])
+
+  const handleCreateBranch = async () => {
+    if (!branchForm.name) return
+
+    try {
+      const parentId = currentRestaurant?.parentId || restaurantId
+
+      const res = await fetch('/api/restaurants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...branchForm,
+          adminId: user?.id,
+          parentId: parentId
+        })
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        toast({ title: 'Success', description: 'Branch created successfully' })
+        setBranchDialogOpen(false)
+        setBranchForm({})
+        // Refresh branches
+        const branchesRes = await fetch(`/api/restaurants?adminId=${user?.id}`)
+        const branchesData = await branchesRes.json()
+        if (branchesData.success) setMyBranches(branchesData.data)
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', variant: 'destructive', description: error.message || 'Failed to create branch' })
     }
   }
 
@@ -1387,11 +1440,83 @@ export default function RestaurantAdminDashboard() {
               ))}
             </div>
           </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Restaurant Settings</h2>
+              <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" onClick={() => setBranchForm({})}>
+                    <Plus className="mr-2 h-4 w-4" /> Create Branch
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Branch</DialogTitle>
+                    <DialogDescription>Create a new outlet linked to this restaurant.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Branch Name</Label>
+                      <Input
+                        placeholder="e.g. Cabang Jakarta Selatan"
+                        value={branchForm.name || ''}
+                        onChange={e => setBranchForm({ ...branchForm, name: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Address</Label>
+                      <Input
+                        placeholder="Full address"
+                        value={branchForm.address || ''}
+                        onChange={e => setBranchForm({ ...branchForm, address: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone</Label>
+                      <Input
+                        placeholder="Phone number"
+                        value={branchForm.phone || ''}
+                        onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setBranchDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleCreateBranch}>Create Branch</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
+
+            {myBranches.length > 0 && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>My Branches</CardTitle>
+                  <CardDescription>Switch between your restaurant outlets</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {myBranches.map(branch => (
+                      <Button
+                        key={branch.id}
+                        variant={branch.id === restaurantId ? "default" : "outline"}
+                        className="justify-start h-auto py-3 px-4"
+                        onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">{branch.name}</div>
+                          <div className="text-xs opacity-70">{branch.address}</div>
+                        </div>
+                        {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <RestaurantSettingsForm restaurantId={restaurantId} />
           </TabsContent>
 

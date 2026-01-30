@@ -551,6 +551,26 @@ export default function SuperAdminDashboard() {
                   placeholder="Contact number"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Max Menu Items (0 = Unlimited)</Label>
+                  <Input
+                    type="number"
+                    value={restaurantForm.maxMenuItems || ''}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxMenuItems: parseInt(e.target.value) || 0 })}
+                    placeholder="Unlimited"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Max Admins (0 = Unlimited)</Label>
+                  <Input
+                    type="number"
+                    value={restaurantForm.maxAdmins || ''}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxAdmins: parseInt(e.target.value) || 0 })}
+                    placeholder="Unlimited"
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Restaurant Logo</Label>
                 <Input

@@ -68,6 +68,11 @@ export async function PUT(
         const body = await request.json()
         const { paymentId, ...updates } = body // Frontend must send paymentId in body
 
+        // Sanitize updates
+        delete (updates as any).restaurant
+        delete (updates as any).createdAt
+        delete (updates as any).updatedAt
+
         const updated = await prisma.paymentMethod.update({
             where: { id: paymentId },
             data: updates

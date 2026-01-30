@@ -54,7 +54,20 @@ export async function POST(request: NextRequest) {
     const resolvedId = await getRestaurantId(restaurantId)
     if (!resolvedId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
 
+    // Check Limits
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: resolvedId },
+      select: { maxMenuItems: true }
+    })
+
     const count = await prisma.menuItem.count({ where: { restaurantId: resolvedId } })
+
+    if (restaurant?.maxMenuItems && count >= restaurant.maxMenuItems) {
+      return NextResponse.json({
+        success: false,
+        error: `Menu item limit reached (${restaurant.maxMenuItems} items max). Please upgrade your plan.`
+      }, { status: 403 })
+    }
 
     const newItem = await prisma.menuItem.create({
       data: {
@@ -97,8 +110,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // Remove potential non-updatable fields if they exist in body by mistake
-    delete updates.createdAt
-    delete updates.updatedAt
+    delete (updates as any).createdAt
+    delete (updates as any).updatedAt
+    // Remove relation objects that cause Prisma errors if passed as raw objects
+    delete (updates as any).category
+    delete (updates as any).restaurant
+    delete (updates as any).orderItems
+
 
     // Check if item exists first
     const existing = await prisma.menuItem.findUnique({ where: { id } })

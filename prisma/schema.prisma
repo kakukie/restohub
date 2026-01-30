@@ -72,9 +72,16 @@ model Restaurant {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // Limits
+  maxMenuItems  Int?     // Null means unlimited
+  maxAdmins     Int?     // Null means unlimited
+
   // Relations
   adminId       String
   admin         User     @relation(fields: [adminId], references: [id])
+  parentId      String?  // For Multi-branch support
+  parent        Restaurant? @relation("BranchParent", fields: [parentId], references: [id])
+  branches      Restaurant[] @relation("BranchParent")
   categories    Category[]
   menuItems     MenuItem[]
   paymentMethods PaymentMethod[]
