@@ -1564,35 +1564,36 @@ export default function RestaurantAdminDashboard() {
                   </DialogContent>
                 </Dialog>
               </div>
+            </div>
 
-              {myBranches.length > 0 && (
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle>My Branches</CardTitle>
-                    <CardDescription>Switch between your restaurant outlets</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {myBranches.map(branch => (
-                        <Button
-                          key={branch.id}
-                          variant={branch.id === restaurantId ? "default" : "outline"}
-                          className="justify-start h-auto py-3 px-4"
-                          onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
-                        >
-                          <div className="text-left">
-                            <div className="font-semibold">{branch.name}</div>
-                            <div className="text-xs opacity-70">{branch.address}</div>
-                          </div>
-                          {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
-                        </Button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+            {myBranches.length > 0 && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>My Branches</CardTitle>
+                  <CardDescription>Switch between your restaurant outlets</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {myBranches.map(branch => (
+                      <Button
+                        key={branch.id}
+                        variant={branch.id === restaurantId ? "default" : "outline"}
+                        className="justify-start h-auto py-3 px-4"
+                        onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">{branch.name}</div>
+                          <div className="text-xs opacity-70">{branch.address}</div>
+                        </div>
+                        {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-              <RestaurantSettingsForm restaurantId={restaurantId} />
+            <RestaurantSettingsForm restaurantId={restaurantId} />
           </TabsContent>
 
           {/* Reports Tab */}
