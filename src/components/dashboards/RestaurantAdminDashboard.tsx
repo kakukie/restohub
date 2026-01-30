@@ -145,11 +145,19 @@ export default function RestaurantAdminDashboard() {
       if (dataCat.success) setCategories(dataCat.data)
 
       // Also refresh restaurant details if possible
+      // Also refresh restaurant details to ensure Print headers are correct
       try {
         const resResto = await fetch(`/api/restaurants/${restaurantId}`)
         const dataResto = await resResto.json()
         if (dataResto.success) {
-          useAppStore.getState().updateRestaurant(restaurantId, dataResto.data)
+          const currentList = useAppStore.getState().restaurants
+          const exists = currentList.find(r => r.id === restaurantId)
+          if (exists) {
+            useAppStore.getState().updateRestaurant(restaurantId, dataResto.data)
+          } else {
+            // If not in store (e.g. reload), set it so currentRestaurant is defined
+            useAppStore.getState().setRestaurants([dataResto.data])
+          }
         }
       } catch (err) {
         console.error("Failed to refresh restaurant details", err)

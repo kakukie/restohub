@@ -367,9 +367,12 @@ export const useAppStore = create<AppState>()(
         categories: state.categories.filter(c => c.id !== id)
       })),
 
-      updateSubscriptionPlan: (id, updates) => set((state) => ({
-        subscriptionPlans: state.subscriptionPlans.map((p) => (p.id === id ? { ...p, ...updates } : p))
-      })),
+      initSubscriptionPlans: () => set((state) => {
+        if (state.subscriptionPlans.length === 0) {
+          return { subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS }
+        }
+        return {}
+      }),
 
       updateHelpdeskSettings: (settings) => set({ helpdeskSettings: settings }),
 
