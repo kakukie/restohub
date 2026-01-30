@@ -77,24 +77,48 @@ export async function DELETE(
                     { slug: idOrSlug }
                 ]
             },
-            select: { id: true }
+            select: { id: true, name: true }
         })
 
         if (!restaurant) {
-            console.log(`[DELETE] Restaurant not found for: ${idOrSlug}`) // DEBUG LOG
+            console.log(`[DELETE] Restaurant not found for: ${idOrSlug}`)
             return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
         }
 
-        console.log(`[DELETE] Found restaurant ${restaurant.id}, deleting...`) // DEBUG LOG
+        console.log(`[DELETE] Found restaurant ${restaurant.name} (${restaurant.id}), starting clean delete...`)
 
-        await prisma.restaurant.delete({
-            where: { id: restaurant.id }
+        // Perform manual cascade delete in transaction to avoid FK issues
+        await prisma.$transaction(async (tx) => {
+            // 1. Get all Order IDs
+            const orders = await tx.order.findMany({
+                where: { restaurantId: restaurant.id },
+                select: { id: true }
+            })
+            const orderIds = orders.map(o => o.id)
+
+            // 2. Delete Order-related data
+            if (orderIds.length > 0) {
+                await tx.orderItem.deleteMany({ where: { orderId: { in: orderIds } } })
+                await tx.payment.deleteMany({ where: { orderId: { in: orderIds } } })
+                await tx.order.deleteMany({ where: { id: { in: orderIds } } })
+            }
+
+            // 3. Delete Menu-related data
+            await tx.menuItem.deleteMany({ where: { restaurantId: restaurant.id } })
+            await tx.category.deleteMany({ where: { restaurantId: restaurant.id } })
+
+            // 4. Delete Config data
+            await tx.paymentMethod.deleteMany({ where: { restaurantId: restaurant.id } })
+
+            // 5. Delete Restaurant (and branches if any? leaving that for now)
+            await tx.restaurant.delete({ where: { id: restaurant.id } })
         })
 
+        console.log(`[DELETE] Successfully deleted restaurant ${restaurant.id}`)
         return NextResponse.json({ success: true, message: 'Restaurant deleted successfully' })
     } catch (error) {
         console.error('Error deleting restaurant:', error)
-        return NextResponse.json({ success: false, error: 'Failed to delete restaurant' }, { status: 500 })
+        return NextResponse.json({ success: false, error: 'Failed to delete restaurant. Check server logs.' }, { status: 500 })
     }
 }
 
