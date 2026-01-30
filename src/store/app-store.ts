@@ -1,5 +1,5 @@
+
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
 
 export type UserRole = 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' | 'CUSTOMER'
 
@@ -134,6 +134,7 @@ interface AppState {
   categories: Category[]
   subscriptionPlans: SubscriptionPlan[]
   helpdeskSettings: HelpdeskSettings
+  checkSession: (role?: string) => Promise<void>
 
   // Actions
   setUser: (user: User | null) => void
@@ -220,197 +221,192 @@ const INITIAL_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 ]
 
 export const useAppStore = create<AppState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      cart: [],
-      selectedRestaurant: null,
-      users: INITIAL_USERS,
-      restaurants: INITIAL_RESTAURANTS,
-      orders: [],
-      menuItems: INITIAL_MENU_ITEMS,
-      categories: INITIAL_CATEGORIES,
-      subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS,
-      helpdeskSettings: {
-        whatsapp: '6281234567890',
-        email: 'support@meenuin.biz.id'
-      },
-      systemAnnouncements: [],
+  (set, get) => ({
+    user: null,
+    cart: [],
+    selectedRestaurant: null,
+    users: INITIAL_USERS,
+    restaurants: INITIAL_RESTAURANTS,
+    orders: [],
+    menuItems: INITIAL_MENU_ITEMS,
+    categories: INITIAL_CATEGORIES,
+    subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS,
+    helpdeskSettings: {
+      whatsapp: '6281234567890',
+      email: 'support@meenuin.biz.id'
+    },
+    systemAnnouncements: [],
 
-      // Actions
-      setUser: (user) => set({ user }),
+    // Actions
+    setUser: (user) => set({ user }),
 
-      logout: () => {
-        set({ user: null, cart: [], selectedRestaurant: null })
-        if (typeof window !== 'undefined') {
-          // sessionStorage handles itself
+    checkSession: async (role) => {
+      try {
+        const res = await fetch(`/ api / auth / me${role ? `?role=${role}` : ''} `)
+        const data = await res.json()
+        if (data.success) {
+          set({ user: data.user })
         }
-      },
+      } catch (error) {
+        console.error('Session check failed', error)
+      }
+    },
 
-      addToCart: (item) => {
-        const cart = get().cart
-        const existingItem = cart.find(i => i.menuItemId === item.menuItemId)
+    logout: () => {
+      set({ user: null, cart: [], selectedRestaurant: null })
+      if (typeof window !== 'undefined') {
+        // sessionStorage handles itself
+      }
+    },
 
-        if (existingItem) {
-          set({
-            cart: cart.map(i =>
-              i.menuItemId === item.menuItemId
-                ? { ...i, quantity: i.quantity + item.quantity }
-                : i
-            )
-          })
-        } else {
-          set({ cart: [...cart, item] })
-        }
-      },
+    addToCart: (item) => {
+      const cart = get().cart
+      const existingItem = cart.find(i => i.menuItemId === item.menuItemId)
 
-      removeFromCart: (menuItemId) => {
-        set({ cart: get().cart.filter(i => i.menuItemId !== menuItemId) })
-      },
-
-      updateCartItemQuantity: (menuItemId, quantity) => {
-        if (quantity <= 0) {
-          get().removeFromCart(menuItemId)
-        } else {
-          set({
-            cart: get().cart.map(i =>
-              i.menuItemId === menuItemId ? { ...i, quantity } : i
-            )
-          })
-        }
-      },
-
-      clearCart: () => set({ cart: [] }),
-
-      setSelectedRestaurant: (restaurantId) => set({ selectedRestaurant: restaurantId, cart: [] }),
-
-      getTotalCartAmount: () => get().cart.reduce((total, item) => total + (item.price * item.quantity), 0),
-
-      getTotalCartItems: () => get().cart.reduce((total, item) => total + item.quantity, 0),
-
-      getRestaurantBySlug: (slug) => get().restaurants.find(r => r.slug === slug),
-
-      setRestaurants: (restaurants) => set({ restaurants }),
-      setUsers: (users) => set({ users }),
-
-      addUser: (user) => set((state) => ({ users: [...state.users, user] })),
-
-      resetPassword: (email: string, newPassword: string) => set((state) => ({
-        users: state.users.map(u =>
-          u.email === email ? { ...u, password: newPassword } : u
-        )
-      })),
-
-      addRestaurant: (resto) => set((state) => ({
-        restaurants: [...state.restaurants, {
-          ...resto,
-          slug: resto.slug || resto.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
-        }]
-      })),
-
-      updateUser: (id, updates) => set((state) => ({
-        users: state.users.map(u => u.id === id ? { ...u, ...updates } : u)
-      })),
-
-      deleteUser: (id) => set((state) => ({
-        users: state.users.filter(u => u.id !== id)
-      })),
-
-      resetSystem: () => {
+      if (existingItem) {
         set({
-          users: INITIAL_USERS,
-          restaurants: INITIAL_RESTAURANTS,
-          menuItems: INITIAL_MENU_ITEMS,
-          categories: INITIAL_CATEGORIES,
-          orders: [],
-          cart: [],
-          selectedRestaurant: null,
-          user: null
+          cart: cart.map(i =>
+            i.menuItemId === item.menuItemId
+              ? { ...i, quantity: i.quantity + item.quantity }
+              : i
+          )
         })
-        if (typeof window !== 'undefined') {
-          window.location.href = '/'
-        }
-      },
+      } else {
+        set({ cart: [...cart, item] })
+      }
+    },
 
-      updateRestaurant: (id, updates) => set((state) => ({
-        restaurants: state.restaurants.map(r => r.id === id ? { ...r, ...updates } : r)
-      })),
+    removeFromCart: (menuItemId) => {
+      set({ cart: get().cart.filter(i => i.menuItemId !== menuItemId) })
+    },
 
-      addOrder: (order) => set((state) => ({
-        orders: [order, ...state.orders]
-      })),
+    updateCartItemQuantity: (menuItemId, quantity) => {
+      if (quantity <= 0) {
+        get().removeFromCart(menuItemId)
+      } else {
+        set({
+          cart: get().cart.map(i =>
+            i.menuItemId === menuItemId ? { ...i, quantity } : i
+          )
+        })
+      }
+    },
 
-      updateOrderStatus: (orderId, status) => set((state) => ({
-        orders: state.orders.map(o => o.id === orderId ? { ...o, status } : o)
-      })),
+    clearCart: () => set({ cart: [] }),
 
-      updateRestaurantStatus: (id, status) => set((state) => ({
-        restaurants: state.restaurants.map(r => r.id === id ? { ...r, status } : r)
-      })),
+    setSelectedRestaurant: (restaurantId) => set({ selectedRestaurant: restaurantId, cart: [] }),
 
-      validateOrder: (orderId) => get().updateOrderStatus(orderId, 'CONFIRMED'),
-      rejectOrder: (orderId) => get().updateOrderStatus(orderId, 'CANCELLED'),
+    getTotalCartAmount: () => get().cart.reduce((total, item) => total + (item.price * item.quantity), 0),
 
-      // Menu Actions Implementation
-      addMenuItem: (item) => set((state) => ({ menuItems: [...state.menuItems, item] })),
-      updateMenuItem: (id, updates) => set((state) => ({
-        menuItems: state.menuItems.map(i => i.id === id ? { ...i, ...updates } : i)
-      })),
-      deleteMenuItem: (id) => set((state) => ({
-        menuItems: state.menuItems.filter(i => i.id !== id)
-      })),
+    getTotalCartItems: () => get().cart.reduce((total, item) => total + item.quantity, 0),
 
-      addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
-      updateCategory: (id, updates) => set((state) => ({
-        categories: state.categories.map(c => c.id === id ? { ...c, ...updates } : c)
-      })),
-      deleteCategory: (id) => set((state) => ({
-        categories: state.categories.filter(c => c.id !== id)
-      })),
+    getRestaurantBySlug: (slug) => get().restaurants.find(r => r.slug === slug),
 
-      updateSubscriptionPlan: (id, updates) => set((state) => ({
-        subscriptionPlans: state.subscriptionPlans.map(p => p.id === id ? { ...p, ...updates } : p)
-      })),
+    setRestaurants: (restaurants) => set({ restaurants }),
+    setUsers: (users) => set({ users }),
 
-      initSubscriptionPlans: () => set((state) => {
-        if (state.subscriptionPlans.length === 0) {
-          return { subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS }
-        }
-        return {}
-      }),
+    addUser: (user) => set((state) => ({ users: [...state.users, user] })),
 
-      updateHelpdeskSettings: (settings) => set({ helpdeskSettings: settings }),
+    resetPassword: (email: string, newPassword: string) => set((state) => ({
+      users: state.users.map(u =>
+        u.email === email ? { ...u, password: newPassword } : u
+      )
+    })),
 
-      broadcastAnnouncement: (message) => set((state) => ({
-        systemAnnouncements: [
-          {
-            id: crypto.randomUUID(),
-            message,
-            isActive: true,
-            createdAt: new Date().toISOString()
-          },
-          ...state.systemAnnouncements
-        ]
-      })),
+    addRestaurant: (resto) => set((state) => ({
+      restaurants: [...state.restaurants, {
+        ...resto,
+        slug: resto.slug || resto.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+      }]
+    })),
 
-      clearAnnouncement: () => set((state) => ({
-        systemAnnouncements: state.systemAnnouncements.map(a => ({ ...a, isActive: false }))
-      })),
+    updateUser: (id, updates) => set((state) => ({
+      users: state.users.map(u => u.id === id ? { ...u, ...updates } : u)
+    })),
+
+    deleteUser: (id) => set((state) => ({
+      users: state.users.filter(u => u.id !== id)
+    })),
+
+    resetSystem: () => {
+      set({
+        users: INITIAL_USERS,
+        restaurants: INITIAL_RESTAURANTS,
+        menuItems: INITIAL_MENU_ITEMS,
+        categories: INITIAL_CATEGORIES,
+        orders: [],
+        cart: [],
+        selectedRestaurant: null,
+        user: null
+      })
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
+    },
+
+    updateRestaurant: (id, updates) => set((state) => ({
+      restaurants: state.restaurants.map(r => r.id === id ? { ...r, ...updates } : r)
+    })),
+
+    addOrder: (order) => set((state) => ({
+      orders: [order, ...state.orders]
+    })),
+
+    updateOrderStatus: (orderId, status) => set((state) => ({
+      orders: state.orders.map(o => o.id === orderId ? { ...o, status } : o)
+    })),
+
+    updateRestaurantStatus: (id, status) => set((state) => ({
+      restaurants: state.restaurants.map(r => r.id === id ? { ...r, status } : r)
+    })),
+
+    validateOrder: (orderId) => get().updateOrderStatus(orderId, 'CONFIRMED'),
+    rejectOrder: (orderId) => get().updateOrderStatus(orderId, 'CANCELLED'),
+
+    // Menu Actions Implementation
+    addMenuItem: (item) => set((state) => ({ menuItems: [...state.menuItems, item] })),
+    updateMenuItem: (id, updates) => set((state) => ({
+      menuItems: state.menuItems.map(i => i.id === id ? { ...i, ...updates } : i)
+    })),
+    deleteMenuItem: (id) => set((state) => ({
+      menuItems: state.menuItems.filter(i => i.id !== id)
+    })),
+
+    addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
+    updateCategory: (id, updates) => set((state) => ({
+      categories: state.categories.map(c => c.id === id ? { ...c, ...updates } : c)
+    })),
+    deleteCategory: (id) => set((state) => ({
+      categories: state.categories.filter(c => c.id !== id)
+    })),
+
+    updateSubscriptionPlan: (id, updates) => set((state) => ({
+      subscriptionPlans: state.subscriptionPlans.map(p => p.id === id ? { ...p, ...updates } : p)
+    })),
+
+    initSubscriptionPlans: () => set((state) => {
+      if (state.subscriptionPlans.length === 0) {
+        return { subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS }
+      }
+      return {}
     }),
-    {
-      name: 'app-storage',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        user: state.user,
-        users: state.users,
-        restaurants: state.restaurants,
-        orders: state.orders,
-        menuItems: state.menuItems,
-        categories: state.categories,
-        subscriptionPlans: state.subscriptionPlans, // Persist plans
-        helpdeskSettings: state.helpdeskSettings, // Persist helpdesk
-        systemAnnouncements: state.systemAnnouncements // Persist announcements
-      }),
-    }
-  )
+
+    updateHelpdeskSettings: (settings) => set({ helpdeskSettings: settings }),
+
+    broadcastAnnouncement: (message) => set((state) => ({
+      systemAnnouncements: [
+        {
+          id: crypto.randomUUID(),
+          message,
+          isActive: true,
+          createdAt: new Date().toISOString()
+        },
+        ...state.systemAnnouncements
+      ]
+    })),
+
+    clearAnnouncement: () => set((state) => ({
+      systemAnnouncements: state.systemAnnouncements.map(a => ({ ...a, isActive: false }))
+    })),
+  })
 )
