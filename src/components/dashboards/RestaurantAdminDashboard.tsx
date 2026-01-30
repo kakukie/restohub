@@ -558,8 +558,8 @@ export default function RestaurantAdminDashboard() {
           <title>Order #${order.orderNumber}</title>
           <style>
             @media print {
-              @page { size: auto; margin: 0mm; }
-              body { margin: 0; padding: 0.5cm; }
+              @page { size: 80mm auto; margin: 0mm; }
+              body { margin: 0; padding: 5px; width: 80mm; }
             }
             body { font-family: 'Courier New', monospace; font-size: 12px; max-width: 80mm; margin: 0 auto; color: #000; background: #fff; }
             .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
@@ -619,10 +619,17 @@ export default function RestaurantAdminDashboard() {
         </body>
       </html>
     `
-    const printWindow = window.open('', '_blank', 'width=400,height=600')
+    const printWindow = window.open('', '', 'width=300,height=600')
     if (printWindow) {
       printWindow.document.write(printContent)
       printWindow.document.close()
+      printWindow.focus()
+      // Delay print to ensure rendering
+      setTimeout(() => {
+        printWindow.print()
+        // Optional: Close after a delay, but leaving it open is safer for mobile
+        // setTimeout(() => printWindow.close(), 1000)
+      }, 500)
     }
     toast({ title: 'Printing', description: 'Receipt sent to printer' })
   }
@@ -951,6 +958,29 @@ export default function RestaurantAdminDashboard() {
                           </Button>
                         </div>
                       )}
+                    </div>
+
+                    <div className="flex space-x-4 pt-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="isBestSeller"
+                          className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                          checked={menuItemForm.isBestSeller || false}
+                          onChange={(e) => setMenuItemForm({ ...menuItemForm, isBestSeller: e.target.checked })}
+                        />
+                        <Label htmlFor="isBestSeller" className="cursor-pointer font-medium">Best Seller</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="isRecommended"
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          checked={menuItemForm.isRecommended || false}
+                          onChange={(e) => setMenuItemForm({ ...menuItemForm, isRecommended: e.target.checked })}
+                        />
+                        <Label htmlFor="isRecommended" className="cursor-pointer font-medium">Recommended</Label>
+                      </div>
                     </div>
                   </div>
                   <DialogFooter>

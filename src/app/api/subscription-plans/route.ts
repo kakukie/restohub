@@ -6,6 +6,13 @@ export const dynamic = 'force-dynamic'
 // GET /api/subscription-plans
 export async function GET(request: NextRequest) {
     try {
+        // Safety check for Prisma Client generation issues
+        if (!prisma.subscriptionPlan) {
+            // Log detailed error for debugging
+            console.error('CRITICAL: prisma.subscriptionPlan is undefined. Client generation failed or stale.')
+            return NextResponse.json({ success: false, error: 'System Error: Database model missing. Please contact support.' }, { status: 500 })
+        }
+
         const plans = await prisma.subscriptionPlan.findMany({
             orderBy: { price: 'asc' }
         })

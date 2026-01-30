@@ -97,8 +97,8 @@ export default function PublicMenuPage() {
             if (existingResto) {
                 setRestaurant(existingResto)
                 const existingMenu = menuItems.filter(m => m.restaurantId === existingResto.id && m.isAvailable)
-                setMenu(existingMenu)
-                return
+                if (existingMenu.length > 0) setMenu(existingMenu)
+                // Continue to fetch fresh data
             }
 
             // 2. Fallback to API

@@ -83,7 +83,11 @@ export async function POST(request: NextRequest) {
         categoryId,
         restaurantId: resolvedId,
         image,
+        image,
         isAvailable: isAvailable ?? true,
+        displayName: body.displayName,
+        isBestSeller: body.isBestSeller ?? false,
+        isRecommended: body.isRecommended ?? false,
         displayOrder: count + 1
       }
     })
