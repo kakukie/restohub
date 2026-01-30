@@ -5,6 +5,9 @@ set -e
 # echo "Waiting for database..."
 
 # Run database migrations
+echo "Generating Prisma Client..."
+npx prisma@6.11.1 generate
+
 echo "Applying database migrations..."
 npx prisma@6.11.1 migrate deploy
 
