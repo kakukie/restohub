@@ -138,7 +138,9 @@ export async function PUT(
 
     try {
         const body = await request.json()
-        const { id, ...updates } = body // ID in body might be ignored
+        // Extract 'theme' and 'id' to exclude them from the update payload
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, theme, ...updates } = body
 
         // 1. Resolve to actual ID
         const restaurant = await prisma.restaurant.findFirst({

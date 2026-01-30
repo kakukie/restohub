@@ -383,7 +383,7 @@ export default function SuperAdminDashboard() {
     })
     setPlanDialogOpen(true)
   }
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     if (editingPlan && planForm) {
       const updates = {
         name: planForm.name || editingPlan.name,
@@ -392,8 +392,24 @@ export default function SuperAdminDashboard() {
         menuLimit: Number(planForm.menuLimit) || editingPlan.menuLimit,
         features: planForm.features ? planForm.features.split('\n').filter(f => f.trim() !== '') : editingPlan.features
       }
-      updateSubscriptionPlan(editingPlan.id, updates)
-      toast({ title: 'Success', description: `Plan "${planForm.name || editingPlan.name}" saved to database` })
+
+      try {
+        const res = await fetch('/api/subscription-plans', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingPlan.id, ...updates })
+        })
+        const data = await res.json()
+
+        if (data.success) {
+          updateSubscriptionPlan(editingPlan.id, updates)
+          toast({ title: 'Success', description: `Plan "${updates.name}" saved to database` })
+        } else {
+          throw new Error(data.error || 'Failed to save')
+        }
+      } catch (error: any) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' })
+      }
     }
     setPlanDialogOpen(false)
     setEditingPlan(null)

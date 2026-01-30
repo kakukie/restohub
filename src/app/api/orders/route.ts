@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       items: o.orderItems.map(i => ({
         id: i.id,
         menuItemId: i.menuItemId,
-        name: i.menuItem.name,
+        menuItemName: i.menuItem.name,
         quantity: i.quantity,
         price: i.price,
         notes: i.notes
