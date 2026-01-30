@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/store/app-store'
-import CustomerDashboard from '@/components/dashboards/CustomerDashboard'
-import RestaurantAdminDashboard from '@/components/dashboards/RestaurantAdminDashboard'
-import SuperAdminDashboard from '@/components/dashboards/SuperAdminDashboard'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -13,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/hooks/use-toast'
 import { Utensils, ArrowRight, Store, CheckCircle, Smartphone, CreditCard, ChefHat } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const ContactSection = () => (
   <div id="contact" className="py-20 bg-white">
@@ -36,6 +34,7 @@ const ContactSection = () => (
 
 export default function Home() {
   const { setUser, user } = useAppStore()
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('login')
   const [mounted, setMounted] = useState(false)
@@ -67,9 +66,10 @@ export default function Home() {
     setMounted(true)
     generateCaptcha()
 
-    // Check active session from store
+    // Check active session from store and redirect
     if (user) {
-      setShowDashboard(true)
+      if (user.role === 'SUPER_ADMIN') router.push('/admin')
+      else if (user.role === 'RESTAURANT_ADMIN') router.push('/dashboard')
     }
 
     // Fetch latest subscription plans
@@ -88,25 +88,7 @@ export default function Home() {
       }
     }
     fetchPlans()
-  }, [setUser, user])
-
-  /* Mounted check removed to allow server rendering and avoid hydration mismatch with loading state blocks */
-
-  // Dashboard Routing
-  // Dashboard View State
-  const [showDashboard, setShowDashboard] = useState(false)
-
-  // Handlers for Dashboard Logic
-  if (showDashboard && user) {
-    switch (user.role) {
-      case 'CUSTOMER':
-        return <CustomerDashboard />
-      case 'RESTAURANT_ADMIN':
-        return <RestaurantAdminDashboard />
-      case 'SUPER_ADMIN':
-        return <SuperAdminDashboard />
-    }
-  }
+  }, [setUser, user, router])
 
   const handleLogin = async () => {
     // Validate captcha
@@ -136,8 +118,10 @@ export default function Home() {
 
       const userData = data.user
       setUser(userData)
-      setShowDashboard(true)
       toast({ title: 'Selamat Datang!', description: `Login sebagai ${userData.name}` })
+
+      if (userData.role === 'SUPER_ADMIN') router.push('/admin')
+      else if (userData.role === 'RESTAURANT_ADMIN') router.push('/dashboard')
 
     } catch (error: any) {
       console.error('Login Error:', error)
@@ -244,7 +228,10 @@ export default function Home() {
             {user ? (
               <div className="flex items-center gap-4">
                 <span className="text-emerald-600 font-semibold">Hi, {user.name}</span>
-                <Button onClick={() => setShowDashboard(true)} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                <Button onClick={() => {
+                  if (user.role === 'SUPER_ADMIN') router.push('/admin')
+                  else if (user.role === 'RESTAURANT_ADMIN') router.push('/dashboard')
+                }} size="sm" className="bg-emerald-600 hover:bg-emerald-700">
                   Go to Dashboard
                 </Button>
               </div>
