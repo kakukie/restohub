@@ -27,6 +27,12 @@ export interface Restaurant {
   slug: string // URL friendly identifier
   paymentMethods?: PaymentMethod[]
   theme?: 'modern-emerald' | 'classic-orange' | 'minimal-blue'
+  // Limits
+  maxMenuItems?: number
+  maxAdmins?: number
+  maxStaff?: number
+  allowBranches?: boolean
+  parentId?: string
 }
 
 export interface PaymentMethod {
