@@ -104,7 +104,7 @@ export default function RestaurantAdminDashboard() {
   // Real Data State
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [orders, setOrders] = useState<Order[]>([])
+
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [activeTab, setActiveTab] = useState('menu')
 
