@@ -64,11 +64,11 @@ export default function Home() {
     setMounted(true)
     generateCaptcha()
 
-    // Force cleanup legacy local storage to prevent conflicts
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('user')
+    // Check active session from store
+    if (user) {
+      setShowDashboard(true)
     }
-  }, []) // Remove dependencies to run once
+  }, [setUser, user])
 
   /* Mounted check removed to allow server rendering and avoid hydration mismatch with loading state blocks */
 
