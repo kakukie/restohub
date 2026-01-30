@@ -71,11 +71,20 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Generate cleaner slug (name-randomString)
-    const randomSuffix = Math.random().toString(36).substring(2, 7)
-    const slug = name.toLowerCase()
+    // Generate slug (try clean name first, then append random if taken)
+    let slug = name.toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') + `-${randomSuffix}`
+      .replace(/^-+|-+$/g, '')
+
+    // Check if slug exists
+    const existingSlug = await prisma.restaurant.findUnique({
+      where: { slug }
+    })
+
+    if (existingSlug) {
+      const randomSuffix = Math.random().toString(36).substring(2, 7)
+      slug = `${slug}-${randomSuffix}`
+    }
 
     let resolvedAdminId = adminId
 

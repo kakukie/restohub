@@ -471,21 +471,60 @@ export default function RestaurantAdminDashboard() {
 
   // ... (keeping other handlers)
 
-  // Order handlers - delegating to store
-  const handleValidateOrder = (orderId: string) => {
-    validateOrder(orderId)
-    toast({ title: 'Success', description: 'Order has been validated and confirmed' })
+  // Order handlers - delegating to API
+  const handleValidateOrder = async (orderId: string) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: 'CONFIRMED' })
+      })
+      if (res.ok) {
+        toast({ title: 'Success', description: 'Order has been validated and confirmed' })
+        await fetchDashboardData()
+      } else {
+        throw new Error('Failed to update')
+      }
+    } catch (error) {
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to validate order' })
+    }
   }
 
-  const handleRejectOrder = (orderId: string) => {
-    rejectOrder(orderId)
-    toast({ title: 'Order Rejected', description: 'Order has been rejected' })
+  const handleRejectOrder = async (orderId: string) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: 'CANCELLED' })
+      })
+      if (res.ok) {
+        toast({ title: 'Order Rejected', description: 'Order has been rejected' })
+        await fetchDashboardData()
+      } else {
+        throw new Error('Failed to update')
+      }
+    } catch (error) {
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to reject order' })
+    }
   }
 
-  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
-    updateOrderStatus(orderId, status)
-    const statusText = status.replace('_', ' ').toLowerCase()
-    toast({ title: 'Success', description: `Order status updated to ${statusText}` })
+  const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status })
+      })
+      if (res.ok) {
+        const statusText = status.replace('_', ' ').toLowerCase()
+        toast({ title: 'Success', description: `Order status updated to ${statusText}` })
+        await fetchDashboardData()
+      } else {
+        throw new Error('Failed to update')
+      }
+    } catch (error) {
+      toast({ title: 'Error', variant: 'destructive', description: 'Failed to update status' })
+    }
   }
 
   const handleLogout = () => {

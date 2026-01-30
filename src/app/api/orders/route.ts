@@ -128,3 +128,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Failed to create order' }, { status: 500 })
   }
 }
+// PUT /api/orders - Update Order Status
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { orderId, status, paymentStatus } = body
+
+    if (!orderId) {
+      return NextResponse.json({ success: false, error: 'Order ID required' }, { status: 400 })
+    }
+
+    const updates: any = {}
+    if (status) updates.status = status
+    if (paymentStatus) updates.paymentStatus = paymentStatus
+
+    const order = await prisma.order.update({
+      where: { id: orderId },
+      data: updates
+    })
+
+    return NextResponse.json({ success: true, data: order })
+  } catch (error) {
+    console.error("Update Order Error", error)
+    return NextResponse.json({ success: false, error: 'Failed to update order' }, { status: 500 })
+  }
+}

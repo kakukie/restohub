@@ -143,7 +143,7 @@ model Order {
   customerId    String
   customer      User        @relation(fields: [customerId], references: [id])
   restaurantId  String
-  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orderItems    OrderItem[]
   payment       Payment?
 }
@@ -191,7 +191,7 @@ model Payment {
 
   // Relations
   orderId       String          @unique
-  order         Order           @relation(fields: [orderId], references: [id])
+  order         Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   methodId      String
   method        PaymentMethod   @relation(fields: [methodId], references: [id])
 }
