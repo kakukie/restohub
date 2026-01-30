@@ -59,6 +59,9 @@ export default function Home() {
     setCaptchaAnswer('')
   }
 
+  // Subscription Plans State
+  const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([])
+
   // Initialize and check session
   useEffect(() => {
     setMounted(true)
@@ -68,6 +71,23 @@ export default function Home() {
     if (user) {
       setShowDashboard(true)
     }
+
+    // Fetch latest subscription plans
+    const fetchPlans = async () => {
+      try {
+        const res = await fetch('/api/subscription-plans')
+        const data = await res.json()
+        if (data.success) {
+          setSubscriptionPlans(data.data)
+        } else {
+          setSubscriptionPlans(useAppStore.getState().subscriptionPlans)
+        }
+      } catch (error) {
+        console.error('Failed to fetch plans', error)
+        setSubscriptionPlans(useAppStore.getState().subscriptionPlans)
+      }
+    }
+    fetchPlans()
   }, [setUser, user])
 
   /* Mounted check removed to allow server rendering and avoid hydration mismatch with loading state blocks */
@@ -490,7 +510,7 @@ export default function Home() {
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">Choose the perfect plan for your restaurant. No hidden fees, cancel anytime.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-            {useAppStore.getState().subscriptionPlans.map((plan) => (
+            {subscriptionPlans.map((plan) => (
               <Card key={plan.id} className={`border-2 ${plan.name === 'Pro' ? 'border-emerald-500 shadow-xl relative' : 'border-gray-200 hover:border-emerald-300'} transition-all duration-300`}>
                 {plan.name === 'Pro' && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-bold">

@@ -1861,7 +1861,7 @@ export default function RestaurantAdminDashboard() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2 z-50 grid grid-cols-4 gap-1">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2 z-50 grid grid-cols-5 gap-1">
         <button
           onClick={() => setActiveTab('menu')}
           className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'menu' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
@@ -1882,6 +1882,13 @@ export default function RestaurantAdminDashboard() {
         >
           <ShoppingBag className="h-5 w-5" />
           <span className="text-[10px] font-medium mt-1">Orders</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'history' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
+        >
+          <Clock className="h-5 w-5" />
+          <span className="text-[10px] font-medium mt-1">History</span>
         </button>
         <button
           onClick={() => setActiveTab('settings')}
