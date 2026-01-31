@@ -63,7 +63,15 @@ export default function PublicMenuPage() {
     const params = useParams()
     const slug = params.slug as string
 
-    const { restaurants, menuItems, addToCart, cart, updateCartItemQuantity, removeFromCart, clearCart, addOrder } = useAppStore()
+    // Use selectors to prevent unnecessary re-renders and fix "Stuck" issues
+    const restaurants = useAppStore(state => state.restaurants)
+    const menuItems = useAppStore(state => state.menuItems)
+    const cart = useAppStore(state => state.cart)
+    const addToCart = useAppStore(state => state.addToCart)
+    const updateCartItemQuantity = useAppStore(state => state.updateCartItemQuantity)
+    const removeFromCart = useAppStore(state => state.removeFromCart)
+    const clearCart = useAppStore(state => state.clearCart)
+
     const [mounted, setMounted] = useState(false)
     const [restaurant, setRestaurant] = useState<any>(null)
     const [menu, setMenu] = useState<MenuItem[]>([])
@@ -73,7 +81,15 @@ export default function PublicMenuPage() {
 
     // Checkout states
     const [cartDialogOpen, setCartDialogOpen] = useState(false)
-    // ... (keep existing lines)
+    const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false)
+    const [guestName, setGuestName] = useState('')
+    const [guestPhone, setGuestPhone] = useState('')
+    const [tableNumber, setTableNumber] = useState('')
+    const [notes, setNotes] = useState('')
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
+    const [processingPayment, setProcessingPayment] = useState(false)
+    const [orderConfirmationOpen, setOrderConfirmationOpen] = useState(false)
+    const [completedOrder, setCompletedOrder] = useState<any>(null)
 
     useEffect(() => {
         if (!mounted) return
