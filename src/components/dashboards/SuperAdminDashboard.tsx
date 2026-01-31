@@ -46,7 +46,8 @@ export default function SuperAdminDashboard() {
     orders,
     helpdeskSettings,
     updateHelpdeskSettings,
-    broadcastAnnouncement
+    broadcastAnnouncement,
+    setSubscriptionPlans
   } = useAppStore()
 
   // Use store restaurants 

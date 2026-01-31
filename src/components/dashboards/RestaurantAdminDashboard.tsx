@@ -141,12 +141,17 @@ export default function RestaurantAdminDashboard() {
   const fetchDashboardData = useCallback(async () => {
     if (!restaurantId) return
     try {
+      // Calculate explicit start/end dates to handle Timezones correctly
+      // This ensures "Feb 1st" means "Feb 1st in User's Timezone" (e.g. includes Jan 31st UTC orders)
+      const startDate = new Date(reportYear, reportMonth - 1, 1)
+      const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999)
+
       const [resMenu, resCat, resOrder, resPay, resReport] = await Promise.all([
         fetch(`/api/menu-items?restaurantId=${restaurantId}`),
         fetch(`/api/categories?restaurantId=${restaurantId}`),
         fetch(`/api/orders?restaurantId=${restaurantId}`),
         fetch(`/api/restaurants/${restaurantId}/payment-methods`),
-        fetch(`/api/reports?restaurantId=${restaurantId}&year=${reportYear}&month=${reportMonth}`)
+        fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
       ])
 
       const [dataMenu, dataCat, dataOrder, dataPay, dataReport] = await Promise.all([
@@ -798,8 +803,8 @@ export default function RestaurantAdminDashboard() {
               </Button>
 
               <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => window.open(`https://wa.me/${helpdeskSettings?.whatsapp || '6281234567890'}`, '_blank')}>
-                <LifeBuoy className="h-4 w-4 mr-2" />
-                Helpdesk
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Chat Helpdesk
               </Button>
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-1" />
@@ -2110,9 +2115,16 @@ export default function RestaurantAdminDashboard() {
         </button>
         <button
           onClick={() => setActiveTab('orders')}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'orders' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-lg relative ${activeTab === 'orders' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
         >
-          <ShoppingBag className="h-5 w-5" />
+          <div className="relative">
+            <ShoppingBag className="h-5 w-5" />
+            {pendingOrdersCount > 0 && (
+              <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white animate-pulse">
+                {pendingOrdersCount}
+              </span>
+            )}
+          </div>
           <span className="text-[10px] font-medium mt-1">Orders</span>
         </button>
         <button
@@ -2139,6 +2151,19 @@ export default function RestaurantAdminDashboard() {
           </p>
         </div>
       </footer>
+
+      {/* Helpdesk Floating Button - Visible on all devices */}
+      <div className="fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex flex-col items-end gap-2 group">
+        <div className="bg-black/75 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          Chat Helpdesk
+        </div>
+        <Button
+          className="rounded-full shadow-lg bg-[#25D366] hover:bg-[#128C7E] text-white p-0 w-14 h-14 flex items-center justify-center transition-transform hover:scale-110"
+          onClick={() => window.open(`https://wa.me/${helpdeskSettings?.whatsapp || '6281234567890'}`, '_blank')}
+        >
+          <MessageCircle className="h-7 w-7" />
+        </Button>
+      </div>
 
       {/* QR Code Dialog for Restaurant Menu */}
       <QRCodeDialog
