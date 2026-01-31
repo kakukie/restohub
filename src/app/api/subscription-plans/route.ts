@@ -17,11 +17,7 @@ export async function GET(request: NextRequest) {
             orderBy: { price: 'asc' }
         })
         // Parse features string to array
-        const formattedPlans = plans.map(p => ({
-            ...p,
-            features: JSON.parse(p.features || '[]')
-        }))
-        return NextResponse.json({ success: true, data: formattedPlans })
+        return NextResponse.json({ success: true, data: plans })
     } catch (error) {
         return NextResponse.json({ success: false, error: 'Failed to fetch plans' }, { status: 500 })
     }
@@ -36,20 +32,14 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
 
         // Serialize features to string
-        const planData = {
-            ...body,
-            features: JSON.stringify(body.features || [])
-        }
-
         const plan = await prisma.subscriptionPlan.create({
-            data: planData
+            data: {
+                ...body,
+                features: body.features || []
+            }
         })
 
-        // Return with array features
-        return NextResponse.json({
-            success: true,
-            data: { ...plan, features: JSON.parse(plan.features) }
-        })
+        return NextResponse.json({ success: true, data: plan })
     } catch (error) {
         return NextResponse.json({ success: false, error: 'Failed to create plan' }, { status: 500 })
     }
