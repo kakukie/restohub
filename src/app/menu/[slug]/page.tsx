@@ -96,32 +96,35 @@ export default function PublicMenuPage() {
 
         const loadData = async () => {
             // 1. Try local store first (SWR Pattern)
+            // Note: We access the latest state from the hook variables directly
             let existingResto = restaurants.find(r => r.slug === slug || r.id === slug)
 
             if (existingResto) {
                 setRestaurant(existingResto)
                 const existingMenu = menuItems.filter(m => m.restaurantId === existingResto.id && m.isAvailable)
                 if (existingMenu.length > 0) setMenu(existingMenu)
-                setIsLoading(false) // Show immediately
+                // If found locally, we can show it immediately. 
+                // We DON'T set isLoading(true) here to prevent flashing if we already have data.
+                setIsLoading(false)
             } else {
-                setIsLoading(true) // Show spinner only if no data
+                // Only show spinner if we absolutely have nothing
+                setIsLoading(true)
             }
 
-            // 2. Fallback to API
+            // 2. Fallback to API (Background Update)
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), 15000) // 15s timeout
 
             try {
                 const res = await fetch(`/api/restaurants/${slug}`, {
                     signal: controller.signal,
-                    cache: 'no-cache' // Ensure we validate with server (which sends 60s max-age)
+                    cache: 'no-cache'
                 })
                 clearTimeout(timeoutId)
                 const data = await res.json()
 
                 if (data.success && data.data) {
                     setRestaurant(data.data)
-                    // Ensure menuItems mapping matches
                     const apiMenu = data.data.menuItems || []
                     setMenu(apiMenu)
                 }
@@ -133,7 +136,8 @@ export default function PublicMenuPage() {
         }
 
         loadData()
-    }, [mounted, slug, restaurants, menuItems])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mounted, slug])
 
     // Loading state
     if (!mounted || isLoading) {
