@@ -1,7 +1,8 @@
+// ... imports need signAccessToken
+import { verifyJwt, signAccessToken } from '@/lib/jwt'
+import prisma from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { verifyJwt } from '@/lib/jwt'
-import prisma from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
     try {
@@ -12,26 +13,72 @@ export async function GET(request: NextRequest) {
         const restoToken = cookieStore.get('restoToken')?.value
 
         let token: string | undefined
+        let role: string | undefined | null = roleParam
 
+        // Determine context
         if (roleParam === 'SUPER_ADMIN') {
             token = adminToken
         } else if (roleParam === 'RESTAURANT_ADMIN') {
             token = restoToken
         } else {
-            // Priority: Admin > Resto (or check lastRole cookie?)
+            // Heuristic
             const lastRole = cookieStore.get('lastRole')?.value
-            if (lastRole === 'SUPER_ADMIN' && adminToken) token = adminToken
-            else if (lastRole === 'RESTAURANT_ADMIN' && restoToken) token = restoToken
-            else token = adminToken || restoToken
+            if (lastRole === 'SUPER_ADMIN' && adminToken) { token = adminToken; role = 'SUPER_ADMIN'; }
+            else if (lastRole === 'RESTAURANT_ADMIN' && restoToken) { token = restoToken; role = 'RESTAURANT_ADMIN'; }
+            else {
+                if (adminToken) { token = adminToken; role = 'SUPER_ADMIN'; }
+                else if (restoToken) { token = restoToken; role = 'RESTAURANT_ADMIN'; }
+            }
         }
 
-        if (!token) {
-            return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 })
+        // 1. Verify Access Token
+        let payload: any = token ? await verifyJwt(token) : null
+
+        // 2. If invalid/expired, try Refresh Token
+        if (!payload && role) {
+            const refreshCookieName = role === 'SUPER_ADMIN' ? 'adminRefreshToken' : 'restoRefreshToken'
+            const refreshToken = cookieStore.get(refreshCookieName)?.value
+
+            if (refreshToken) {
+                const refreshPayload: any = await verifyJwt(refreshToken)
+                if (refreshPayload && refreshPayload.userId) {
+                    // Check Database for validity/revocation
+                    const dbToken = await prisma.refreshToken.findFirst({
+                        where: {
+                            token: refreshToken,
+                            userId: refreshPayload.userId,
+                            revoked: false
+                        }
+                    })
+
+                    if (dbToken && new Date(dbToken.expiresAt) > new Date()) {
+                        // Valid! Issue new Access Token
+                        const newPayload = {
+                            userId: refreshPayload.userId,
+                            email: refreshPayload.email,
+                            role: refreshPayload.role,
+                            restaurantId: refreshPayload.restaurantId
+                        }
+                        const newAccessToken = await signAccessToken(newPayload)
+
+                        // Set New Cookie
+                        const cookieName = role === 'SUPER_ADMIN' ? 'adminToken' : 'restoToken'
+                        cookieStore.set(cookieName, newAccessToken, {
+                            httpOnly: true,
+                            secure: process.env.NODE_ENV === 'production',
+                            sameSite: 'lax',
+                            maxAge: 15 * 60, // 15 mins
+                            path: '/'
+                        })
+
+                        payload = newPayload
+                    }
+                }
+            }
         }
 
-        const payload = await verifyJwt(token)
         if (!payload || !payload.userId) {
-            return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
+            return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 })
         }
 
         const user = await prisma.user.findUnique({
