@@ -34,6 +34,14 @@ export const metadata: Metadata = {
     title: "Meenuin - Digital Restaurant Platform",
     description: "Modern restaurant management platform",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Meenuin Admin",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({

@@ -124,9 +124,31 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
                         onChange={async (e) => {
                             const file = e.target.files?.[0]
                             if (file) {
+                                // Resize Image to reduce payload size (Max 800px)
                                 const reader = new FileReader()
-                                reader.onloadend = () => {
-                                    setForm({ ...form, logo: reader.result as string })
+                                reader.onload = (event) => {
+                                    const img = document.createElement('img')
+                                    img.onload = () => {
+                                        const canvas = document.createElement('canvas')
+                                        let width = img.width
+                                        let height = img.height
+
+                                        if (width > 800) {
+                                            height = height * (800 / width)
+                                            width = 800
+                                        }
+
+                                        canvas.width = width
+                                        canvas.height = height
+
+                                        const ctx = canvas.getContext('2d')
+                                        ctx?.drawImage(img, 0, 0, width, height)
+
+                                        // Compress
+                                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
+                                        setForm({ ...form, logo: compressedBase64 })
+                                    }
+                                    img.src = event.target?.result as string
                                 }
                                 reader.readAsDataURL(file)
                             }

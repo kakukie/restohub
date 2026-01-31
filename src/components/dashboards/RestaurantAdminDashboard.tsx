@@ -1966,7 +1966,7 @@ export default function RestaurantAdminDashboard() {
       <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            © 2024 RestoHub. Digital Restaurant Platform
+            © 2026 Meenuin. Digital Restaurant Platform
           </p>
         </div>
       </footer>
