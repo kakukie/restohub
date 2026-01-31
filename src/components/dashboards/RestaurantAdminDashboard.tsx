@@ -569,6 +569,41 @@ export default function RestaurantAdminDashboard() {
     setQrCodeDialogOpen(true)
   }
 
+  const handleDownloadReport = () => {
+    // Filter orders by selected month/year
+    const filteredOrders = orders.filter(o => {
+      const d = new Date(o.createdAt);
+      return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+    });
+
+    if (filteredOrders.length === 0) {
+      toast({ title: 'No Data', description: 'No orders found for this period', variant: 'destructive' })
+      return
+    }
+
+    const headers = ['Order No', 'Date', 'Status', 'Total Amount', 'Payment Status', 'Customer Name']
+    const rows = filteredOrders.map(o => [
+      o.orderNumber,
+      new Date(o.createdAt).toLocaleDateString(),
+      o.status,
+      o.totalAmount.toString(),
+      o.paymentStatus,
+      o.customer?.name || 'Guest'
+    ])
+
+    const csvContent = "data:text/csv;charset=utf-8,"
+      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
+
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `report_${currentRestaurant?.name || 'export'}_${reportMonth}_${reportYear}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast({ title: 'Success', description: 'Report downloaded successfully' })
+  }
+
   // Print Order Receipt Function
   const handlePrintOrder = (order: Order) => {
     const printContent = `
