@@ -5,29 +5,23 @@ import { cookies } from 'next/headers'
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies()
-        const refreshToken = cookieStore.get('refreshToken')?.value
-
-        if (refreshToken) {
-            // Mark as revoked in DB
-            // Use updateMany to safely handle non-existent case without throwing
-            await prisma.refreshToken.updateMany({
-                where: { token: refreshToken },
-                data: { revoked: true }
-            })
-        }
-
         const role = request.nextUrl.searchParams.get('role')
 
+        let refreshTokenToRevoke: string | undefined
+
+        // Determine which token to revoke based on role
         if (role === 'SUPER_ADMIN') {
+            refreshTokenToRevoke = cookieStore.get('adminRefreshToken')?.value
             cookieStore.delete('adminToken')
             cookieStore.delete('adminRefreshToken')
-            // If lastRole was this, maybe clear it? Or let it be overwritten next login.
-            // cookieStore.delete('lastRole') 
         } else if (role === 'RESTAURANT_ADMIN') {
+            refreshTokenToRevoke = cookieStore.get('restoRefreshToken')?.value
             cookieStore.delete('restoToken')
             cookieStore.delete('restoRefreshToken')
         } else {
-            // Clear All
+            // Fallback for generic logout
+            refreshTokenToRevoke = cookieStore.get('refreshToken')?.value
+            // Clear All known cookies to be safe
             cookieStore.delete('accessToken')
             cookieStore.delete('refreshToken')
             cookieStore.delete('adminToken')
@@ -35,6 +29,14 @@ export async function POST(request: NextRequest) {
             cookieStore.delete('adminRefreshToken')
             cookieStore.delete('restoRefreshToken')
             cookieStore.delete('lastRole')
+        }
+
+        if (refreshTokenToRevoke) {
+            // Mark as revoked in DB
+            await prisma.refreshToken.updateMany({
+                where: { token: refreshTokenToRevoke },
+                data: { revoked: true }
+            })
         }
 
         return NextResponse.json({

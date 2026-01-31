@@ -1084,64 +1084,69 @@ export default function RestaurantAdminDashboard() {
 
             <ScrollArea className="h-[calc(100vh-280px)] sm:h-[600px] w-full rounded-md border p-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                {menuItems.map((item) => (
-                  <Card key={item.id} className="border-2">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg mb-1">{item.name}</CardTitle>
-                          <Badge variant="outline" className="text-xs mb-2">
-                            {item.categoryName}
-                          </Badge>
-                          <CardDescription className="text-sm">{item.description}</CardDescription>
-                        </div>
-                        <Switch
-                          checked={item.isAvailable}
-                          onCheckedChange={(checked) => {
-                            updateMenuItem(item.id, { isAvailable: checked })
-                          }}
-                        />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xl font-bold text-green-600">
-                          Rp {item.price.toLocaleString()}
-                        </span>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => handleShowQRCode(item)}
-                            variant="outline"
-                            size="icon"
-                            className="text-blue-600 hover:text-blue-700"
-                            title="Show QR Code"
-                          >
-                            <QrCode className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingMenuItem(item)
-                              setMenuItemForm(item)
-                              setMenuItemDialogOpen(true)
+                {menuItems
+                  .filter(item =>
+                    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+                  )
+                  .map((item) => (
+                    <Card key={item.id} className="border-2">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg mb-1">{item.name}</CardTitle>
+                            <Badge variant="outline" className="text-xs mb-2">
+                              {item.categoryName}
+                            </Badge>
+                            <CardDescription className="text-sm">{item.description}</CardDescription>
+                          </div>
+                          <Switch
+                            checked={item.isAvailable}
+                            onCheckedChange={(checked) => {
+                              updateMenuItem(item.id, { isAvailable: checked })
                             }}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => handleDeleteMenuItem(item.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                          />
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl font-bold text-green-600">
+                            Rp {item.price.toLocaleString()}
+                          </span>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleShowQRCode(item)}
+                              variant="outline"
+                              size="icon"
+                              className="text-blue-600 hover:text-blue-700"
+                              title="Show QR Code"
+                            >
+                              <QrCode className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingMenuItem(item)
+                                setMenuItemForm(item)
+                                setMenuItemDialogOpen(true)
+                              }}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteMenuItem(item.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
               </div>
             </ScrollArea>
           </TabsContent>
