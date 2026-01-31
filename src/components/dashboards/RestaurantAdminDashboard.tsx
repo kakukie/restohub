@@ -113,6 +113,9 @@ export default function RestaurantAdminDashboard() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [activeTab, setActiveTab] = useState('menu')
 
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('')
+
 
 
   // Fetch all data
@@ -903,6 +906,17 @@ export default function RestaurantAdminDashboard() {
                     {stats.totalMenuItems} / {currentRestaurant?.maxMenuItems || 10} Items
                   </span>
                 </nav>
+                <div className="mt-4 w-full sm:w-[300px]">
+                  <div className="relative">
+                    <Utensils className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search menu..."
+                      className="pl-8"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 w-full sm:w-auto">
@@ -1775,7 +1789,7 @@ export default function RestaurantAdminDashboard() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="outline" onClick={() => toast({ title: 'Downloading...', description: 'Report download started.' })}>
+                <Button variant="outline" onClick={handleDownloadReport}>
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
