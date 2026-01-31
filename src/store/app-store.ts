@@ -171,6 +171,7 @@ interface AppState {
   deleteCategory: (id: string) => void
   resetPassword: (email: string, newPassword: string) => void
   updateSubscriptionPlan: (id: string, updates: Partial<SubscriptionPlan>) => void
+  setSubscriptionPlans: (plans: SubscriptionPlan[]) => void
   updateHelpdeskSettings: (settings: HelpdeskSettings) => void
   systemAnnouncements: Announcement[]
   broadcastAnnouncement: (message: string) => void
@@ -397,6 +398,8 @@ export const useAppStore = create<AppState>()(
     updateSubscriptionPlan: (id, updates) => set((state) => ({
       subscriptionPlans: state.subscriptionPlans.map(p => p.id === id ? { ...p, ...updates } : p)
     })),
+
+    setSubscriptionPlans: (plans) => set({ subscriptionPlans: plans }),
 
     initSubscriptionPlans: () => set((state) => {
       if (state.subscriptionPlans.length === 0) {

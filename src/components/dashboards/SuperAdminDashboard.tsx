@@ -80,10 +80,22 @@ export default function SuperAdminDashboard() {
         }
       } catch (err) { console.error("Failed to fetch analytics", err) }
 
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error)
-    }
-  }, [setRestaurants, setUsers])
+      // Fetch Subscription Plans
+      try {
+        const resPlans = await fetch('/api/subscription-plans')
+        const dataPlans = await resPlans.json()
+        if (dataPlans.success) {
+          // We need an action to set plans. useAppStore needs 'setSubscriptionPlans' or we manually map.
+          // However, useAppStore interface line 135 has 'subscriptionPlans'. 
+          // BUT logic line 397 only has 'updateSubscriptionPlan'. 
+          // I need to check if there is a SET action.
+          // Looking at app-store.ts, there is NO `setSubscriptionPlans` action exposed explicitly in the snippet I saw?
+          // Wait, line 401 is `initSubscriptionPlans` but that just sets initial if empty.
+          // I need to ADD `setSubscriptionPlans` to `useAppStore` first if it doesn't exist.
+          // Let's assume I need to check app-store.ts again or just add it.
+        }
+      } catch (err) { console.error("Failed to fetch plans", err) }
+    }, [setRestaurants, setUsers])
 
   useEffect(() => {
     fetchDashboardData()

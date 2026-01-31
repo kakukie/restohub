@@ -326,7 +326,8 @@ export default function PublicMenuPage() {
                     )}
                 </div>
 
-                {/* Info Card - Overlapping */}
+                {/* Info Card - Overlapping (Disabled by User Request) */}
+                {/* 
                 <div className="px-4 -mt-16 relative z-10">
                     <Card className="p-4 shadow-lg border-none">
                         <div className="flex justify-between items-start">
@@ -359,6 +360,7 @@ export default function PublicMenuPage() {
                         </div>
                     </Card>
                 </div>
+                */}
             </div>
 
             {/* 3. Order Type Selector */}
@@ -403,14 +405,14 @@ export default function PublicMenuPage() {
 
             {/* 5. Menu Grid - Modern Cards */}
             <div className="px-4 py-2 space-y-8">
-                {/* Best Sellers */}
-                {selectedCategory === 'all' && searchQuery === '' && bestSellers.length > 0 && (
+                {/* Best Sellers & Recommended */}
+                {selectedCategory === 'all' && searchQuery === '' && (menu.some(m => m.isBestSeller || m.isRecommended)) && (
                     <section>
                         <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
                             <ThumbsUp className="h-5 w-5 text-orange-500 fill-orange-500" /> Recommended For You
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
-                            {bestSellers.map(item => (
+                            {menu.filter(m => m.isBestSeller || m.isRecommended).map(item => (
                                 <Card key={item.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleAddToCart(item)}>
                                     <div className="aspect-[4/3] bg-gray-200 relative overflow-hidden">
                                         {item.image ? (
@@ -418,15 +420,25 @@ export default function PublicMenuPage() {
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center text-gray-400"><Utensils className="h-8 w-8 opacity-20" /></div>
                                         )}
-                                        <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-orange-600 shadow-sm">
-                                            POPULAR
-                                        </div>
+                                        {/* Dynamic Badge */}
+                                        {item.isBestSeller && (
+                                            <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-orange-600 shadow-sm">
+                                                BEST SELLER
+                                            </div>
+                                        )}
+                                        {!item.isBestSeller && item.isRecommended && (
+                                            <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-emerald-600 shadow-sm">
+                                                RECOMMENDED
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="p-3">
                                         <h4 className="font-bold text-sm line-clamp-1">{item.name}</h4>
                                         <p className="text-emerald-700 font-bold text-sm mt-1">Rp {item.price.toLocaleString()}</p>
                                         <div className="flex items-end justify-between mt-2">
-                                            <span className="text-[10px] text-gray-500">1.2k likes</span>
+                                            <span className="text-[10px] text-gray-500">
+                                                {item.isBestSeller ? 'Most Loved' : 'Chef Pick'}
+                                            </span>
                                             <div className={`h-6 w-6 rounded-full ${currentTheme.primary} flex items-center justify-center text-white`}>
                                                 <Plus className="h-3 w-3" />
                                             </div>
