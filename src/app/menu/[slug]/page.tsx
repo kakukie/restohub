@@ -92,6 +92,10 @@ export default function PublicMenuPage() {
     const [completedOrder, setCompletedOrder] = useState<any>(null)
 
     useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    useEffect(() => {
         if (!mounted) return
 
         const loadData = async () => {
