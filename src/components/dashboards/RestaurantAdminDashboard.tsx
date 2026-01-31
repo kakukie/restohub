@@ -68,7 +68,8 @@ export default function RestaurantAdminDashboard() {
   // State defined early to be used in derived variables
   const [orders, setOrders] = useState<Order[]>([])
 
-  // Pending Orders Count
+  // Pending Orders Count - Derived from the authoritative local 'orders' state used by the dashboard
+  // This ensures badges and toasts are always in sync with what is displayed in the list
   const pendingOrdersCount = orders.filter(o => o.restaurantId === restaurantId && o.status === 'PENDING').length
 
   // Track previous pending count to trigger notifications only on new orders
@@ -76,8 +77,9 @@ export default function RestaurantAdminDashboard() {
 
   // ... (Notification effect fix)
   useEffect(() => {
-    const currentPendingOrders = allOrders.filter(o => o.status === 'PENDING')
-    const currentCount = currentPendingOrders.length
+    // Sync Toasts with the Local State 'orders'
+    // This replaces usage of 'allOrders' from store which might be stale
+    const currentCount = pendingOrdersCount
 
     // Initial load: just set the count, don't notify to avoid spam on refresh
     if (prevPendingCount === 0 && currentCount > 0) {
@@ -101,7 +103,7 @@ export default function RestaurantAdminDashboard() {
       setPrevPendingCount(currentCount)
     }
 
-  }, [allOrders, prevPendingCount])
+  }, [pendingOrdersCount, prevPendingCount])
 
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   const { helpdeskSettings, systemAnnouncements } = useAppStore()
@@ -214,6 +216,11 @@ export default function RestaurantAdminDashboard() {
   const [menuItemForm, setMenuItemForm] = useState<Partial<MenuItem>>({})
   const [categoryForm, setCategoryForm] = useState<Partial<Category>>({})
   const [paymentMethodForm, setPaymentMethodForm] = useState<Partial<PaymentMethod>>({})
+
+  // Manual Notification States
+  const [validateOrderId, setValidateOrderId] = useState<string | null>(null)
+  const [manualEmail, setManualEmail] = useState('')
+  const [manualPhone, setManualPhone] = useState('')
 
   const handleSaveMenuItem = async () => {
     if (!menuItemForm.name || !menuItemForm.price || !menuItemForm.categoryId) {
@@ -503,16 +510,25 @@ export default function RestaurantAdminDashboard() {
 
   // ... (keeping other handlers)
 
-  // Order handlers - delegating to API
-  const handleValidateOrder = async (orderId: string) => {
+  const handleValidateOrder = async () => {
+    if (!validateOrderId) return
     try {
       const res = await fetch('/api/orders', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, status: 'CONFIRMED' })
+        body: JSON.stringify({
+          orderId: validateOrderId,
+          status: 'CONFIRMED',
+          // Pass manual notification details
+          manualEmail: manualEmail || undefined,
+          manualPhone: manualPhone || undefined
+        })
       })
       if (res.ok) {
         toast({ title: 'Success', description: 'Order has been validated and confirmed' })
+        setValidateOrderId(null)
+        setManualEmail('')
+        setManualPhone('')
         await fetchDashboardData()
       } else {
         throw new Error('Failed to update')
@@ -857,13 +873,16 @@ export default function RestaurantAdminDashboard() {
           </Card>
         </div>
 
-        {/* Floating Helpdesk Button */}
+        {/* Floating Helpdesk Button - Icon Only */}
         <Button
-          className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-700 z-50 p-0"
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-green-500 hover:bg-green-600 z-50 p-0 flex items-center justify-center animate-bounce"
           onClick={() => window.open(`https://wa.me/${helpdeskSettings?.whatsapp || '6281234567890'}`, '_blank')}
           title="Chat Helpdesk"
         >
-          <MessageCircle className="h-6 w-6 text-white" />
+          {/* Simple WhatsApp Icon SVG */}
+          <svg viewBox="0 0 24 24" className="h-8 w-8 text-white fill-current" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.231-.298.316-.497.049-.198.025-.371-.025-.52-.05-.149-.446-1.075-.611-1.472-.161-.389-.323-.336-.445-.341-.114-.007-.247-.007-.38-.007-.133 0-.347.05-.529.247-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+          </svg>
         </Button>
 
         {/* System Announcements */}
@@ -915,6 +934,10 @@ export default function RestaurantAdminDashboard() {
               <TabsTrigger value="payments">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Payments
+              </TabsTrigger>
+              <TabsTrigger value="history">
+                <Clock className="h-4 w-4 mr-2" />
+                Order History
               </TabsTrigger>
               <TabsTrigger value="settings">
                 <Settings className="h-4 w-4 mr-2" />
@@ -1315,8 +1338,8 @@ export default function RestaurantAdminDashboard() {
                                 <Button variant="outline" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleRejectOrder(order.id)}>
                                   Reject
                                 </Button>
-                                <Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => handleValidateOrder(order.id)}>
-                                  Accept
+                                <Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => setValidateOrderId(order.id)}>
+                                  Accept & Validate
                                 </Button>
                               </div>
                             </div>
@@ -1327,6 +1350,40 @@ export default function RestaurantAdminDashboard() {
                   </ScrollArea>
                 </CardContent>
               </Card>
+
+              {/* Validation Dialog */}
+              <Dialog open={!!validateOrderId} onOpenChange={(open) => !open && setValidateOrderId(null)}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Accept Order</DialogTitle>
+                    <DialogDescription>
+                      You can optionally enter customer contact details to send manual notification.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-3 py-2">
+                    <div className="space-y-1">
+                      <Label>Manual Email (Optional)</Label>
+                      <Input
+                        placeholder="customer@example.com"
+                        value={manualEmail}
+                        onChange={(e) => setManualEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Manual WhatsApp (Optional)</Label>
+                      <Input
+                        placeholder="62812..."
+                        value={manualPhone}
+                        onChange={(e) => setManualPhone(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setValidateOrderId(null)}>Cancel</Button>
+                    <Button className="bg-green-600 text-white" onClick={handleValidateOrder}>Confirm & Notify</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
               {/* Active / In Progress */}
               <Card className="md:col-span-1 shadow-md border-blue-100 bg-blue-50/50">
@@ -1649,6 +1706,86 @@ export default function RestaurantAdminDashboard() {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          {/* History Tab */}
+          <TabsContent value="history" className="space-y-4">
+            <h2 className="text-2xl font-bold">Order History</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle>Completed & Cancelled Orders</CardTitle>
+                <CardDescription>All your historical orders</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {orders.filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status)).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No order history available</p>
+                  ) : (
+                    // Desktop Table
+                    <div className="hidden md:block">
+                      <div className="border rounded-md">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-100 border-b">
+                            <tr>
+                              <th className="p-3 text-left">Order ID</th>
+                              <th className="p-3 text-left">Date</th>
+                              <th className="p-3 text-left">Customer</th>
+                              <th className="p-3 text-left">Total</th>
+                              <th className="p-3 text-left">Status</th>
+                              <th className="p-3 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {orders.filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status))
+                              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                              .map(order => (
+                                <tr key={order.id} className="border-b hover:bg-gray-50">
+                                  <td className="p-3 font-medium">#{order.orderNumber}</td>
+                                  <td className="p-3">{new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                  <td className="p-3">{order.customerName}<br /><span className="text-xs text-gray-500">{order.tableNumber || 'Takeaway'}</span></td>
+                                  <td className="p-3 font-bold text-gray-700">Rp {order.totalAmount.toLocaleString()}</td>
+                                  <td className="p-3"><Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge></td>
+                                  <td className="p-3 text-right">
+                                    <Button size="sm" variant="outline" onClick={() => handlePrintOrder(order)}>
+                                      <Printer className="h-3 w-3" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mobile List */}
+                  <div className="md:hidden space-y-3">
+                    {orders.filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status))
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .map(order => (
+                        <Card key={order.id} className="p-3 border shadow-sm">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <div className="font-bold">#{order.orderNumber}</div>
+                              <div className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleString()}</div>
+                            </div>
+                            <Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge>
+                          </div>
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="text-sm">{order.customerName}</div>
+                            <div className="font-bold text-emerald-600">Rp {order.totalAmount.toLocaleString()}</div>
+                          </div>
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => handlePrintOrder(order)}>
+                              <Printer className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Settings Tab */}
@@ -1978,7 +2115,7 @@ export default function RestaurantAdminDashboard() {
         restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId}
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
-    </div>
+    </div >
   )
 }
 

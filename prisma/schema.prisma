@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -67,6 +67,8 @@ model Restaurant {
   phone         String?
   email         String?
   logo          String?
+  banner        String?
+  theme         String?  @default("modern-emerald")
   package       String?  @default("FREE_TRIAL")
   status        String   @default("PENDING")
   slug          String   @unique
@@ -204,7 +206,7 @@ model SubscriptionPlan {
   description String
   price       Float
   menuLimit   Int
-  features    String[]
+  features    String
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

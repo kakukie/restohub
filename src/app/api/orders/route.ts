@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Handle Payment Method
-      let paymentCreateData = undefined
+      let paymentCreateData: any = undefined
       if (paymentMethod) {
         // Find the payment method ID for this restaurant
         // We assume input matches PaymentMethodType enum (QRIS, CASH, etc.)
@@ -175,6 +175,15 @@ export async function PUT(request: NextRequest) {
     const updates: any = {}
     if (status) updates.status = status
     if (paymentStatus) updates.paymentStatus = paymentStatus
+
+    // Log manual notifications if provided (Simulated Sending)
+    const { manualEmail, manualPhone } = body
+    if (status === 'CONFIRMED' && (manualEmail || manualPhone)) {
+      console.log(`[NOTIFY] Manual Notification Triggered for Order ${orderId}`)
+      if (manualEmail) console.log(`[NOTIFY] Sending Email to: ${manualEmail}`)
+      if (manualPhone) console.log(`[NOTIFY] Sending WhatsApp to: ${manualPhone}`)
+      // TODO: Integrate actual mailer/whatsapp gateway here
+    }
 
     const order = await prisma.order.update({
       where: { id: orderId },

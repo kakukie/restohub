@@ -16,7 +16,12 @@ export async function GET(request: NextRequest) {
         const plans = await prisma.subscriptionPlan.findMany({
             orderBy: { price: 'asc' }
         })
-        return NextResponse.json({ success: true, data: plans })
+        // Parse features string to array
+        const formattedPlans = plans.map(p => ({
+            ...p,
+            features: JSON.parse(p.features || '[]')
+        }))
+        return NextResponse.json({ success: true, data: formattedPlans })
     } catch (error) {
         return NextResponse.json({ success: false, error: 'Failed to fetch plans' }, { status: 500 })
     }
@@ -29,11 +34,22 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'System Error: Database model missing.' }, { status: 500 })
         }
         const body = await request.json()
-        // Validation ignored for brevity
+
+        // Serialize features to string
+        const planData = {
+            ...body,
+            features: JSON.stringify(body.features || [])
+        }
+
         const plan = await prisma.subscriptionPlan.create({
-            data: body
+            data: planData
         })
-        return NextResponse.json({ success: true, data: plan })
+
+        // Return with array features
+        return NextResponse.json({
+            success: true,
+            data: { ...plan, features: JSON.parse(plan.features) }
+        })
     } catch (error) {
         return NextResponse.json({ success: false, error: 'Failed to create plan' }, { status: 500 })
     }
@@ -50,21 +66,31 @@ export async function PUT(request: NextRequest) {
 
         if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 
+        // Serialize features
+        const featuresString = JSON.stringify(updates.features || [])
+
         // Use upsert to handle cases where the record might be missing (P2025)
         const plan = await prisma.subscriptionPlan.upsert({
             where: { id },
-            update: updates,
+            update: {
+                ...updates,
+                features: featuresString
+            },
             create: {
                 id,
                 name: updates.name || 'Unnamed Plan',
                 description: updates.description || '',
                 price: typeof updates.price === 'number' ? updates.price : parseFloat(updates.price || '0'),
                 menuLimit: typeof updates.menuLimit === 'number' ? updates.menuLimit : parseInt(updates.menuLimit || '0'),
-                features: updates.features || [],
+                features: featuresString,
                 isActive: updates.isActive ?? true
             }
         })
-        return NextResponse.json({ success: true, data: plan })
+
+        return NextResponse.json({
+            success: true,
+            data: { ...plan, features: JSON.parse(plan.features) }
+        })
 
     } catch (error) {
         console.error('Update Error:', error)
