@@ -92,8 +92,15 @@ export default function PublicMenuPage() {
             }
 
             // 2. Fallback to API
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 15000) // 15s timeout
+
             try {
-                const res = await fetch(`/api/restaurants/${slug}`)
+                const res = await fetch(`/api/restaurants/${slug}`, {
+                    signal: controller.signal,
+                    cache: 'no-cache' // Ensure we validate with server (which sends 60s max-age)
+                })
+                clearTimeout(timeoutId)
                 const data = await res.json()
 
                 if (data.success && data.data) {

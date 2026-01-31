@@ -110,6 +110,12 @@ export async function GET(request: NextRequest) {
                 role: user.role,
                 restaurantId: restaurant?.id,
             }
+        }, {
+            headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
         })
 
     } catch (error) {
