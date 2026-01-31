@@ -69,41 +69,29 @@ export default function PublicMenuPage() {
     const [menu, setMenu] = useState<MenuItem[]>([])
     const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
+    const [isLoading, setIsLoading] = useState(true)
+
     // Checkout states
     const [cartDialogOpen, setCartDialogOpen] = useState(false)
-    const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false)
-    const [guestName, setGuestName] = useState('')
-    const [guestPhone, setGuestPhone] = useState('')
-    const [tableNumber, setTableNumber] = useState('')
-    const [notes, setNotes] = useState('')
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('')
-    const [processingPayment, setProcessingPayment] = useState(false)
-    const [orderConfirmationOpen, setOrderConfirmationOpen] = useState(false)
-    const [completedOrder, setCompletedOrder] = useState<any>(null)
-
-    useEffect(() => {
-        setMounted(true)
-        // Ensure store is hydrated
-        // useAppStore.persist.rehydrate() - Deprecated: Persist middleware removed
-
-    }, [])
+    // ... (keep existing lines)
 
     useEffect(() => {
         if (!mounted) return
 
         const loadData = async () => {
-            // 1. Try local store first (fastest)
-            let existingResto = restaurants.find(r => r.slug === slug || r.id === slug)
-
-            if (existingResto) {
-                setRestaurant(existingResto)
-                const existingMenu = menuItems.filter(m => m.restaurantId === existingResto.id && m.isAvailable)
-                if (existingMenu.length > 0) setMenu(existingMenu)
-                // Continue to fetch fresh data
-            }
-
-            // 2. Fallback to API
+            setIsLoading(true)
             try {
+                // 1. Try local store first (fastest)
+                let existingResto = restaurants.find(r => r.slug === slug || r.id === slug)
+
+                if (existingResto) {
+                    setRestaurant(existingResto)
+                    const existingMenu = menuItems.filter(m => m.restaurantId === existingResto.id && m.isAvailable)
+                    if (existingMenu.length > 0) setMenu(existingMenu)
+                    setIsLoading(false) // Show immediately if found locally
+                }
+
+                // 2. Fallback to API
                 const res = await fetch(`/api/restaurants/${slug}`)
                 const data = await res.json()
 
@@ -115,6 +103,8 @@ export default function PublicMenuPage() {
                 }
             } catch (error) {
                 console.error("Failed to load restaurant", error)
+            } finally {
+                setIsLoading(false)
             }
         }
 
@@ -122,7 +112,7 @@ export default function PublicMenuPage() {
     }, [mounted, slug, restaurants, menuItems])
 
     // Loading state
-    if (!mounted) {
+    if (!mounted || isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>

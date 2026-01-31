@@ -51,6 +51,11 @@ export async function GET(
         return NextResponse.json({
             success: true,
             data: transformedData
+        }, {
+            headers: {
+                // Cache for 60 seconds, SWR for 5 mins to improve performance
+                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+            }
         })
     } catch (error) {
         console.error('Error fetching restaurant:', error)
