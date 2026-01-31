@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAppStore } from '@/store/app-store'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
+import { Trash2 } from 'lucide-react'
 
 export default function RestaurantSettingsForm({ restaurantId }: { restaurantId: string }) {
     const { restaurants, updateRestaurant } = useAppStore()
@@ -157,6 +158,63 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
                     {form.logo && (
                         <div className="mt-2 relative w-20 h-20 border rounded overflow-hidden">
                             <Image src={form.logo} alt="Logo" fill className="object-cover" />
+                        </div>
+                    )}
+                </div>
+                <div className="space-y-2">
+                    <Label>Banner Image (Optional)</Label>
+                    <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                                // Resize Image to reduce payload size (Max 1200px width)
+                                const reader = new FileReader()
+                                reader.onload = (event) => {
+                                    const img = document.createElement('img')
+                                    img.onload = () => {
+                                        const canvas = document.createElement('canvas')
+                                        let width = img.width
+                                        let height = img.height
+
+                                        if (width > 1200) {
+                                            height = height * (1200 / width)
+                                            width = 1200
+                                        }
+
+                                        canvas.width = width
+                                        canvas.height = height
+
+                                        const ctx = canvas.getContext('2d')
+                                        ctx?.drawImage(img, 0, 0, width, height)
+
+                                        // Compress
+                                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
+                                        setForm({ ...form, banner: compressedBase64 } as any)
+                                    }
+                                    img.src = event.target?.result as string
+                                }
+                                reader.readAsDataURL(file)
+                            }
+                        }}
+                    />
+                    {/* Access banner from form state (needs type update or casting) */}
+                    {(form as any).banner && (
+                        <div className="mt-2 relative w-full h-32 border rounded overflow-hidden">
+                            <Image src={(form as any).banner} alt="Banner" fill className="object-cover" />
+                            <Button
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-2 right-2 h-6 w-6"
+                                onClick={() => {
+                                    const newForm = { ...form } as any;
+                                    delete newForm.banner;
+                                    setForm(newForm);
+                                }}
+                            >
+                                <Trash2 className="h-3 w-3" />
+                            </Button>
                         </div>
                     )}
                 </div>

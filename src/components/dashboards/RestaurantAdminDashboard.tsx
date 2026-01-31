@@ -1718,8 +1718,23 @@ export default function RestaurantAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {orders.filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status)).length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No order history available</p>
+                  <div className="flex w-full max-w-sm items-center space-x-2 mb-4">
+                    <Input
+                      placeholder="Search history..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  {orders.filter(o =>
+                    ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status) &&
+                    (
+                      o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      (o.tableNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                  ).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No order history found</p>
                   ) : (
                     // Desktop Table
                     <div className="hidden md:block">
@@ -1736,7 +1751,14 @@ export default function RestaurantAdminDashboard() {
                             </tr>
                           </thead>
                           <tbody>
-                            {orders.filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status))
+                            {orders.filter(o =>
+                              ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status) &&
+                              (
+                                o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                (o.tableNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
+                              )
+                            )
                               .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                               .map(order => (
                                 <tr key={order.id} className="border-b hover:bg-gray-50">
@@ -1760,7 +1782,14 @@ export default function RestaurantAdminDashboard() {
 
                   {/* Mobile List */}
                   <div className="md:hidden space-y-3">
-                    {orders.filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status))
+                    {orders.filter(o =>
+                      ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status) &&
+                      (
+                        o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (o.tableNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                    )
                       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                       .map(order => (
                         <Card key={order.id} className="p-3 border shadow-sm">

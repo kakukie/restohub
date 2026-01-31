@@ -407,7 +407,7 @@ export default function PublicMenuPage() {
                 {selectedCategory === 'all' && searchQuery === '' && bestSellers.length > 0 && (
                     <section>
                         <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                            <Flame className="h-5 w-5 text-orange-500 fill-orange-500" /> Most Popular
+                            <ThumbsUp className="h-5 w-5 text-orange-500 fill-orange-500" /> Recommended For You
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
                             {bestSellers.map(item => (
@@ -578,17 +578,48 @@ export default function PublicMenuPage() {
                                 </SelectContent>
                             </Select>
 
-                            {/* QR Code Logic same as before */}
+                            {/* QR Code Logic */}
                             {selectedPaymentMethod && selectedPaymentMethod !== 'CASH' && (
-                                <div className="bg-emerald-50 p-4 rounded-lg flex flex-col items-center">
-                                    <QrCode className="h-10 w-10 text-emerald-600 mb-2" />
-                                    <p className="text-xs text-gray-500 mb-4">Scan QR at cashier or upload proof</p>
-                                    {/* Simplified QR display for redesign - Assuming waiter handles payment or separate confirmation */}
+                                <div className="bg-white border rounded-lg p-4 flex flex-col items-center">
+                                    <p className="text-sm font-bold mb-2">Scan to Pay</p>
+
+                                    {/* Display QR Image if available in restaurant settings, else fallback or generate generic */}
+                                    {restaurant?.qrisImage ? (
+                                        <div className="relative w-48 h-48 mb-3">
+                                            <Image src={restaurant.qrisImage} alt="QRIS" fill className="object-contain" />
+                                        </div>
+                                    ) : (
+                                        <div className="bg-gray-100 w-48 h-48 flex items-center justify-center mb-3 rounded">
+                                            <QrCode className="h-16 w-16 text-gray-400" />
+                                            <span className="text-xs text-gray-400 absolute mt-12">No QR Image</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-2 w-full">
+                                        <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                                            if (restaurant?.qrisImage) {
+                                                const link = document.createElement('a')
+                                                link.href = restaurant.qrisImage
+                                                link.download = `QR_${restaurant.name}.png`
+                                                document.body.appendChild(link)
+                                                link.click()
+                                                document.body.removeChild(link)
+                                            } else {
+                                                toast({ title: "No QR", description: "No QR image to download", variant: "destructive" })
+                                            }
+                                        }}>
+                                            <Download className="h-4 w-4 mr-2" /> Save QR
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2 text-center">
+                                        Scan using any e-wallet app.<br />
+                                        Upload payment proof if required.
+                                    </p>
                                 </div>
                             )}
 
                             <Button onClick={processOrder} disabled={processingPayment} className={`w-full ${currentTheme.primary} ${currentTheme.primaryHover} mt-4`}>
-                                {processingPayment ? <Loader2 className="animate-spin" /> : 'Place Order'}
+                                {processingPayment ? <Loader2 className="animate-spin" /> : 'Confirm Payment & Order'}
                             </Button>
                         </div>
                     </div>

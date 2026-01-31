@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         const plans = await prisma.subscriptionPlan.findMany({
             orderBy: { price: 'asc' }
         })
-        // Parse features string to array
+
         return NextResponse.json({ success: true, data: plans })
     } catch (error) {
         return NextResponse.json({ success: false, error: 'Failed to fetch plans' }, { status: 500 })
@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
         }
         const body = await request.json()
 
-        // Serialize features to string
         const plan = await prisma.subscriptionPlan.create({
             data: {
                 ...body,
@@ -56,15 +55,12 @@ export async function PUT(request: NextRequest) {
 
         if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 
-        // Serialize features
-        const featuresString = JSON.stringify(updates.features || [])
-
         // Use upsert to handle cases where the record might be missing (P2025)
         const plan = await prisma.subscriptionPlan.upsert({
             where: { id },
             update: {
                 ...updates,
-                features: featuresString
+                features: updates.features || []
             },
             create: {
                 id,
@@ -72,14 +68,14 @@ export async function PUT(request: NextRequest) {
                 description: updates.description || '',
                 price: typeof updates.price === 'number' ? updates.price : parseFloat(updates.price || '0'),
                 menuLimit: typeof updates.menuLimit === 'number' ? updates.menuLimit : parseInt(updates.menuLimit || '0'),
-                features: featuresString,
+                features: updates.features || [],
                 isActive: updates.isActive ?? true
             }
         })
 
         return NextResponse.json({
             success: true,
-            data: { ...plan, features: JSON.parse(plan.features) }
+            data: plan
         })
 
     } catch (error) {
