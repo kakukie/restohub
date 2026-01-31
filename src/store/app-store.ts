@@ -244,7 +244,7 @@ export const useAppStore = create<AppState>()(
 
     checkSession: async (role) => {
       try {
-        const res = await fetch(`/ api / auth / me${role ? `?role=${role}` : ''} `)
+        const res = await fetch(`/api/auth/me${role ? `?role=${role}` : ''}`)
         const data = await res.json()
         if (data.success) {
           set({ user: data.user })

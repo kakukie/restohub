@@ -891,139 +891,149 @@ export default function RestaurantAdminDashboard() {
 
           {/* Menu Items Tab */}
           <TabsContent value="menu" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-2xl font-bold">Menu Management</h2>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>Dashboard</span>
-                  <span className="text-gray-300">/</span>
-                  <span>Menu</span>
-                  <span className="text-gray-300">/</span>
-                  <span className={stats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 100) ? 'text-red-500 font-medium' : 'text-emerald-600'}>
-                    {stats.totalMenuItems} / {currentRestaurant?.maxMenuItems || '∞'} Items
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex flex-col gap-1 w-full sm:w-auto">
+                <h2 className="text-2xl font-bold tracking-tight">Menu Management</h2>
+                <nav className="flex items-center text-sm text-muted-foreground">
+                  <span className="hover:text-foreground transition-colors cursor-pointer">Dashboard</span>
+                  <span className="mx-2 text-muted-foreground/50">/</span>
+                  <span className="font-medium text-foreground">Menu</span>
+                  <span className="mx-2 text-muted-foreground/50">/</span>
+                  <span className={stats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                    {stats.totalMenuItems} / {currentRestaurant?.maxMenuItems || 10} Items
                   </span>
-                </div>
+                </nav>
               </div>
-              <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => {
-                    setEditingMenuItem(null)
-                    setMenuItemForm({})
-                  }} className="bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Menu Item
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{editingMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
-                    <DialogDescription>
-                      {editingMenuItem ? 'Update menu item details' : 'Create a new menu item'}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="menu-name">Name *</Label>
-                      <Input
-                        id="menu-name"
-                        value={menuItemForm.name || ''}
-                        onChange={(e) => setMenuItemForm({ ...menuItemForm, name: e.target.value })}
-                        placeholder="Menu item name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="menu-description">Description</Label>
-                      <Input
-                        id="menu-description"
-                        value={menuItemForm.description || ''}
-                        onChange={(e) => setMenuItemForm({ ...menuItemForm, description: e.target.value })}
-                        placeholder="Menu item description"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="menu-price">Price *</Label>
-                      <Input
-                        id="menu-price"
-                        type="number"
-                        value={menuItemForm.price || ''}
-                        onChange={(e) => setMenuItemForm({ ...menuItemForm, price: parseFloat(e.target.value) })}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="menu-category">Category *</Label>
-                      <Select
-                        value={menuItemForm.categoryId || ''}
-                        onValueChange={(value) => setMenuItemForm({ ...menuItemForm, categoryId: value })}
-                      >
-                        <SelectTrigger id="menu-category">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="menu-image">Menu Image</Label>
-                      <Input
-                        id="menu-image"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, (base64) => setMenuItemForm({ ...menuItemForm, image: base64 }))}
-                      />
-                      {menuItemForm.image && (
-                        <div className="relative w-full h-40 mt-2 rounded-md overflow-hidden border">
-                          <Image src={menuItemForm.image} alt="Preview" fill className="object-cover" />
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-2 right-2 h-6 w-6"
-                            onClick={() => setMenuItemForm({ ...menuItemForm, image: undefined })}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
 
-                    <div className="flex space-x-4 pt-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id="isBestSeller"
-                          className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                          checked={menuItemForm.isBestSeller || false}
-                          onChange={(e) => setMenuItemForm({ ...menuItemForm, isBestSeller: e.target.checked })}
+              <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 w-full sm:w-auto">
+                {stats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10) && (
+                  <span className="text-xs text-red-500 font-medium bg-red-50 px-2 py-1 rounded">Limit Reached</span>
+                )}
+                <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      onClick={() => {
+                        setEditingMenuItem(null)
+                        setMenuItemForm({})
+                      }}
+                      className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                      disabled={stats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Item
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>{editingMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
+                      <DialogDescription>
+                        {editingMenuItem ? 'Update menu item details' : 'Create a new menu item'}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="menu-name">Name *</Label>
+                        <Input
+                          id="menu-name"
+                          value={menuItemForm.name || ''}
+                          onChange={(e) => setMenuItemForm({ ...menuItemForm, name: e.target.value })}
+                          placeholder="Menu item name"
                         />
-                        <Label htmlFor="isBestSeller" className="cursor-pointer font-medium">Best Seller</Label>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id="isRecommended"
-                          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          checked={menuItemForm.isRecommended || false}
-                          onChange={(e) => setMenuItemForm({ ...menuItemForm, isRecommended: e.target.checked })}
+                      <div className="space-y-2">
+                        <Label htmlFor="menu-description">Description</Label>
+                        <Input
+                          id="menu-description"
+                          value={menuItemForm.description || ''}
+                          onChange={(e) => setMenuItemForm({ ...menuItemForm, description: e.target.value })}
+                          placeholder="Menu item description"
                         />
-                        <Label htmlFor="isRecommended" className="cursor-pointer font-medium">Recommended</Label>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="menu-price">Price *</Label>
+                        <Input
+                          id="menu-price"
+                          type="number"
+                          value={menuItemForm.price || ''}
+                          onChange={(e) => setMenuItemForm({ ...menuItemForm, price: parseFloat(e.target.value) })}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="menu-category">Category *</Label>
+                        <Select
+                          value={menuItemForm.categoryId || ''}
+                          onValueChange={(value) => setMenuItemForm({ ...menuItemForm, categoryId: value })}
+                        >
+                          <SelectTrigger id="menu-category">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="menu-image">Menu Image</Label>
+                        <Input
+                          id="menu-image"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, (base64) => setMenuItemForm({ ...menuItemForm, image: base64 }))}
+                        />
+                        {menuItemForm.image && (
+                          <div className="relative w-full h-40 mt-2 rounded-md overflow-hidden border">
+                            <Image src={menuItemForm.image} alt="Preview" fill className="object-cover" />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2 h-6 w-6"
+                              onClick={() => setMenuItemForm({ ...menuItemForm, image: undefined })}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex space-x-4 pt-2">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="isBestSeller"
+                            className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            checked={menuItemForm.isBestSeller || false}
+                            onChange={(e) => setMenuItemForm({ ...menuItemForm, isBestSeller: e.target.checked })}
+                          />
+                          <Label htmlFor="isBestSeller" className="cursor-pointer font-medium">Best Seller</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="isRecommended"
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            checked={menuItemForm.isRecommended || false}
+                            onChange={(e) => setMenuItemForm({ ...menuItemForm, isRecommended: e.target.checked })}
+                          />
+                          <Label htmlFor="isRecommended" className="cursor-pointer font-medium">Recommended</Label>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <DialogFooter>
-                    <Button onClick={handleSaveMenuItem} className="bg-green-600 hover:bg-green-700">
-                      {editingMenuItem ? 'Update' : 'Add'}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                    <DialogFooter>
+                      <Button onClick={handleSaveMenuItem} className="bg-green-600 hover:bg-green-700">
+                        {editingMenuItem ? 'Update' : 'Add'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
 
-            <ScrollArea className="max-h-[600px]">
+            <ScrollArea className="h-[calc(100vh-280px)] sm:h-[600px] w-full rounded-md border p-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
                 {menuItems.map((item) => (
                   <Card key={item.id} className="border-2">
