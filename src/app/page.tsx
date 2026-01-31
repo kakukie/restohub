@@ -87,7 +87,24 @@ export default function Home() {
         setSubscriptionPlans(useAppStore.getState().subscriptionPlans)
       }
     }
+
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings')
+        const data = await res.json()
+        if (data.success && data.data) {
+          // We can set it to store or just local state. 
+          // Since we used useAppStore in ContactSection (actually we removed it),
+          // we need to pass it or update store.
+          if (useAppStore.getState().updateHelpdeskSettings) {
+            useAppStore.getState().updateHelpdeskSettings(data.data)
+          }
+        }
+      } catch (e) { console.error(e) }
+    }
+
     fetchPlans()
+    fetchSettings()
   }, [setUser, user, router])
 
   const handleLogin = async () => {

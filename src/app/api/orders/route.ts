@@ -173,7 +173,14 @@ export async function PUT(request: NextRequest) {
     }
 
     const updates: any = {}
-    if (status) updates.status = status
+    if (status) {
+      updates.status = status
+      // If confirming order, assume payment is collected (unless manual payment flow overrides)
+      // This ensures reports show correct Revenue.
+      if (status === 'CONFIRMED' && !paymentStatus) {
+        updates.paymentStatus = 'PAID'
+      }
+    }
     if (paymentStatus) updates.paymentStatus = paymentStatus
 
     // Log manual notifications if provided (Simulated Sending)

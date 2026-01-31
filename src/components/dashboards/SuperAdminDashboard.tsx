@@ -50,6 +50,15 @@ export default function SuperAdminDashboard() {
     setSubscriptionPlans
   } = useAppStore()
 
+  // Fetch Settings on Mount
+  useEffect(() => {
+    fetch('/api/settings').then(res => res.json()).then(data => {
+      if (data.success && data.data) {
+        updateHelpdeskSettings(data.data)
+      }
+    }).catch(err => console.error(err))
+  }, [updateHelpdeskSettings])
+
   // Use store restaurants 
   const restaurants = allRestaurants
 
@@ -1344,11 +1353,25 @@ export default function SuperAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 max-w-xl">
+                  {/* Note: In a real app, strict state management would require refactoring. 
+                      Here we use local state or direct store updates for simplicity, 
+                      but since we want this to sync globally, we should ideally fetch from API. 
+                      For now, we rely on the implementation plan to add API integration. */}
                   <div className="grid gap-2">
                     <Label>Helpdesk WhatsApp Number</Label>
                     <Input
                       value={helpdeskSettings?.whatsapp || ''}
-                      onChange={(e) => updateHelpdeskSettings({ ...helpdeskSettings, whatsapp: e.target.value })}
+                      onChange={async (e) => {
+                        const val = e.target.value
+                        updateHelpdeskSettings({ ...helpdeskSettings, whatsapp: val })
+                        // Sync to DB
+                        try {
+                          await fetch('/api/settings', {
+                            method: 'PUT',
+                            body: JSON.stringify({ whatsapp: val })
+                          })
+                        } catch (err) { console.error(err) }
+                      }}
                       placeholder="e.g. 6281234567890"
                     />
                     <p className="text-xs text-gray-500">Number for the Helpdesk button in Restaurant Admin</p>
@@ -1357,7 +1380,17 @@ export default function SuperAdminDashboard() {
                     <Label>Support Email</Label>
                     <Input
                       value={helpdeskSettings?.email || ''}
-                      onChange={(e) => updateHelpdeskSettings({ ...helpdeskSettings, email: e.target.value })}
+                      onChange={async (e) => {
+                        const val = e.target.value
+                        updateHelpdeskSettings({ ...helpdeskSettings, email: val })
+                        // Sync to DB
+                        try {
+                          await fetch('/api/settings', {
+                            method: 'PUT',
+                            body: JSON.stringify({ email: val })
+                          })
+                        } catch (err) { console.error(err) }
+                      }}
                       placeholder="support@meenuin.com"
                     />
                   </div>

@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/app-store'
-import { Store, Plus, Edit, Trash2, CreditCard, Package, LayoutGrid, LogOut, DollarSign, ShoppingBag, TrendingUp, CheckCircle, XCircle, Clock, QrCode, Printer, BarChart3, FileText, Download, Calendar, LifeBuoy, MessageCircle, ChefHat, Utensils } from 'lucide-react'
+import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal, Filter, X, QrCode, Printer, MessageCircle, FileText, Download, Calendar, LifeBuoy, ChefHat, Package, LayoutGrid, Clock, XCircle, CreditCard } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import QRCodeDialog from '@/components/common/QRCodeDialog'
@@ -136,6 +136,9 @@ export default function RestaurantAdminDashboard() {
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1)
   const [reportYear, setReportYear] = useState(new Date().getFullYear())
   const [chartData, setChartData] = useState<any>({})
+
+  // View Order State
+  const [viewOrder, setViewOrder] = useState<Order | null>(null)
 
   // Fetch all data
   const fetchDashboardData = useCallback(async () => {
@@ -802,10 +805,7 @@ export default function RestaurantAdminDashboard() {
                 )}
               </Button>
 
-              <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => window.open(`https://wa.me/${helpdeskSettings?.whatsapp || '6281234567890'}`, '_blank')}>
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Chat Helpdesk
-              </Button>
+              {/* Header Helpdesk Button Removed - Moved to Floating Action Button */}
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-1" />
                 Logout
@@ -1776,9 +1776,14 @@ export default function RestaurantAdminDashboard() {
                                   <td className="p-3 font-bold text-gray-700">Rp {order.totalAmount.toLocaleString()}</td>
                                   <td className="p-3"><Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge></td>
                                   <td className="p-3 text-right">
-                                    <Button size="sm" variant="outline" onClick={() => handlePrintOrder(order)}>
-                                      <Printer className="h-3 w-3" />
-                                    </Button>
+                                    <div className="flex justify-end gap-2">
+                                      <Button size="sm" variant="outline" onClick={() => setViewOrder(order)}>
+                                        <ArrowUpRight className="h-3 w-3" />
+                                      </Button>
+                                      <Button size="sm" variant="outline" onClick={() => handlePrintOrder(order)}>
+                                        <Printer className="h-3 w-3" />
+                                      </Button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
@@ -1813,6 +1818,9 @@ export default function RestaurantAdminDashboard() {
                             <div className="font-bold text-emerald-600">Rp {order.totalAmount.toLocaleString()}</div>
                           </div>
                           <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => setViewOrder(order)}>
+                              <ArrowUpRight className="h-4 w-4" />
+                            </Button>
                             <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => handlePrintOrder(order)}>
                               <Printer className="h-4 w-4" />
                             </Button>
@@ -2172,6 +2180,54 @@ export default function RestaurantAdminDashboard() {
         restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId}
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
+
+      {/* View Order Dialog */}
+      <Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Order Details #{viewOrder?.orderNumber}</DialogTitle>
+            <DialogDescription>{new Date(viewOrder?.createdAt || '').toLocaleString()}</DialogDescription>
+          </DialogHeader>
+          {viewOrder && (
+            <ScrollArea className="max-h-[60vh]">
+              <div className="space-y-4 p-1">
+                <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                  <div className="flex justify-between"><span>Customer:</span><span className="font-medium">{viewOrder.customerName}</span></div>
+                  <div className="flex justify-between"><span>Table:</span><span className="font-medium">{viewOrder.tableNumber || 'Takeaway'}</span></div>
+                  <div className="flex justify-between"><span>Status:</span><Badge variant="outline">{viewOrder.status}</Badge></div>
+                  <div className="flex justify-between"><span>Payment:</span><span>{viewOrder.paymentMethod} ({viewOrder.paymentStatus})</span></div>
+                  {viewOrder.notes && <div className="mt-2 text-xs italic">Note: {viewOrder.notes}</div>}
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm border-b pb-1">Items</h4>
+                  {viewOrder.items.map((item, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <div className="flex gap-2">
+                        <span className="font-bold">{item.quantity}x</span>
+                        <div>
+                          <div>{item.menuItemName}</div>
+                          {item.notes && <div className="text-xs text-gray-400">{item.notes}</div>}
+                        </div>
+                      </div>
+                      <div>{item.price.toLocaleString()}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-between items-center border-t pt-3 font-bold">
+                  <span>Total Amount</span>
+                  <span className="text-lg text-emerald-600">Rp {viewOrder.totalAmount.toLocaleString()}</span>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewOrder(null)}>Close</Button>
+            <Button onClick={() => viewOrder && handlePrintOrder(viewOrder)}>Print</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div >
   )
 }
