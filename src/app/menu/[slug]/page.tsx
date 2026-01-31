@@ -635,12 +635,14 @@ export default function PublicMenuPage() {
                                     })()}
                                 </div>
                             )}
-                            <p className="text-xs text-gray-500 mt-2 text-center">
-                                Scan using any e-wallet app.<br />
-                                Upload payment proof if required.
-                            </p>
-                        </div>
+
+                            {selectedPaymentMethod && selectedPaymentMethod !== 'CASH' && (
+                                <p className="text-xs text-gray-500 mt-2 text-center">
+                                    Scan using any e-wallet app.<br />
+                                    Upload payment proof if required.
+                                </p>
                             )}
+                        </div>
 
                         <Button onClick={processOrder} disabled={processingPayment} className={`w-full ${currentTheme.primary} ${currentTheme.primaryHover} mt-4`}>
                             {processingPayment ? <Loader2 className="animate-spin" /> : 'Confirm Payment & Order'}
