@@ -134,6 +134,7 @@ interface AppState {
   categories: Category[]
   subscriptionPlans: SubscriptionPlan[]
   helpdeskSettings: HelpdeskSettings
+  isInitialized: boolean // Track if session check completed
   checkSession: (role?: string) => Promise<void>
 
   // Actions
@@ -223,6 +224,7 @@ const INITIAL_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 export const useAppStore = create<AppState>()(
   (set, get) => ({
     user: null,
+    isInitialized: false,
     cart: [],
     selectedRestaurant: null,
     users: INITIAL_USERS,
@@ -249,6 +251,8 @@ export const useAppStore = create<AppState>()(
         }
       } catch (error) {
         console.error('Session check failed', error)
+      } finally {
+        set({ isInitialized: true })
       }
     },
 

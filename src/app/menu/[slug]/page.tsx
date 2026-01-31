@@ -84,7 +84,8 @@ export default function PublicMenuPage() {
     useEffect(() => {
         setMounted(true)
         // Ensure store is hydrated
-        useAppStore.persist.rehydrate()
+        // useAppStore.persist.rehydrate() - Deprecated: Persist middleware removed
+
     }, [])
 
     useEffect(() => {
