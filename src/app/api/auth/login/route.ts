@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
         cookieStore.set(refreshCookieName, refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_APP_URL?.startsWith('https') === true,
+            secure: process.env.USE_SECURE_COOKIES === 'true', // Default false for Docker stability
             sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60, // 7 days
             path: '/'

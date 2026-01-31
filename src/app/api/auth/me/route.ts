@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
                         const cookieName = role === 'SUPER_ADMIN' ? 'adminToken' : 'restoToken'
                         cookieStore.set(cookieName, newAccessToken, {
                             httpOnly: true,
-                            secure: process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_APP_URL?.startsWith('https') === true,
+                            secure: process.env.USE_SECURE_COOKIES === 'true', // Default false
                             sameSite: 'lax',
                             maxAge: 15 * 60, // 15 mins
                             path: '/'

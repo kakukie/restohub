@@ -170,6 +170,20 @@ export async function PUT(
             data: updates
         })
 
+        // Revalidate cache to prevent stale data
+        try {
+            const { revalidatePath } = await import('next/cache')
+            // Revalidate both potential new and old slug paths
+            revalidatePath(`/menu/${updated.slug}`)
+            if (restaurant.slug !== updated.slug) {
+                revalidatePath(`/menu/${restaurant.slug}`)
+            }
+            // Revalidate dashboard
+            revalidatePath('/dashboard')
+        } catch (e) {
+            console.error('Revalidate failed', e)
+        }
+
         return NextResponse.json({ success: true, data: updated })
     } catch (error) {
         console.error("Update failed:", error)

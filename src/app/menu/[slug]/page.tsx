@@ -79,19 +79,20 @@ export default function PublicMenuPage() {
         if (!mounted) return
 
         const loadData = async () => {
-            setIsLoading(true)
+            // 1. Try local store first (SWR Pattern)
+            let existingResto = restaurants.find(r => r.slug === slug || r.id === slug)
+
+            if (existingResto) {
+                setRestaurant(existingResto)
+                const existingMenu = menuItems.filter(m => m.restaurantId === existingResto.id && m.isAvailable)
+                if (existingMenu.length > 0) setMenu(existingMenu)
+                setIsLoading(false) // Show immediately
+            } else {
+                setIsLoading(true) // Show spinner only if no data
+            }
+
+            // 2. Fallback to API
             try {
-                // 1. Try local store first (fastest)
-                let existingResto = restaurants.find(r => r.slug === slug || r.id === slug)
-
-                if (existingResto) {
-                    setRestaurant(existingResto)
-                    const existingMenu = menuItems.filter(m => m.restaurantId === existingResto.id && m.isAvailable)
-                    if (existingMenu.length > 0) setMenu(existingMenu)
-                    setIsLoading(false) // Show immediately if found locally
-                }
-
-                // 2. Fallback to API
                 const res = await fetch(`/api/restaurants/${slug}`)
                 const data = await res.json()
 
