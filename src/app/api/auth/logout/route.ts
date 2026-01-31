@@ -16,14 +16,26 @@ export async function POST(request: NextRequest) {
             })
         }
 
-        // Clear Cookies
-        cookieStore.delete('accessToken')
-        cookieStore.delete('refreshToken')
-        cookieStore.delete('adminToken')
-        cookieStore.delete('restoToken')
-        cookieStore.delete('adminRefreshToken')
-        cookieStore.delete('restoRefreshToken')
-        cookieStore.delete('lastRole')
+        const role = request.nextUrl.searchParams.get('role')
+
+        if (role === 'SUPER_ADMIN') {
+            cookieStore.delete('adminToken')
+            cookieStore.delete('adminRefreshToken')
+            // If lastRole was this, maybe clear it? Or let it be overwritten next login.
+            // cookieStore.delete('lastRole') 
+        } else if (role === 'RESTAURANT_ADMIN') {
+            cookieStore.delete('restoToken')
+            cookieStore.delete('restoRefreshToken')
+        } else {
+            // Clear All
+            cookieStore.delete('accessToken')
+            cookieStore.delete('refreshToken')
+            cookieStore.delete('adminToken')
+            cookieStore.delete('restoToken')
+            cookieStore.delete('adminRefreshToken')
+            cookieStore.delete('restoRefreshToken')
+            cookieStore.delete('lastRole')
+        }
 
         return NextResponse.json({
             success: true,

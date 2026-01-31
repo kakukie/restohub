@@ -266,9 +266,24 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+
+    // Sanitize updates to prevent "Unknown argument" errors from Prisma
+    // Remove fields that are not in the Restaurant model
+    const {
+      adminEmail,
+      totalMenuItems,
+      totalOrders,
+      totalRevenue,
+      _count,
+      restaurants, // If included from some relation
+      menuItems,
+      orders,
+      ...validUpdates
+    } = updates as any
+
     const updatedRestaurant = await prisma.restaurant.update({
       where: { id },
-      data: updates
+      data: validUpdates
     })
 
     return NextResponse.json({

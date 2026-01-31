@@ -256,10 +256,17 @@ export const useAppStore = create<AppState>()(
       }
     },
 
-    logout: () => {
+    logout: async () => {
+      const { user } = get()
+      const role = user?.role
       set({ user: null, cart: [], selectedRestaurant: null })
       if (typeof window !== 'undefined') {
-        // sessionStorage handles itself
+        try {
+          await fetch(`/api/auth/logout${role ? `?role=${role}` : ''}`, { method: 'POST' })
+          window.location.href = '/'
+        } catch (e) {
+          console.error('Logout failed', e)
+        }
       }
     },
 

@@ -6,13 +6,18 @@ import bcrypt from 'bcryptjs'
 export async function GET(request: NextRequest) {
     try {
         const users = await prisma.user.findMany({
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            include: {
+                _count: {
+                    select: { restaurants: true }
+                }
+            }
         })
 
         // Remove passwords
         const safeUsers = users.map(user => {
             const { password, ...rest } = user
-            return { ...rest, password: '' } // Keep password field but empty, or omit. Frontend expects password field in type?
+            return { ...rest, password: '' }
         })
 
         return NextResponse.json({
@@ -24,6 +29,57 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             success: false,
             error: 'Failed to fetch users'
+        }, { status: 500 })
+    }
+}
+
+// POST /api/users - Create new User
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json()
+        const { name, email, password, role, phone } = body
+
+        if (!name || !email || !password || !role) {
+            return NextResponse.json({
+                success: false,
+                error: 'Missing required fields'
+            }, { status: 400 })
+        }
+
+        // Check duplicate
+        const existing = await prisma.user.findUnique({ where: { email } })
+        if (existing) {
+            return NextResponse.json({
+                success: false,
+                error: 'Email already exists'
+            }, { status: 400 })
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10)
+
+        const newUser = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password: hashedPassword,
+                role,
+                phone: phone || ''
+            }
+        })
+
+        const { password: _, ...safeUser } = newUser
+
+        return NextResponse.json({
+            success: true,
+            data: safeUser,
+            message: 'User created successfully'
+        }, { status: 201 })
+
+    } catch (error) {
+        console.error('Create User Error:', error)
+        return NextResponse.json({
+            success: false,
+            error: 'Failed to create user'
         }, { status: 500 })
     }
 }
