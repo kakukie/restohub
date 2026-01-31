@@ -593,67 +593,79 @@ export default function PublicMenuPage() {
                             {/* QR Code Logic */}
                             {selectedPaymentMethod && selectedPaymentMethod !== 'CASH' && (
                                 <div className="bg-white border rounded-lg p-4 flex flex-col items-center">
-                                    <p className="text-sm font-bold mb-2">Scan to Pay</p>
+                                    <p className="text-sm font-bold mb-2">Scan to Pay ({selectedPaymentMethod})</p>
 
-                                    {/* Display QR Image if available in restaurant settings, else fallback or generate generic */}
-                                    {restaurant?.qrisImage ? (
-                                        <div className="relative w-48 h-48 mb-3">
-                                            <Image src={restaurant.qrisImage} alt="QRIS" fill className="object-contain" />
-                                        </div>
-                                    ) : (
-                                        <div className="bg-gray-100 w-48 h-48 flex items-center justify-center mb-3 rounded">
-                                            <QrCode className="h-16 w-16 text-gray-400" />
-                                            <span className="text-xs text-gray-400 absolute mt-12">No QR Image</span>
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const method = restaurant?.paymentMethods?.find((m: any) => m.type === selectedPaymentMethod)
+                                        const qrImage = method?.qrCode
 
-                                    <div className="flex gap-2 w-full">
-                                        <Button variant="outline" size="sm" className="flex-1" onClick={() => {
-                                            if (restaurant?.qrisImage) {
-                                                const link = document.createElement('a')
-                                                link.href = restaurant.qrisImage
-                                                link.download = `QR_${restaurant.name}.png`
-                                                document.body.appendChild(link)
-                                                link.click()
-                                                document.body.removeChild(link)
-                                            } else {
-                                                toast({ title: "No QR", description: "No QR image to download", variant: "destructive" })
-                                            }
-                                        }}>
-                                            <Download className="h-4 w-4 mr-2" /> Save QR
-                                        </Button>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-2 text-center">
-                                        Scan using any e-wallet app.<br />
-                                        Upload payment proof if required.
-                                    </p>
+                                        return (
+                                            <>
+                                                {qrImage ? (
+                                                    <div className="relative w-48 h-48 mb-3">
+                                                        <Image src={qrImage} alt={`QR ${selectedPaymentMethod}`} fill className="object-contain" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="bg-gray-100 w-48 h-48 flex items-center justify-center mb-3 rounded">
+                                                        <QrCode className="h-16 w-16 text-gray-400" />
+                                                        <span className="text-xs text-center text-gray-400 absolute mt-12 px-2">
+                                                            No QR for {selectedPaymentMethod}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex gap-2 w-full">
+                                                    <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                                                        if (qrImage) {
+                                                            const link = document.createElement('a')
+                                                            link.href = qrImage
+                                                            link.download = `QR_${restaurant.name}_${selectedPaymentMethod}.png`
+                                                            document.body.appendChild(link)
+                                                            link.click()
+                                                            document.body.removeChild(link)
+                                                        } else {
+                                                            toast({ title: "No QR", description: "No QR image to download for this method", variant: "destructive" })
+                                                        }
+                                                    }}>
+                                                        <Download className="h-4 w-4 mr-2" /> Save QR
+                                                    </Button>
+                                                </div>
+                                            </>
+                                        )
+                                    })()}
                                 </div>
                             )}
-
-                            <Button onClick={processOrder} disabled={processingPayment} className={`w-full ${currentTheme.primary} ${currentTheme.primaryHover} mt-4`}>
-                                {processingPayment ? <Loader2 className="animate-spin" /> : 'Confirm Payment & Order'}
-                            </Button>
+                            <p className="text-xs text-gray-500 mt-2 text-center">
+                                Scan using any e-wallet app.<br />
+                                Upload payment proof if required.
+                            </p>
                         </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                            )}
 
-            {/* Success Dialog */}
-            <Dialog open={orderConfirmationOpen} onOpenChange={setOrderConfirmationOpen}>
-                <DialogContent>
-                    <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                            <CheckCircle className="h-8 w-8 text-green-600" />
-                        </div>
-                        <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
-                        <p className="text-gray-500 mb-6">Your order #{completedOrder?.orderNumber} has been received.</p>
-                        <Button onClick={() => setOrderConfirmationOpen(false)} variant="outline">
-                            Back to Menu
+                        <Button onClick={processOrder} disabled={processingPayment} className={`w-full ${currentTheme.primary} ${currentTheme.primaryHover} mt-4`}>
+                            {processingPayment ? <Loader2 className="animate-spin" /> : 'Confirm Payment & Order'}
                         </Button>
                     </div>
-                </DialogContent>
-            </Dialog>
+                </div>
+            </DialogContent>
+        </Dialog>
 
-        </div>
+            {/* Success Dialog */ }
+    <Dialog open={orderConfirmationOpen} onOpenChange={setOrderConfirmationOpen}>
+        <DialogContent>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
+                <p className="text-gray-500 mb-6">Your order #{completedOrder?.orderNumber} has been received.</p>
+                <Button onClick={() => setOrderConfirmationOpen(false)} variant="outline">
+                    Back to Menu
+                </Button>
+            </div>
+        </DialogContent>
+    </Dialog>
+
+        </div >
     )
 }

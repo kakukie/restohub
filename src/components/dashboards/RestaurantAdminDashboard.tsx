@@ -188,6 +188,9 @@ export default function RestaurantAdminDashboard() {
 
   useEffect(() => {
     fetchDashboardData()
+    // Polling every 15 seconds
+    const interval = setInterval(fetchDashboardData, 15000)
+    return () => clearInterval(interval)
   }, [fetchDashboardData, activeTab])
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
