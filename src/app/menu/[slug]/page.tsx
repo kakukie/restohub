@@ -648,25 +648,24 @@ export default function PublicMenuPage() {
                             {processingPayment ? <Loader2 className="animate-spin" /> : 'Confirm Payment & Order'}
                         </Button>
                     </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
 
-            {/* Success Dialog */ }
-    <Dialog open={orderConfirmationOpen} onOpenChange={setOrderConfirmationOpen}>
-        <DialogContent>
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
-                <p className="text-gray-500 mb-6">Your order #{completedOrder?.orderNumber} has been received.</p>
-                <Button onClick={() => setOrderConfirmationOpen(false)} variant="outline">
-                    Back to Menu
-                </Button>
-            </div>
-        </DialogContent>
-    </Dialog>
+            {/* Success Dialog */}
+            <Dialog open={orderConfirmationOpen} onOpenChange={setOrderConfirmationOpen}>
+                <DialogContent>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                            <CheckCircle className="h-8 w-8 text-green-600" />
+                        </div>
+                        <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
+                        <p className="text-gray-500 mb-6">Your order #{completedOrder?.orderNumber} has been received.</p>
+                        <Button onClick={() => setOrderConfirmationOpen(false)} variant="outline">
+                            Back to Menu
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
         </div >
     )
