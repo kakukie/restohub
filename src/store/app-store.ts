@@ -135,9 +135,11 @@ interface AppState {
   subscriptionPlans: SubscriptionPlan[]
   helpdeskSettings: HelpdeskSettings
   isInitialized: boolean // Track if session check completed
+  language: 'en' | 'id'
   checkSession: (role?: string) => Promise<void>
 
   // Actions
+  setLanguage: (lang: 'en' | 'id') => void
   setUser: (user: User | null) => void
   logout: () => void
   addToCart: (item: CartItem) => void
@@ -226,6 +228,7 @@ export const useAppStore = create<AppState>()(
   (set, get) => ({
     user: null,
     isInitialized: false,
+    language: 'en',
     cart: [],
     selectedRestaurant: null,
     users: INITIAL_USERS,
@@ -241,6 +244,7 @@ export const useAppStore = create<AppState>()(
     systemAnnouncements: [],
 
     // Actions
+    setLanguage: (lang) => set({ language: lang }),
     setUser: (user) => set({ user }),
 
     checkSession: async (role) => {

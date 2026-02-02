@@ -4,6 +4,8 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useTheme } from 'next-themes'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/app-store'
-import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal, Filter, X, QrCode, Printer, MessageCircle, FileText, Download, Calendar, LifeBuoy, ChefHat, Package, LayoutGrid, Clock, XCircle, CreditCard } from 'lucide-react'
+import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal, Filter, X, QrCode, Printer, MessageCircle, FileText, Download, Calendar, LifeBuoy, ChefHat, Package, LayoutGrid, Clock, XCircle, CreditCard, Sun, Moon, Languages } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import QRCodeDialog from '@/components/common/QRCodeDialog'
@@ -115,10 +117,24 @@ export default function RestaurantAdminDashboard() {
     }
   }, [pendingOrdersCount, prevPendingCount])
 
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+  const { setTheme } = useTheme()
+  const {
+    user,
+    restaurants,
+    setRestaurants,
+    currentRestaurant, // Derived from selectedRestaurant
+    orders,
+    setOrders,
+    pendingOrdersCount,
+    pendingOrdersCount,
+    setPendingOrdersCount
+  } = useAppStore()
+
+  // App Store State for Helpdesk/Announcements
   const { helpdeskSettings, systemAnnouncements } = useAppStore()
 
-  // Real Data State
+  // Derived state
+  const currentRestaurant = restaurants.find(r => r.id === (user?.restaurantId || '1'))// fallback id
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
 
@@ -221,10 +237,10 @@ export default function RestaurantAdminDashboard() {
         totalMenuItems: dataMenu.data.length,
         totalCategories: dataCat.data.length,
         totalOrders: dataOrder.data.length,
-        totalRevenue: dataReport.data.summary?.totalRevenue || 0,
+        totalRevenue: dataReport.data.stats?.totalRevenue || 0,
         itemsSold: totalItemsSold,
         cancelledOrders: dataOrder.data.filter((o: any) => o.status === 'CANCELLED').length,
-        cancelledRevenue: dataOrder.data.filter((o: any) => o.status === 'CANCELLED').reduce((acc: number, o: any) => acc + o.totalAmount, 0) // Calculate cancelled revenue
+        cancelledRevenue: dataReport.data.stats?.cancelledRevenue || 0 // Use API stats for accuracy
       }
 
       setStats(stats as any)
@@ -818,6 +834,44 @@ export default function RestaurantAdminDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Languages className="h-[1.2rem] w-[1.2rem]" />
+                    <span className="sr-only">Toggle language</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => useAppStore.getState().setLanguage('en')}>
+                    English {useAppStore.getState().language === 'en' && '✓'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => useAppStore.getState().setLanguage('id')}>
+                    Indonesia {useAppStore.getState().language === 'id' && '✓'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="sr-only">Toggle theme</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setTheme("light")}>
+                    Light
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    Dark
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                    System
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => setQrCodeDialogOpen(true)}>
                 <QrCode className="h-4 w-4 mr-2" />
                 QR Menu
