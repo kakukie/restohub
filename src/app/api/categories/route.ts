@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     }
 
     const categories = await prisma.category.findMany({
-      where,
+      where: { ...where, deletedAt: null },
       orderBy: { displayOrder: 'asc' }
     })
 
