@@ -1,0 +1,80 @@
+
+export const translations = {
+    en: {
+        dashboard: "Dashboard",
+        orders: "Orders",
+        menu: "Menu",
+        categories: "Categories",
+        reports: "Reports",
+        settings: "Settings",
+        logout: "Logout",
+        welcome: "Welcome back",
+        totalRevenue: "Total Revenue",
+        totalOrders: "Total Orders",
+        itemsSold: "Items Sold",
+        cancelled: "Cancelled",
+        incomingOrders: "Incoming Orders",
+        newOrder: "New Order Received!",
+        checkOrders: "Check the Orders tab.",
+        createBranch: "Create Branch",
+        delete: "Delete",
+        save: "Save",
+        cancel: "Cancel",
+        edit: "Edit",
+        status: "Status",
+        actions: "Actions",
+        search: "Search...",
+        noData: "No data available",
+        loading: "Loading data...",
+        language: "Language",
+        theme: "Theme",
+        helpdesk: "Help Center",
+        systemBroadcast: "System Broadcast",
+        paymentMethods: "Payment Methods",
+        qrCode: "QR Code",
+        print: "Print",
+        download: "Download"
+    },
+    id: {
+        dashboard: "Dasbor",
+        orders: "Pesanan",
+        menu: "Menu",
+        categories: "Kategori",
+        reports: "Laporan",
+        settings: "Pengaturan",
+        logout: "Keluar",
+        welcome: "Selamat Datang",
+        totalRevenue: "Total Pendapatan",
+        totalOrders: "Total Pesanan",
+        itemsSold: "Item Terjual",
+        cancelled: "Dibatalkan",
+        incomingOrders: "Pesanan Masuk",
+        newOrder: "Pesanan Baru Diterima!",
+        checkOrders: "Cek tab Pesanan.",
+        createBranch: "Buat Cabang",
+        delete: "Hapus",
+        save: "Simpan",
+        cancel: "Batal",
+        edit: "Ubah",
+        status: "Status",
+        actions: "Aksi",
+        search: "Cari...",
+        noData: "Tidak ada data",
+        loading: "Memuat data...",
+        language: "Bahasa",
+        theme: "Tema",
+        helpdesk: "Pusat Bantuan",
+        systemBroadcast: "Pengumuman Sistem",
+        paymentMethods: "Metode Pembayaran",
+        qrCode: "Kode QR",
+        print: "Cetak",
+        download: "Unduh"
+    }
+}
+
+export type Language = 'en' | 'id'
+export type TranslationKey = keyof typeof translations.en
+
+export const useTranslation = (lang: Language) => {
+    return (key: TranslationKey) => translations[lang][key] || key
+}

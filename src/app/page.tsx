@@ -12,25 +12,28 @@ import { toast } from '@/hooks/use-toast'
 import { Utensils, ArrowRight, Store, CheckCircle, Smartphone, CreditCard, ChefHat } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-const ContactSection = () => (
-  <div id="contact" className="py-20 bg-white">
-    <div className="container mx-auto px-4 text-center">
-      <h2 className="text-3xl font-bold text-slate-900 mb-8">Contact Us</h2>
-      <div className="flex flex-col md:flex-row justify-center gap-8 text-slate-600">
-        <div className="flex flex-col items-center p-6 bg-emerald-50 rounded-xl">
-          <Smartphone className="h-8 w-8 text-emerald-600 mb-4" />
-          <h3 className="font-bold mb-2">WhatsApp</h3>
-          <p>0812-3456-7890</p>
-        </div>
-        <div className="flex flex-col items-center p-6 bg-emerald-50 rounded-xl">
-          <CheckCircle className="h-8 w-8 text-emerald-600 mb-4" />
-          <h3 className="font-bold mb-2">Email</h3>
-          <p>support@meenuin.biz.id</p>
+const ContactSection = () => {
+  const { helpdeskSettings } = useAppStore()
+  return (
+    <div id="contact" className="py-20 bg-white">
+      <div className="container mx-auto px-4 text-center">
+        <h2 className="text-3xl font-bold text-slate-900 mb-8">Contact Us</h2>
+        <div className="flex flex-col md:flex-row justify-center gap-8 text-slate-600">
+          <div className="flex flex-col items-center p-6 bg-emerald-50 rounded-xl">
+            <Smartphone className="h-8 w-8 text-emerald-600 mb-4" />
+            <h3 className="font-bold mb-2">WhatsApp</h3>
+            <p>{helpdeskSettings.phone || '0812-3456-7890'}</p>
+          </div>
+          <div className="flex flex-col items-center p-6 bg-emerald-50 rounded-xl">
+            <CheckCircle className="h-8 w-8 text-emerald-600 mb-4" />
+            <h3 className="font-bold mb-2">Email</h3>
+            <p>{helpdeskSettings.email || 'support@meenuin.biz.id'}</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default function Home() {
   const { setUser, user } = useAppStore()
