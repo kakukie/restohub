@@ -51,9 +51,69 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ... POST (remains same) ...
+// POST: Create Menu Item
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { name, price, categoryId, restaurantId, description, isAvailable, image } = body
 
-// ... PUT (remains same) ...
+    if (!name || !price || !categoryId || !restaurantId) {
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const resolvedId = await getRestaurantId(restaurantId)
+    if (!resolvedId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+
+    // Check Limits
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: resolvedId },
+      select: { maxMenuItems: true }
+    })
+    const count = await prisma.menuItem.count({ where: { restaurantId: resolvedId } })
+
+    if (restaurant?.maxMenuItems && count >= restaurant.maxMenuItems) {
+      return NextResponse.json({ success: false, error: `Menu item limit reached (${restaurant.maxMenuItems} items)` }, { status: 403 })
+    }
+
+    const newItem = await prisma.menuItem.create({
+      data: {
+        name,
+        price,
+        categoryId,
+        restaurantId: resolvedId,
+        description,
+        isAvailable: isAvailable ?? true,
+        image,
+        displayOrder: count + 1
+      }
+    })
+
+    return NextResponse.json({ success: true, data: newItem }, { status: 201 })
+  } catch (error) {
+    console.error("Create Menu Item Error", error)
+    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
+  }
+}
+
+// PUT: Update Menu Item
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id, ...updates } = body
+
+    if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
+
+    const updated = await prisma.menuItem.update({
+      where: { id },
+      data: updates
+    })
+
+    return NextResponse.json({ success: true, data: updated })
+  } catch (error) {
+    console.error("Update Menu Item Error", error)
+    return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
+  }
+}
 
 // DELETE /api/menu-items - Soft Delete
 export async function DELETE(request: NextRequest) {

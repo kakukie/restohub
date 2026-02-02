@@ -42,9 +42,63 @@ export async function GET(
     }
 }
 
-// ... POST (remains same) ...
+// POST: Create Payment Method
+export async function POST(
+    request: NextRequest,
+    props: { params: Promise<{ id: string }> }
+) {
+    const params = await props.params;
+    try {
+        const restaurantId = await getRestaurantId(params.id)
+        if (!restaurantId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
 
-// ... PUT (remains same) ...
+        const body = await request.json()
+        const { type, merchantId, qrCode, isActive } = body
+
+        const newMethod = await prisma.paymentMethod.create({
+            data: {
+                restaurantId: restaurantId,
+                type,
+                merchantId,
+                qrCode,
+                isActive: isActive ?? true
+            }
+        })
+
+        return NextResponse.json({ success: true, data: newMethod })
+    } catch (error) {
+        console.error('Add Payment Method Error:', error)
+        return NextResponse.json({ success: false, error: 'Failed to add' }, { status: 500 })
+    }
+}
+
+// PUT: Update Payment Method
+export async function PUT(
+    request: NextRequest,
+    props: { params: Promise<{ id: string }> }
+) {
+    const params = await props.params;
+    try {
+        const body = await request.json()
+        const { paymentId, ...updates } = body // Frontend must send paymentId in body
+
+        if (!paymentId) return NextResponse.json({ success: false, error: 'Payment ID missing' }, { status: 400 })
+
+        // Sanitize updates
+        delete (updates as any).restaurant
+        delete (updates as any).createdAt
+        delete (updates as any).updatedAt
+
+        const updated = await prisma.paymentMethod.update({
+            where: { id: paymentId },
+            data: updates
+        })
+
+        return NextResponse.json({ success: true, data: updated })
+    } catch (error) {
+        return NextResponse.json({ success: false, error: 'Failed update' }, { status: 500 })
+    }
+}
 
 export async function DELETE(
     request: NextRequest,

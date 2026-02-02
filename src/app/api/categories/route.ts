@@ -89,13 +89,18 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+// DELETE /api/categories - Soft Delete
 export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ success: false }, { status: 400 })
 
   try {
-    await prisma.category.delete({ where: { id } })
+    // Soft Delete
+    await prisma.category.update({
+      where: { id },
+      data: { deletedAt: new Date(), isActive: false }
+    })
     return NextResponse.json({ success: true })
   } catch (error) {
     return NextResponse.json({ success: false }, { status: 500 })
