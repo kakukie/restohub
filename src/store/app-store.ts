@@ -18,9 +18,14 @@ export interface Restaurant {
   name: string
   description: string
   address: string
+  detailAddress?: string
+  latitude?: number
+  longitude?: number
+  googleMapsUrl?: string
   phone: string
   package: 'BASIC' | 'PRO' | 'ENTERPRISE' | 'FREE_TRIAL'
   logo?: string
+  banner?: string
   rating?: number
   adminEmail: string // Email of the admin
   status: 'ACTIVE' | 'PENDING' | 'REJECTED'

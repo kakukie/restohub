@@ -67,6 +67,12 @@ export async function GET(request: NextRequest) {
                     existing.count += item.quantity
                     existing.revenue += (item.price * item.quantity)
                     itemMap.set(item.menuItemId, existing)
+                } else {
+                    // Handle orphaned items (soft deleted before implementation or check failure)
+                    const existing = itemMap.get('unknown-' + item.menuItemId) || { name: 'Deleted Item', count: 0, revenue: 0 }
+                    existing.count += item.quantity
+                    existing.revenue += (item.price * item.quantity)
+                    itemMap.set('unknown-' + item.menuItemId, existing)
                 }
             })
         })

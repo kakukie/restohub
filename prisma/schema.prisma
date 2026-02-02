@@ -64,6 +64,10 @@ model Restaurant {
   name          String
   description   String?
   address       String?
+  detailAddress String?  // For manually entered detailed address
+  latitude      Float?
+  longitude     Float?
+  googleMapsUrl String?
   phone         String?
   email         String?
   logo          String?
@@ -95,6 +99,7 @@ model Restaurant {
   menuItems     MenuItem[]
   paymentMethods PaymentMethod[]
   orders        Order[]
+  deletedAt     DateTime? // Soft Delete for Restaurant
 }
 
 model Category {
@@ -105,6 +110,7 @@ model Category {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
 
   // Relations
   restaurantId  String
@@ -122,6 +128,7 @@ model MenuItem {
   displayOrder  Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
 
   displayName   String?
   isBestSeller  Boolean  @default(false)
