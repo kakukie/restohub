@@ -61,7 +61,7 @@ export default function RestaurantAdminDashboard() {
     setHydrated(true)
   }, [])
 
-  const { setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   // Derived state
   const restaurantId = user?.restaurantId
