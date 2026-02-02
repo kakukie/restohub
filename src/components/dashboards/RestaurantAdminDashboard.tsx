@@ -759,52 +759,51 @@ export default function RestaurantAdminDashboard() {
             <div className="flex items-center gap-2">
               <LanguageToggle />
 
+
               <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="sr-only">Toggle theme</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setTheme("light")}>
+                    Light
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    Dark
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                    System
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                      <span className="sr-only">Toggle theme</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setTheme("light")}>
-                      Light
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTheme("dark")}>
-                      Dark
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTheme("system")}>
-                      System
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => setQrCodeDialogOpen(true)}>
+                <QrCode className="h-4 w-4 mr-2" />
+                QR Menu
+              </Button>
+              <Button variant="outline" size="icon" className="sm:hidden relative" onClick={() => setQrCodeDialogOpen(true)}>
+                <QrCode className="h-4 w-4" />
+              </Button>
 
-                <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => setQrCodeDialogOpen(true)}>
-                  <QrCode className="h-4 w-4 mr-2" />
-                  QR Menu
-                </Button>
-                <Button variant="outline" size="icon" className="sm:hidden relative" onClick={() => setQrCodeDialogOpen(true)}>
-                  <QrCode className="h-4 w-4" />
-                </Button>
+              {/* Mobile Orders Icon Button */}
+              {/* Mobile Orders Icon Button */}
+              <div className="relative sm:hidden">
+                {/* Mobile Orders Icon Removed */}
+              </div>
 
-                {/* Mobile Orders Icon Button */}
-                {/* Mobile Orders Icon Button */}
-                <div className="relative sm:hidden">
-                  {/* Mobile Orders Icon Removed */}
-                </div>
+              <div className="relative hidden sm:flex">
+                {/* Header "Orders" button REMOVED as per request. Only Mobile Icon and Bottom Nav remain. */}
+              </div>
 
-                <div className="relative hidden sm:flex">
-                  {/* Header "Orders" button REMOVED as per request. Only Mobile Icon and Bottom Nav remain. */}
-                </div>
-
-                {/* Header Helpdesk Button Removed - Moved to Floating Action Button */}
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-1" />
-                  Logout
-                </Button>
+              {/* Header Helpdesk Button Removed - Moved to Floating Action Button */}
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-1" />
+                Logout
+              </Button>
             </div>
           </div>
         </div>
