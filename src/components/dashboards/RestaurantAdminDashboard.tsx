@@ -38,19 +38,12 @@ export default function RestaurantAdminDashboard() {
   const {
     user,
     logout,
-    orders: allOrders,
-    validateOrder,
-    rejectOrder,
-    updateOrderStatus,
-    menuItems: allMenuItems,
-    categories: allCategories,
-    addMenuItem,
-    updateMenuItem,
-    deleteMenuItem,
-    addCategory,
-    updateCategory,
-    deleteCategory,
-    updateRestaurant
+    restaurants,
+    setRestaurants,
+    orders,
+    setOrders,
+    helpdeskSettings,
+    systemAnnouncements
   } = useAppStore()
 
   // Hydration check to prevent session loss on refresh
@@ -64,15 +57,7 @@ export default function RestaurantAdminDashboard() {
   // Filter data for this restaurant
   // Use optional chaining and fallback
   const { setTheme } = useTheme()
-  const {
-    user,
-    restaurants,
-    setRestaurants,
-    orders,
-    setOrders,
-    helpdeskSettings,
-    systemAnnouncements
-  } = useAppStore()
+  // Store hooks consolidated at the top
 
   // Derived state
   const currentRestaurant = restaurants.find(r => r.id === (user?.restaurantId || '1'))
