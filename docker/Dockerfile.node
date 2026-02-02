@@ -2,9 +2,8 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-COPY package.json ./
-# We don't have package-lock.json, so we install fresh. 
-# This is acceptable for fixing the deployment now.
+COPY package*.json ./
+# Install dependencies (including lockfile)
 RUN npm install
 
 COPY . .
