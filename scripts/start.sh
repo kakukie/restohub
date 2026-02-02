@@ -5,14 +5,21 @@ set -e
 # echo "Waiting for database..."
 
 # Run database migrations
-# Find bun executable
-BUN_BIN="bun"
-if [ -f "/root/.bun/bin/bun" ]; then
+# Export potential Bun paths
+export PATH="/root/.bun/bin:/usr/local/bin:/usr/bin:$PATH"
+
+# Debugging
+echo "Current PATH: $PATH"
+ls -la /root/.bun/bin/bun || echo "Bun not in /root/.bun/bin"
+
+# Find bun
+if command -v bun >/dev/null 2>&1; then
+    BUN_BIN=$(command -v bun)
+elif [ -f "/root/.bun/bin/bun" ]; then
     BUN_BIN="/root/.bun/bin/bun"
-elif [ -f "/usr/local/bin/bun" ]; then
-    BUN_BIN="/usr/local/bin/bun"
-elif [ -f "/usr/bin/bun" ]; then
-    BUN_BIN="/usr/bin/bun"
+else
+    echo "ERROR: Bun executable not found!"
+    exit 1
 fi
 
 echo "Using Bun at: $BUN_BIN"
