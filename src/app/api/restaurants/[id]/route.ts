@@ -145,7 +145,7 @@ export async function PUT(
         const body = await request.json()
         // Extract 'theme' and 'id' to exclude them from the update payload
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, theme, ...updates } = body
+        const { id, ...updates } = body
 
         // 1. Resolve to actual ID
         const restaurant = await prisma.restaurant.findFirst({
@@ -155,7 +155,7 @@ export async function PUT(
                     { slug: idOrSlug }
                 ]
             },
-            select: { id: true }
+            select: { id: true, slug: true }
         })
 
         if (!restaurant) {

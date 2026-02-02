@@ -126,6 +126,7 @@ export default function RestaurantAdminDashboard() {
     totalCategories: 0,
     totalOrders: 0,
     totalRevenue: 0,
+    itemsSold: 0, // Added itemsSold
     cancelledOrders: 0,
     cancelledRevenue: 0
   })
@@ -149,16 +150,17 @@ export default function RestaurantAdminDashboard() {
       const startDate = new Date(reportYear, reportMonth - 1, 1)
       const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999)
 
-      const [resMenu, resCat, resOrder, resPay, resReport] = await Promise.all([
+      const [resMenu, resCat, resOrder, resPay, resReport, resOrderItems] = await Promise.all([
         fetch(`/api/menu-items?restaurantId=${restaurantId}`),
         fetch(`/api/categories?restaurantId=${restaurantId}`),
         fetch(`/api/orders?restaurantId=${restaurantId}`),
         fetch(`/api/restaurants/${restaurantId}/payment-methods`),
-        fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+        fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`),
+        fetch(`/api/order-items?restaurantId=${restaurantId}`) // Fetch all order items for itemsSold calculation
       ])
 
-      const [dataMenu, dataCat, dataOrder, dataPay, dataReport] = await Promise.all([
-        resMenu.json(), resCat.json(), resOrder.json(), resPay.json(), resReport.json()
+      const [dataMenu, dataCat, dataOrder, dataPay, dataReport, dataOrderItems] = await Promise.all([
+        resMenu.json(), resCat.json(), resOrder.json(), resPay.json(), resReport.json(), resOrderItems.json()
       ])
 
       if (dataMenu.success) setMenuItems(dataMenu.data)
@@ -185,11 +187,37 @@ export default function RestaurantAdminDashboard() {
       if (dataOrder.success) setOrders(dataOrder.data)
       if (dataPay.success) setPaymentMethods(dataPay.data)
       if (dataReport.success) {
-        setStats(dataReport.data.stats)
         setChartData(dataReport.data.dailyData)
         setTopMenuItems(dataReport.data.topMenuItems || [])
         setTopPaymentMethods(dataReport.data.topPaymentMethods || [])
       }
+
+      // Improve stats calculation to include "Total Items Sold" correctly
+      // It should sum up quantities of all items in COMPLETED orders
+      const totalItemsSold = dataOrderItems.success && dataOrderItems.data.length > 0
+        ? dataOrderItems.data.reduce((acc: number, item: any) => {
+          // Check if parent order is completed.
+          // Since we might not have order status in item directly,
+          // we should rely on the orders list we fetched
+          const parentOrder = (dataOrder.data as any[]).find((o: any) => o.id === item.orderId)
+          if (parentOrder && parentOrder.status === 'COMPLETED') {
+            return acc + item.quantity
+          }
+          return acc
+        }, 0)
+        : 0
+
+      const stats = {
+        totalMenuItems: dataMenu.data.length,
+        totalCategories: dataCat.data.length,
+        totalOrders: dataOrder.data.length,
+        totalRevenue: dataReport.data.summary?.totalRevenue || 0,
+        itemsSold: totalItemsSold,
+        cancelledOrders: dataOrder.data.filter((o: any) => o.status === 'CANCELLED').length,
+        cancelledRevenue: dataOrder.data.filter((o: any) => o.status === 'CANCELLED').reduce((acc: number, o: any) => acc + o.totalAmount, 0) // Calculate cancelled revenue
+      }
+
+      setStats(stats as any)
 
     } catch (e) { console.error("Sync Error", e) }
   }, [restaurantId, reportYear, reportMonth])
@@ -442,7 +470,7 @@ export default function RestaurantAdminDashboard() {
       })
       if (!res.ok) throw new Error('Failed')
       // No need to refetch full list if optimistic worked, but refetching ensures sync
-      // await fetchPaymentMethods() 
+      // await fetchPaymentMethods()
     } catch (error) {
       setPaymentMethods(previous)
       toast({ title: 'Error', variant: 'destructive', description: 'Failed to update status' })
@@ -639,10 +667,12 @@ export default function RestaurantAdminDashboard() {
           <title>Order #${order.orderNumber}</title>
           <style>
             @media print {
-              @page { size: 80mm auto; margin: 0mm; }
-              body { margin: 0; padding: 5px; width: 80mm; }
+              @page { size: 58mm auto; margin: 0mm; }
+              body { margin: 0; padding: 5px; width: 58mm; text-align: left; }
+              /* Force generic font for thermal printers compatibility */
+              * { font-family: 'Courier New', monospace !important; }
             }
-            body { font-family: 'Courier New', monospace; font-size: 12px; max-width: 80mm; margin: 0 auto; color: #000; background: #fff; }
+            body { font-family: 'Courier New', monospace; font-size: 10px; width: 58mm; margin: 0 auto; color: #000; background: #fff; }
             .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
             .header h1 { font-size: 16px; margin: 0; font-weight: bold; text-transform: uppercase; }
             .info { font-size: 10px; margin-bottom: 10px; }
@@ -729,15 +759,16 @@ export default function RestaurantAdminDashboard() {
   }
 
   const getOrderStatusBadge = (status: Order['status']) => {
-    const statusConfig: Record<Order['status'], { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
       PENDING: { label: 'Pending', variant: 'default' },
       CONFIRMED: { label: 'Confirmed', variant: 'secondary' },
       PREPARING: { label: 'Preparing', variant: 'secondary' },
       READY: { label: 'Ready', variant: 'default' },
       COMPLETED: { label: 'Completed', variant: 'secondary' },
-      CANCELLED: { label: 'Cancelled', variant: 'destructive' }
+      CANCELLED: { label: 'Cancelled', variant: 'destructive' },
+      REJECTED: { label: 'Rejected', variant: 'destructive' } // Added REJECTED status
     }
-    return statusConfig[status]
+    return statusConfig[status] || { label: status, variant: 'outline' }
   }
 
   const getPaymentStatusBadge = (status: Order['paymentStatus']) => {
@@ -786,24 +817,29 @@ export default function RestaurantAdminDashboard() {
               </Button>
 
               {/* Mobile Orders Icon Button */}
-              <Button variant="outline" size="icon" className="sm:hidden relative" onClick={() => setActiveTab('orders')}>
-                <ShoppingBag className="h-4 w-4" />
+              {/* Mobile Orders Icon Button */}
+              <div className="relative sm:hidden">
+                <Button variant="outline" size="icon" onClick={() => setActiveTab('orders')}>
+                  <ShoppingBag className="h-4 w-4" />
+                </Button>
                 {pendingOrdersCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white">
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white pointer-events-none">
                     {pendingOrdersCount}
                   </span>
                 )}
-              </Button>
+              </div>
 
-              <Button variant="outline" size="sm" className="hidden sm:flex relative" onClick={() => setActiveTab('orders')}>
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Orders
+              <div className="relative hidden sm:flex">
+                <Button variant="outline" size="sm" onClick={() => setActiveTab('orders')}>
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Orders
+                </Button>
                 {pendingOrdersCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white">
+                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white z-10 pointer-events-none shadow-sm border border-white">
                     {pendingOrdersCount}
                   </span>
                 )}
-              </Button>
+              </div>
 
               {/* Header Helpdesk Button Removed - Moved to Floating Action Button */}
               <Button variant="outline" size="sm" onClick={handleLogout}>
@@ -835,8 +871,8 @@ export default function RestaurantAdminDashboard() {
               <Package className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalMenuItems}</div>
-              <p className="text-xs text-gray-500">Active items</p>
+              <div className="text-2xl font-bold">{stats.itemsSold || 0}</div>
+              <p className="text-xs text-gray-500">Items Sold</p>
             </CardContent>
           </Card>
           <Card>
@@ -880,18 +916,6 @@ export default function RestaurantAdminDashboard() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Floating Helpdesk Button - Icon Only */}
-        <Button
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-green-500 hover:bg-green-600 z-50 p-0 flex items-center justify-center animate-bounce"
-          onClick={() => window.open(`https://wa.me/${helpdeskSettings?.whatsapp || '6281234567890'}`, '_blank')}
-          title="Chat Helpdesk"
-        >
-          {/* Simple WhatsApp Icon SVG */}
-          <svg viewBox="0 0 24 24" className="h-8 w-8 text-white fill-current" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.231-.298.316-.497.049-.198.025-.371-.025-.52-.05-.149-.446-1.075-.611-1.472-.161-.389-.323-.336-.445-.341-.114-.007-.247-.007-.38-.007-.133 0-.347.05-.529.247-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-          </svg>
-        </Button>
 
         {/* System Announcements */}
         {(() => {
@@ -1447,6 +1471,24 @@ export default function RestaurantAdminDashboard() {
                       </div>
                     )}
                   </ScrollArea>
+                </CardContent>
+              </Card>
+
+              {/* QR Code Generate Shortcut */}
+              <Card className="shadow-md border-emerald-100 bg-emerald-50/50">
+                <CardHeader className="bg-emerald-100/50 border-b border-emerald-100 pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2 text-emerald-700">
+                    <QrCode className="h-5 w-5" />
+                    QR Menu
+                  </CardTitle>
+                  <CardDescription>Generate and download menu QR</CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 flex flex-col items-center justify-center gap-3">
+                  <p className="text-sm text-center text-gray-600 mb-2">Display this QR code on tables for customers to scan.</p>
+                  <Button onClick={() => setQrCodeDialogOpen(true)} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                    <QrCode className="h-4 w-4 mr-2" />
+                    Generate QR Code
+                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -2105,8 +2147,8 @@ export default function RestaurantAdminDashboard() {
         </Tabs>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2 z-50 grid grid-cols-5 gap-1">
+      {/* Mobile Bottom Nav */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex justify-around py-2 safe-area-pb">
         <button
           onClick={() => setActiveTab('menu')}
           className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'menu' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
@@ -2128,7 +2170,7 @@ export default function RestaurantAdminDashboard() {
           <div className="relative">
             <ShoppingBag className="h-5 w-5" />
             {pendingOrdersCount > 0 && (
-              <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white animate-pulse">
+              <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white shadow-sm border border-white animate-pulse">
                 {pendingOrdersCount}
               </span>
             )}

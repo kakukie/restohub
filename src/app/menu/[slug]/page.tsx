@@ -525,14 +525,24 @@ export default function PublicMenuPage() {
                                         <p className="text-xs text-gray-500">{item.categoryName}</p>
                                         <p className="text-sm font-bold text-emerald-600 mt-1">Rp {(item.price * item.quantity).toLocaleString()}</p>
                                     </div>
-                                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
-                                        <button onClick={() => updateCartItemQuantity(item.menuItemId, item.quantity - 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm disabled:opacity-50">
-                                            <Minus className="h-3 w-3" />
-                                        </button>
-                                        <span className="text-sm font-semibold w-4 text-center">{item.quantity}</span>
-                                        <button onClick={() => updateCartItemQuantity(item.menuItemId, item.quantity + 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm">
-                                            <Plus className="h-3 w-3" />
-                                        </button>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                            onClick={() => removeFromCart(item.menuItemId)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                        <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
+                                            <button onClick={() => updateCartItemQuantity(item.menuItemId, item.quantity - 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm disabled:opacity-50">
+                                                <Minus className="h-3 w-3" />
+                                            </button>
+                                            <span className="text-sm font-semibold w-4 text-center">{item.quantity}</span>
+                                            <button onClick={() => updateCartItemQuantity(item.menuItemId, item.quantity + 1)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm">
+                                                <Plus className="h-3 w-3" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
