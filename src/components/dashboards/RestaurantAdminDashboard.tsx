@@ -2234,3 +2234,4 @@ export default function RestaurantAdminDashboard() {
       )
     }
 
+}
