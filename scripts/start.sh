@@ -5,29 +5,41 @@ set -e
 # echo "Waiting for database..."
 
 # Run database migrations
-# Export potential Bun paths
-export PATH="/root/.bun/bin:/usr/local/bin:/usr/bin:$PATH"
+# Debug User
+echo "User: $(whoami) ($(id -u))"
+echo "PATH: $PATH"
 
-# Debugging
-echo "Current PATH: $PATH"
-ls -la /root/.bun/bin/bun || echo "Bun not in /root/.bun/bin"
+# Find Bun
+BUN_BIN=""
 
-# Find bun
-if command -v bun >/dev/null 2>&1; then
-    BUN_BIN=$(command -v bun)
-elif [ -f "/root/.bun/bin/bun" ]; then
+# Check /usr/local/bin (Standard for Docker images)
+if [ -x "/usr/local/bin/bun" ]; then
+    BUN_BIN="/usr/local/bin/bun"
+# Check /home/bun/.bun/bin (Standard for bun user)
+elif [ -x "/home/bun/.bun/bin/bun" ]; then
+    BUN_BIN="/home/bun/.bun/bin/bun"
+# Check /root/.bun/bin (Only if root)
+elif [ "$(id -u)" -eq 0 ] && [ -x "/root/.bun/bin/bun" ]; then
     BUN_BIN="/root/.bun/bin/bun"
-else
-    echo "ERROR: Bun executable not found!"
+# Check PATH
+elif command -v bun >/dev/null 2>&1; then
+    BUN_BIN=$(command -v bun)
+fi
+
+if [ -z "$BUN_BIN" ]; then
+    echo "CRITICAL ERROR: Bun not found!"
+    echo "Listing /usr/local/bin:"
+    ls -la /usr/local/bin || echo "Cannot list /usr/local/bin"
     exit 1
 fi
 
-echo "Using Bun at: $BUN_BIN"
+echo "Found Bun at: $BUN_BIN"
 
 # Run database migrations
 echo "Applying database schema (db push)..."
-$BUN_BIN run db:push --accept-data-loss
+export PATH="$(dirname $BUN_BIN):$PATH"
+"$BUN_BIN" run db:push --accept-data-loss
 
 # Start the application
 echo "Starting application with Bun..."
-exec $BUN_BIN run start
+exec "$BUN_BIN" run start
