@@ -829,14 +829,7 @@ export default function RestaurantAdminDashboard() {
               {/* Mobile Orders Icon Button */}
               {/* Mobile Orders Icon Button */}
               <div className="relative sm:hidden">
-                <Button variant="outline" size="icon" onClick={() => setActiveTab('orders')}>
-                  <ShoppingBag className="h-4 w-4" />
-                </Button>
-                {pendingOrdersCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white pointer-events-none">
-                    {pendingOrdersCount}
-                  </span>
-                )}
+                {/* Mobile Orders Icon Removed */}
               </div>
 
               <div className="relative hidden sm:flex">
