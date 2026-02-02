@@ -153,6 +153,7 @@ interface AppState {
 
   // Data Actions
   setRestaurants: (restaurants: Restaurant[]) => void
+  setOrders: (orders: Order[]) => void
   setUsers: (users: User[]) => void
   addRestaurant: (resto: Restaurant) => void
   updateRestaurant: (id: string, updates: Partial<Restaurant>) => void
@@ -246,6 +247,9 @@ export const useAppStore = create<AppState>()(
     // Actions
     setLanguage: (lang) => set({ language: lang }),
     setUser: (user) => set({ user }),
+    setRestaurants: (restaurants) => set({ restaurants }),
+    setOrders: (orders) => set({ orders }),
+    setUsers: (users) => set({ users }),
 
     checkSession: async (role) => {
       try {

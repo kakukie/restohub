@@ -63,16 +63,21 @@ export default function RestaurantAdminDashboard() {
 
   // Filter data for this restaurant
   // Use optional chaining and fallback
-  const restaurantId = user?.restaurantId || '1'
-  const { restaurants } = useAppStore()
-  const currentRestaurant = restaurants.find(r => r.id === restaurantId)
+  const { setTheme } = useTheme()
+  const {
+    user,
+    restaurants,
+    setRestaurants,
+    orders,
+    setOrders,
+    helpdeskSettings,
+    systemAnnouncements
+  } = useAppStore()
 
-  // State defined early to be used in derived variables
-  const [orders, setOrders] = useState<Order[]>([])
-
-  // Pending Orders Count - Derived from the authoritative local 'orders' state used by the dashboard
-  // This ensures badges and toasts are always in sync with what is displayed in the list
-  const pendingOrdersCount = orders.filter(o => o.restaurantId === restaurantId && o.status === 'PENDING').length
+  // Derived state
+  const currentRestaurant = restaurants.find(r => r.id === (user?.restaurantId || '1'))
+  // Ensure pendingOrdersCount is always a number
+  const pendingOrdersCount = orders ? orders.filter(o => o.status === 'PENDING').length : 0
 
   // Track previous pending count to trigger notifications only on new orders
   const [prevPendingCount, setPrevPendingCount] = useState(0)
@@ -118,23 +123,7 @@ export default function RestaurantAdminDashboard() {
   }, [pendingOrdersCount, prevPendingCount])
 
   const { setTheme } = useTheme()
-  const {
-    user,
-    restaurants,
-    setRestaurants,
-    currentRestaurant, // Derived from selectedRestaurant
-    orders,
-    setOrders,
-    pendingOrdersCount,
-    pendingOrdersCount,
-    setPendingOrdersCount
-  } = useAppStore()
-
-  // App Store State for Helpdesk/Announcements
-  const { helpdeskSettings, systemAnnouncements } = useAppStore()
-
-  // Derived state
-  const currentRestaurant = restaurants.find(r => r.id === (user?.restaurantId || '1'))// fallback id
+  // (Removed duplicate Store logic)
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
 
