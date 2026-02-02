@@ -6,7 +6,7 @@ set -e
 
 # Run database migrations
 echo "Applying database schema (db push)..."
-bunx prisma db push --accept-data-loss
+bun run db:push --accept-data-loss
 
 # Start the application
 echo "Starting application with Bun..."
