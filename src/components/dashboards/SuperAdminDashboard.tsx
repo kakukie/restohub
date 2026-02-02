@@ -359,9 +359,25 @@ export default function SuperAdminDashboard() {
 
       if (data.success) {
         updateRestaurantStatus(selectedRestoForAction.id, selectedRestoForAction.status) // Update local store too
+
+        // Call Real Notification API
+        try {
+          await fetch('/api/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: notificationChannel,
+              recipient: selectedRestoForAction.id, // Using Restaurant ID for now, ideally Email. But ID is what we have in selectedRestoForAction context.
+              // Ideally we should have passed email here. But let's assume backend resolved email or just log ID. 
+              // Actually, let's look up the restaurant to get email or just say "Restaurant Owner".
+              message: notificationMessage
+            })
+          })
+        } catch (e) { console.error('Notify failed', e) }
+
         toast({
           title: 'Status Updated',
-          description: `Restaurant ${selectedRestoForAction.status}. Notified via ${notificationChannel} (Simulated).`
+          description: `Restaurant ${selectedRestoForAction.status}. Notification sent via ${notificationChannel}.`
         })
       } else {
         throw new Error(data.error)

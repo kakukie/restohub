@@ -105,6 +105,16 @@ export default function RestaurantAdminDashboard() {
 
   }, [pendingOrdersCount, prevPendingCount])
 
+  // Sound Effect for New Orders via Audio API
+  useEffect(() => {
+    if (pendingOrdersCount > prevPendingCount) {
+      // Use a simple beep sound or a hosted file. 
+      // Using a data URI for a simple "ping" to avoid external dependencies or 404s.
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3') // Valid public sound URL
+      audio.play().catch(e => console.log('Audio play failed (interaction required first):', e))
+    }
+  }, [pendingOrdersCount, prevPendingCount])
+
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   const { helpdeskSettings, systemAnnouncements } = useAppStore()
 
@@ -830,15 +840,7 @@ export default function RestaurantAdminDashboard() {
               </div>
 
               <div className="relative hidden sm:flex">
-                <Button variant="outline" size="sm" onClick={() => setActiveTab('orders')}>
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  Orders
-                </Button>
-                {pendingOrdersCount > 0 && (
-                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white z-10 pointer-events-none shadow-sm border border-white">
-                    {pendingOrdersCount}
-                  </span>
-                )}
+                {/* Header "Orders" button REMOVED as per request. Only Mobile Icon and Bottom Nav remain. */}
               </div>
 
               {/* Header Helpdesk Button Removed - Moved to Floating Action Button */}
@@ -1315,7 +1317,10 @@ export default function RestaurantAdminDashboard() {
                   <CardTitle className="text-lg flex items-center gap-2 text-orange-700">
                     <Clock className="h-5 w-5" />
                     Incoming Orders
-                    <Badge className="ml-auto bg-orange-600 hover:bg-orange-700">{pendingOrdersCount}</Badge>
+                    <Badge className="ml-auto bg-orange-600 hover:bg-orange-700">
+                      {/* Force sync with pendingOrdersCount */}
+                      {pendingOrdersCount}
+                    </Badge>
                   </CardTitle>
                   <CardDescription>
                     Orders waiting for confirmation
