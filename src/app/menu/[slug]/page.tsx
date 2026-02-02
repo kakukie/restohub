@@ -291,19 +291,16 @@ export default function PublicMenuPage() {
                                     {restaurant.googleMapsUrl && (
                                         <div className="mt-4 rounded-lg overflow-hidden border h-48 w-full">
                                             <iframe
-                                                src={restaurant.googleMapsUrl.replace('maps.app.goo.gl', 'google.com/maps/embed').replace('/place', '/maps/embed/v1/place?key=YOUR_API_KEY&q=') /* Simple iframe fallback or use provided embed URL if user provides it properly */}
-                                                /* Better approach: Assume user provides embed URL or link. If link, show button. If embed code, dangerouslySetInnerHTML? No, unsafe. 
-                                                   Let's assume user provides a standard link and creates a "Get Directions" button for now, OR if it's an embed URL.
-                                                   Actually, to display the map inside the app without API key, the user usually needs to provide the embed URL (src). 
-                                                   Let's display a "View on Map" button if it's a link, or try to embed if it looks like an embed link.
-                                                */
+                                                src={restaurant.googleMapsUrl.includes('embed')
+                                                    ? restaurant.googleMapsUrl
+                                                    : `https://www.google.com/maps?q=${encodeURIComponent(restaurant.address)}&output=embed`
+                                                }
                                                 width="100%"
                                                 height="100%"
                                                 style={{ border: 0 }}
                                                 allowFullScreen
                                                 loading="lazy"
                                                 referrerPolicy="no-referrer-when-downgrade"
-                                                src={`https://www.google.com/maps?q=${encodeURIComponent(restaurant.address)}&output=embed`}
                                             ></iframe>
                                         </div>
                                     )}
