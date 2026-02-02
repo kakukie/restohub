@@ -108,6 +108,11 @@ export default function RestaurantAdminDashboard() {
   const [chartData, setChartData] = useState<any>({})
 
   const [viewOrder, setViewOrder] = useState<Order | null>(null)
+  const [historyDateRange, setHistoryDateRange] = useState({
+    start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+  })
+
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([])
 
   // Fetch all data

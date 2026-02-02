@@ -38,6 +38,10 @@ COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/prisma ./prisma
 COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 
+# Copy scripts
+COPY --from=builder --chown=node:node /app/scripts ./scripts
+RUN chmod +x ./scripts/start.sh
+
 # Create db directory
 RUN mkdir -p /app/db && chown node:node /app/db
 
@@ -53,4 +57,4 @@ EXPOSE 3000
 USER node
 
 # Set proper entrypoint
-ENTRYPOINT ["dumb-init", "--", "bun", "run", "start"]
+ENTRYPOINT ["./scripts/start.sh"]
