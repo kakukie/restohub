@@ -743,9 +743,14 @@ export default function RestaurantAdminDashboard() {
               <div>
                 <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
                   Meenuin
-                  <Badge variant="secondary" className="text-[10px] h-5 hidden sm:inline-flex">
-                    {currentRestaurant?.package || 'BASIC'}
-                  </Badge>
+                  <div className="flex flex-col items-start ml-2">
+                    <Badge variant="secondary" className="text-[10px] h-5 hidden sm:inline-flex">
+                      {currentRestaurant?.package || 'BASIC'} Plan
+                    </Badge>
+                    <span className="text-[9px] text-gray-500 hidden sm:inline-block">
+                      {menuItems.length} / {currentRestaurant?.maxMenuItems || '15'} Items
+                    </span>
+                  </div>
                 </h1>
                 <div className="flex items-center gap-2">
                   <p className="text-xs text-muted-foreground">{t.dashboard}</p>

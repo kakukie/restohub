@@ -287,6 +287,31 @@ export default function PublicMenuPage() {
                                     <p className="text-sm text-gray-600 flex items-center gap-2 mt-2">
                                         <MapPin className="h-4 w-4" /> {restaurant.address || '-'}
                                     </p>
+                                    {/* Google Maps Embed */}
+                                    {restaurant.googleMapsUrl && (
+                                        <div className="mt-4 rounded-lg overflow-hidden border h-48 w-full">
+                                            <iframe
+                                                src={restaurant.googleMapsUrl.replace('maps.app.goo.gl', 'google.com/maps/embed').replace('/place', '/maps/embed/v1/place?key=YOUR_API_KEY&q=') /* Simple iframe fallback or use provided embed URL if user provides it properly */}
+                                                /* Better approach: Assume user provides embed URL or link. If link, show button. If embed code, dangerouslySetInnerHTML? No, unsafe. 
+                                                   Let's assume user provides a standard link and creates a "Get Directions" button for now, OR if it's an embed URL.
+                                                   Actually, to display the map inside the app without API key, the user usually needs to provide the embed URL (src). 
+                                                   Let's display a "View on Map" button if it's a link, or try to embed if it looks like an embed link.
+                                                */
+                                                width="100%"
+                                                height="100%"
+                                                style={{ border: 0 }}
+                                                allowFullScreen
+                                                loading="lazy"
+                                                referrerPolicy="no-referrer-when-downgrade"
+                                                src={`https://www.google.com/maps?q=${encodeURIComponent(restaurant.address)}&output=embed`}
+                                            ></iframe>
+                                        </div>
+                                    )}
+                                    {restaurant.googleMapsUrl && (
+                                        <Button variant="outline" className="w-full mt-2" onClick={() => window.open(restaurant.googleMapsUrl, '_blank')}>
+                                            <MapPin className="h-4 w-4 mr-2" /> Open in Google Maps
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </SheetContent>

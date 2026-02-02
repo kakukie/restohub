@@ -81,11 +81,11 @@ model Restaurant {
   updatedAt     DateTime @updatedAt
 
   // Limits
-  maxMenuItems  Int?     // Null means unlimited
-  maxAdmins     Int?     // Null means unlimited
+  maxMenuItems  Int?     @default(15) // Default for Free
+  maxAdmins     Int?     // Subscription Limits
   allowBranches Boolean  @default(false)
   maxStaff      Int?     @default(0)
-  maxCategories Int?     @default(10)
+  maxCategories Int?     @default(5)
   allowMaps     Boolean  @default(false)
   enableAnalytics Boolean @default(false)
 

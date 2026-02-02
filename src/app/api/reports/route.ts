@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
             totalRevenue: validOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
             cancelledOrders: cancelledOrders.length,
             cancelledRevenue: cancelledOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
-            totalMenuItems: await prisma.menuItem.count({ where: { restaurantId } }),
-            totalCategories: await prisma.category.count({ where: { restaurantId } })
+            totalMenuItems: await prisma.menuItem.count({ where: { restaurantId, deletedAt: null } }),
+            totalCategories: await prisma.category.count({ where: { restaurantId, deletedAt: null } })
         }
 
         // Aggregate Top Menu Items
