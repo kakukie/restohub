@@ -122,7 +122,6 @@ export default function RestaurantAdminDashboard() {
     }
   }, [pendingOrdersCount, prevPendingCount])
 
-  const { setTheme } = useTheme()
   // (Removed duplicate Store logic)
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])

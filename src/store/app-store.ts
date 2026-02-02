@@ -325,8 +325,12 @@ export const useAppStore = create<AppState>()(
 
     getRestaurantBySlug: (slug) => get().restaurants.find(r => r.slug === slug),
 
-    setRestaurants: (restaurants) => set({ restaurants }),
-    setUsers: (users) => set({ users }),
+    // Data Actions Implemented:
+    // setRestaurants already defined above in object literal references? 
+    // Wait, create((set) => ({ ... actions }))
+    // The previous edit added setRestaurants, setOrders, setUsers at the top of actions (lines 247+).
+    // Now lines 328+ duplicate them.
+    // I should REMOVE lines 328, 329.
 
     addUser: (user) => set((state) => ({ users: [...state.users, user] })),
 

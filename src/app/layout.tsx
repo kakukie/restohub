@@ -21,7 +21,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Meenuin Team" }],
   icons: {
     icon: "/favicon.png?v=5",
+    apple: "/icon-192x192.png",
   },
+  manifest: "/manifest.json",
   openGraph: {
     title: "Meenuin - Digital Restaurant Platform",
     description: "Comprehensive restaurant management platform for modern businesses",
