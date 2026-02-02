@@ -92,32 +92,67 @@ export async function GET(request: NextRequest) {
             .slice(0, 5)
 
         // 3. Generate Daily Data for Chart
-        const dailyData: Record<string, { count: number, revenue: number }> = {}
+        // 3. Generate Chart Data
+        const granularity = searchParams.get('granularity') || 'day' // day, month, year
+        const chartData: Record<string, { count: number, revenue: number }> = {}
 
-        // Loop from startDate to endDate to initialize data
-        // Use a clone to avoid modifying startDate
-        const loopDate = new Date(startDate);
-        while (loopDate <= endDate) {
-            const dateKey = loopDate.toISOString().split('T')[0];
-            dailyData[dateKey] = { count: 0, revenue: 0 };
-            loopDate.setDate(loopDate.getDate() + 1);
+        // Helper to format date key
+        const getKey = (date: Date, type: string) => {
+            if (type === 'year') return date.getFullYear().toString()
+            if (type === 'month') return date.toISOString().slice(0, 7) // YYYY-MM
+            return date.toISOString().split('T')[0] // YYYY-MM-DD
+        }
+
+        // Initialize range (optional for day, harder for dynamic month/year, relying on sparse data fill is okay or we pre-fill)
+        // For simplicity and robustness, we'll iterate validOrders only, but frontend charts usually prefer continuous info.
+        // Let's pre-fill based on range if feasible, or just return what we have.
+        // Pre-filling 'day' is already done. Let's keep it for 'day'. 
+        // For 'month', we iterate months.
+
+        if (granularity === 'day') {
+            const loopDate = new Date(startDate);
+            while (loopDate <= endDate) {
+                const dateKey = loopDate.toISOString().split('T')[0];
+                chartData[dateKey] = { count: 0, revenue: 0 };
+                loopDate.setDate(loopDate.getDate() + 1);
+            }
+        } else if (granularity === 'month') {
+            const loopDate = new Date(startDate);
+            // set to first day of month to be safe
+            loopDate.setDate(1)
+            while (loopDate <= endDate) {
+                const dateKey = getKey(loopDate, 'month')
+                chartData[dateKey] = { count: 0, revenue: 0 }
+                loopDate.setMonth(loopDate.getMonth() + 1)
+            }
+        } else if (granularity === 'year') {
+            const loopDate = new Date(startDate);
+            loopDate.setMonth(0, 1) // Jan 1st
+            while (loopDate <= endDate) {
+                const dateKey = getKey(loopDate, 'year')
+                chartData[dateKey] = { count: 0, revenue: 0 }
+                loopDate.setFullYear(loopDate.getFullYear() + 1)
+            }
         }
 
         validOrders.forEach(o => {
             const d = new Date(o.createdAt)
-            const dateKey = d.toISOString().split('T')[0]
+            const dateKey = getKey(d, granularity)
 
-            if (dailyData[dateKey]) {
-                dailyData[dateKey].count++
-                dailyData[dateKey].revenue += (o.totalAmount || 0)
+            if (!chartData[dateKey]) {
+                // Initialize if not exists (e.g. range mismatch slightly or safety)
+                chartData[dateKey] = { count: 0, revenue: 0 }
             }
+
+            chartData[dateKey].count++
+            chartData[dateKey].revenue += (o.totalAmount || 0)
         })
 
         return NextResponse.json({
             success: true,
             data: {
                 stats,
-                dailyData,
+                chartData,
                 topMenuItems,
                 topPaymentMethods
             }

@@ -44,19 +44,20 @@ enum PaymentStatus {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  name          String?
-  phone         String?
-  password      String?
-  role          UserRole @default(CUSTOMER)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  password  String?
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   restaurants   Restaurant[]
   orders        Order[]
   refreshTokens RefreshToken[]
+  deletedAt     DateTime?
 }
 
 model Restaurant {
@@ -64,7 +65,7 @@ model Restaurant {
   name          String
   description   String?
   address       String?
-  detailAddress String?  // For manually entered detailed address
+  detailAddress String? // For manually entered detailed address
   latitude      Float?
   longitude     Float?
   googleMapsUrl String?
@@ -81,159 +82,159 @@ model Restaurant {
   updatedAt     DateTime @updatedAt
 
   // Limits
-  maxMenuItems  Int?     @default(15) // Default for Free
-  maxAdmins     Int?     // Subscription Limits
-  allowBranches Boolean  @default(false)
-  maxStaff      Int?     @default(0)
-  maxCategories Int?     @default(5)
-  allowMaps     Boolean  @default(false)
+  maxMenuItems    Int?    @default(15) // Default for Free
+  maxAdmins       Int? // Subscription Limits
+  allowBranches   Boolean @default(false)
+  maxStaff        Int?    @default(0)
+  maxCategories   Int?    @default(5)
+  allowMaps       Boolean @default(false)
   enableAnalytics Boolean @default(false)
 
   // Relations
-  adminId       String
-  admin         User     @relation(fields: [adminId], references: [id])
-  parentId      String?  // For Multi-branch support
-  parent        Restaurant? @relation("BranchParent", fields: [parentId], references: [id])
-  branches      Restaurant[] @relation("BranchParent")
-  categories    Category[]
-  menuItems     MenuItem[]
+  adminId        String
+  admin          User            @relation(fields: [adminId], references: [id])
+  parentId       String? // For Multi-branch support
+  parent         Restaurant?     @relation("BranchParent", fields: [parentId], references: [id])
+  branches       Restaurant[]    @relation("BranchParent")
+  categories     Category[]
+  menuItems      MenuItem[]
   paymentMethods PaymentMethod[]
-  orders        Order[]
-  deletedAt     DateTime? // Soft Delete for Restaurant
+  orders         Order[]
+  deletedAt      DateTime? // Soft Delete for Restaurant
 }
 
 model Category {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  displayOrder  Int      @default(0)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
+  id           String    @id @default(cuid())
+  name         String
+  description  String?
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
   // Relations
-  restaurantId  String
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  menuItems     MenuItem[]
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItems    MenuItem[]
 }
 
 model MenuItem {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  price         Float
-  image         String?
-  isAvailable   Boolean  @default(true)
-  displayOrder  Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
+  id           String    @id @default(cuid())
+  name         String
+  description  String?
+  price        Float
+  image        String?
+  isAvailable  Boolean   @default(true)
+  displayOrder Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
   displayName   String?
-  isBestSeller  Boolean  @default(false)
-  isRecommended Boolean  @default(false)
-  
+  isBestSeller  Boolean @default(false)
+  isRecommended Boolean @default(false)
+
   // Relations
-  restaurantId  String
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  categoryId    String
-  category      Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  orderItems    OrderItem[]
+  restaurantId String
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categoryId   String
+  category     Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems   OrderItem[]
 }
 
 model Order {
-  id            String       @id @default(cuid())
-  orderNumber   String       @unique
+  id            String        @id @default(cuid())
+  orderNumber   String        @unique
   totalAmount   Float
   notes         String?
   tableNumber   String?
-  status        OrderStatus  @default(PENDING)
+  status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   // Relations
-  customerId    String
-  customer      User        @relation(fields: [customerId], references: [id])
-  restaurantId  String
-  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  orderItems    OrderItem[]
-  payment       Payment?
+  customerId   String
+  customer     User        @relation(fields: [customerId], references: [id])
+  restaurantId String
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderItems   OrderItem[]
+  payment      Payment?
 }
 
 model OrderItem {
-  id            String   @id @default(cuid())
-  quantity      Int
-  price         Float
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(cuid())
+  quantity  Int
+  price     Float
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  orderId       String
-  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItemId    String
-  menuItem      MenuItem @relation(fields: [menuItemId], references: [id])
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
 }
 
 model PaymentMethod {
-  id            String          @id @default(cuid())
-  type          PaymentMethodType
-  isActive      Boolean         @default(true)
-  qrCode        String?
-  merchantId    String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id         String            @id @default(cuid())
+  type       PaymentMethodType
+  isActive   Boolean           @default(true)
+  qrCode     String?
+  merchantId String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
 
   // Relations
-  restaurantId  String
-  restaurant    Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  payments      Payment[]
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  payments     Payment[]
 }
 
 model Payment {
-  id            String          @id @default(cuid())
+  id            String            @id @default(cuid())
   amount        Float
   type          PaymentMethodType
-  status        PaymentStatus   @default(PENDING)
+  status        PaymentStatus     @default(PENDING)
   transactionId String?
   paymentDate   DateTime?
   receiptData   String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
   // Relations
-  orderId       String          @unique
-  order         Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  methodId      String
-  method        PaymentMethod   @relation(fields: [methodId], references: [id])
+  orderId  String        @unique
+  order    Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  methodId String
+  method   PaymentMethod @relation(fields: [methodId], references: [id])
 }
 
 model SubscriptionPlan {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  price       Float
-  menuLimit   Int
-  maxCategories Int?   @default(10)
-  allowMaps     Boolean @default(false)
-  enableAnalytics Boolean @default(false)
-  features    String[]
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  menuLimit       Int
+  maxCategories   Int?     @default(10)
+  allowMaps       Boolean  @default(false)
+  enableAnalytics Boolean  @default(false)
+  features        String[]
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model RefreshToken {
-  id          String   @id @default(cuid())
-  token       String   @unique
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt   DateTime
-  revoked     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SystemSetting {

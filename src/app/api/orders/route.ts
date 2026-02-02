@@ -13,7 +13,21 @@ export async function GET(request: NextRequest) {
     if (restaurantId) where.restaurantId = restaurantId
     if (customerId) where.customerId = customerId
 
-    // Simple date filtering can be added here if needed, or handled by client for now.
+    // Date Filtering
+    const startDateParam = searchParams.get('startDate')
+    const endDateParam = searchParams.get('endDate')
+
+    if (startDateParam && endDateParam) {
+      const start = new Date(startDateParam)
+      const end = new Date(endDateParam)
+      // Ensure end date covers the full day
+      end.setHours(23, 59, 59, 999)
+
+      where.createdAt = {
+        gte: start,
+        lte: end
+      }
+    }
 
     const orders = await prisma.order.findMany({
       where,

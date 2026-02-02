@@ -1450,137 +1450,222 @@ export default function RestaurantAdminDashboard() {
             </div>
           </TabsContent>
 
+          {/* History Tab */}
+          <TabsContent value="history" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Order History</h2>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center border rounded-md px-2 py-1 bg-white">
+                  <span className="text-sm text-gray-500 mr-2">From:</span>
+                  <input
+                    type="date"
+                    className="text-sm outline-none"
+                    value={historyDateRange.start}
+                    onChange={(e) => setHistoryDateRange(prev => ({ ...prev, start: e.target.value }))}
+                  />
+                </div>
+                <div className="flex items-center border rounded-md px-2 py-1 bg-white">
+                  <span className="text-sm text-gray-500 mr-2">To:</span>
+                  <input
+                    type="date"
+                    className="text-sm outline-none"
+                    value={historyDateRange.end}
+                    onChange={(e) => setHistoryDateRange(prev => ({ ...prev, end: e.target.value }))}
+                  />
+                </div>
+                <Button variant="outline" size="sm" onClick={() => fetchDashboardData()}>
+                  Filter
+                </Button>
+              </div>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Past Orders</CardTitle>
+                <CardDescription>
+                  Showing orders from {new Date(historyDateRange.start).toLocaleDateString()} to {new Date(historyDateRange.end).toLocaleDateString()}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <div className="space-y-4">
+                    {orders.filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status)).length === 0 ? (
+                      <p className="text-center py-8 text-gray-500">No history found for this period.</p>
+                    ) : (
+                      orders
+                        .filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status))
+                        .map((order) => (
+                          <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-gray-50/50">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold">#{order.orderNumber}</span>
+                                <Badge variant={order.status === 'COMPLETED' ? 'default' : 'destructive'} className={order.status === 'COMPLETED' ? 'bg-green-600' : ''}>
+                                  {order.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-500">
+                                {new Date(order.createdAt).toLocaleString()} • {order.paymentMethod}
+                              </p>
+                              <p className="text-sm font-medium">{order.customerName} - Table {order.tableNumber}</p>
+                            </div>
+                            <div className="mt-4 sm:mt-0 flex items-center gap-4">
+                              <div className="text-right">
+                                <p className="font-bold">Rp {order.totalAmount.toLocaleString()}</p>
+                                <p className="text-xs text-gray-500">{order.items.length} items</p>
+                              </div>
+                              <Button variant="outline" size="sm" onClick={() => setViewOrder(order)}>View</Button>
+                            </div>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-4">
-            <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Daily Revenue */}
+            <h2 className="text-2xl font-bold">Analytics & Reports</h2>
+            {/* Filter Controls */}
+            <div className="flex items-center gap-4 mb-4">
+              <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                    <SelectItem key={m} value={m.toString()}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(parseInt(v))}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[2024, 2025, 2026, 2027].map(y => (
+                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={() => fetchDashboardData()}>
+                <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+              </Button>
+            </div>
+
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Daily Revenue</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-emerald-600">
-                    Rp {(stats.totalRevenue * 0.1).toLocaleString('id-ID')}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">Today&apos;s earnings</p>
-                  <div className="mt-4 flex items-center text-sm text-green-600">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    +12% from yesterday
-                  </div>
+                  <div className="text-2xl font-bold text-emerald-600">Rp {reportStats?.totalRevenue?.toLocaleString('id-ID') || 0}</div>
                 </CardContent>
               </Card>
-
-              {/* Weekly Revenue */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Weekly Revenue</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                  <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
-                    Rp {(stats.totalRevenue * 0.45).toLocaleString('id-ID')}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">This week&apos;s total</p>
-                  <div className="mt-4 flex items-center text-sm text-green-600">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    +8% from last week
-                  </div>
+                  <div className="text-2xl font-bold">{reportStats?.totalOrders || 0}</div>
                 </CardContent>
               </Card>
-
-              {/* Monthly Revenue */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Monthly Revenue</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Menu Items</CardTitle>
+                  <Utensils className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-purple-600">
-                    Rp {stats.totalRevenue.toLocaleString('id-ID')}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">This month&apos;s total</p>
-                  <div className="mt-4 flex items-center text-sm text-green-600">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    +15% from last month
+                  <div className="text-2xl font-bold">{reportStats?.totalMenuItems || 0}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+                  <XCircle className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-500">{reportStats?.cancelledOrders || 0}</div>
+                  <p className="text-xs text-muted-foreground">Lost Revenue: Rp {reportStats?.cancelledRevenue?.toLocaleString('id-ID') || 0}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="col-span-2">
+                <CardHeader>
+                  <CardTitle>Revenue Analytics (Daily)</CardTitle>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  <div className="flex items-end justify-between h-full w-full gap-2 pt-4 px-2 overflow-x-auto">
+                    {reportDailyData && Object.keys(reportDailyData).length > 0 ? (
+                      Object.entries(reportDailyData).map(([date, data]: any) => (
+                        <div key={date} className="flex flex-col items-center gap-1 group relative min-w-[20px] flex-1">
+                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs p-2 rounded z-10 whitespace-nowrap">
+                            {date}: Rp {data.revenue.toLocaleString()} ({data.count} orders)
+                          </div>
+                          <div
+                            className="w-full bg-emerald-500 rounded-t hover:bg-emerald-600 transition-all"
+                            style={{ height: `${Math.max(4, (data.revenue / (Math.max(...Object.values(reportDailyData).map((d: any) => d.revenue), 1) || 1)) * 200)}px` }}
+                          ></div>
+                          <span className="text-[10px] text-gray-500 -rotate-45 origin-left translate-y-4 truncate w-full block">{date.slice(8)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">No data for this period</div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Order Statistics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Order Statistics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {orders.filter(o => o.status === 'PENDING').length}
-                    </div>
-                    <p className="text-sm text-gray-500">Pending</p>
-                  </div>
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {orders.filter(o => o.status === 'PREPARING').length}
-                    </div>
-                    <p className="text-sm text-gray-500">Preparing</p>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {orders.filter(o => o.status === 'COMPLETED').length}
-                    </div>
-                    <p className="text-sm text-gray-500">Completed</p>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">
-                      {orders.filter(o => o.status === 'CANCELLED').length}
-                    </div>
-                    <p className="text-sm text-gray-500">Cancelled</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Top Menu Items */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Top Menu Items</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {topMenuItems.length > 0 ? topMenuItems.map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
-                        <span className="font-medium">{item.name}</span>
-                        <Badge variant="outline" className="text-xs">{item.count} sold</Badge>
+            {/* Lists */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Top Menu Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {topMenuItems.length > 0 ? topMenuItems.map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
+                          <span className="font-medium">{item.name}</span>
+                          <Badge variant="outline" className="text-xs">{item.count} sold</Badge>
+                        </div>
+                        <span className="text-emerald-600 font-bold">Rp {item.revenue.toLocaleString('id-ID')}</span>
                       </div>
-                      <span className="text-emerald-600 font-bold">Rp {item.revenue.toLocaleString('id-ID')}</span>
-                    </div>
-                  )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
-                </div>
-              </CardContent>
-            </Card>
+                    )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Top Payment Methods */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Top Payment Methods</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {topPaymentMethods.length > 0 ? topPaymentMethods.map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
-                        <span className="font-medium">{item.method}</span>
-                        <Badge variant="outline" className="text-xs">{item.count} orders</Badge>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Top Payment Methods</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {topPaymentMethods.length > 0 ? topPaymentMethods.map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-400">#{idx + 1}</span>
+                          <span className="font-medium">{item.method}</span>
+                          <Badge variant="outline" className="text-xs">{item.count} orders</Badge>
+                        </div>
                       </div>
-                    </div>
-                  )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
-                </div>
-              </CardContent>
-            </Card>
+                    )) : <p className="text-sm text-gray-500 text-center py-4">No data available</p>}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Payment Methods Tab */}

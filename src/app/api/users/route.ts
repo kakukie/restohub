@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs'
 export async function GET(request: NextRequest) {
     try {
         const users = await prisma.user.findMany({
+            where: { deletedAt: null },
             orderBy: { createdAt: 'desc' },
             include: {
                 _count: {
@@ -29,6 +30,38 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             success: false,
             error: 'Failed to fetch users'
+        }, { status: 500 })
+    }
+}
+
+// ... POST ...
+
+// ... PUT ...
+
+// DELETE /api/users - Soft Delete User
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url)
+        const id = searchParams.get('id')
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 })
+        }
+
+        await prisma.user.update({
+            where: { id },
+            data: { deletedAt: new Date(), password: '' } // Clear password security measure
+        })
+
+        return NextResponse.json({
+            success: true,
+            message: 'User deleted successfully'
+        })
+    } catch (error) {
+        console.error('Delete User Error:', error)
+        return NextResponse.json({
+            success: false,
+            error: 'Failed to delete user' // likely FK constraint if hard delete, but soft delete should pass unless ID invalid
         }, { status: 500 })
     }
 }
