@@ -8,7 +8,7 @@ export default function AdminLayout({
     children: React.ReactNode
 }) {
     return (
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
             {children}
         </ThemeProvider>
     )

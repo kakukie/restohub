@@ -33,7 +33,24 @@ export const translations = {
         paymentMethods: "Payment Methods",
         qrCode: "QR Code",
         print: "Print",
-        download: "Download"
+        download: "Download",
+        bestSeller: "Best Seller",
+        recommended: "Recommended",
+        kitchen: "Kitchen",
+        history: "History",
+        activeOrders: "Active Orders",
+        reject: "Reject",
+        accept: "Accept",
+        validate: "Validate",
+        manualEmail: "Manual Email (Optional)",
+        manualPhone: "Manual WhatsApp (Optional)",
+        noActiveOrders: "No active orders",
+        noKitchenOrders: "No kitchen orders",
+        deleteConfirm: "Are you sure you want to delete?",
+        logoutConfirm: "Are you sure you want to logout?",
+        light: "Light",
+        dark: "Dark",
+        system: "System"
     },
     id: {
         dashboard: "Dasbor",
@@ -68,7 +85,24 @@ export const translations = {
         paymentMethods: "Metode Pembayaran",
         qrCode: "Kode QR",
         print: "Cetak",
-        download: "Unduh"
+        download: "Unduh",
+        bestSeller: "Terlaris",
+        recommended: "Rekomendasi",
+        kitchen: "Dapur",
+        history: "Riwayat",
+        activeOrders: "Pesanan Aktif",
+        reject: "Tolak",
+        accept: "Terima",
+        validate: "Validasi",
+        manualEmail: "Email Manual (Opsional)",
+        manualPhone: "WhatsApp Manual (Opsional)",
+        noActiveOrders: "Tidak ada pesanan aktif",
+        noKitchenOrders: "Tidak ada pesanan dapur",
+        deleteConfirm: "Apakah Anda yakin ingin menghapus?",
+        logoutConfirm: "Apakah Anda yakin ingin keluar?",
+        light: "Terang",
+        dark: "Gelap",
+        system: "Sistem"
     }
 }
 
