@@ -5,9 +5,11 @@ set -e
 # echo "Waiting for database..."
 
 # Run database migrations
+# Run database migrations
 echo "Applying database schema (db push)..."
-bun run db:push --accept-data-loss
+export PATH="/usr/local/bin:$PATH"
+/usr/local/bin/bun run db:push --accept-data-loss
 
 # Start the application
 echo "Starting application with Bun..."
-exec bun run start
+exec /usr/local/bin/bun run start
