@@ -94,11 +94,15 @@ export async function POST(request: NextRequest) {
       // Validate parent
       const parent = await prisma.restaurant.findUnique({
         where: { id: parentId },
-        select: { id: true, adminId: true, maxAdmins: true } // Fetch required fields
+        select: { id: true, adminId: true, maxAdmins: true, allowBranches: true } // Fetch required fields
       })
 
       if (!parent) {
         return NextResponse.json({ success: false, error: 'Parent restaurant not found' }, { status: 404 })
+      }
+
+      if (parent.allowBranches === false) {
+        return NextResponse.json({ success: false, error: 'This restaurant plan does not support multiple branches.' }, { status: 403 })
       }
 
       // 0. Check Max Admins Limit if creating new admin

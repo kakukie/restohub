@@ -1719,23 +1719,51 @@ export default function RestaurantAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex w-full max-w-sm items-center space-x-2 mb-4">
+                  <div className="flex flex-col md:flex-row gap-4 mb-4">
                     <Input
                       placeholder="Search history..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      className="max-w-sm"
                     />
+                    <div className="flex gap-2">
+                      <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(Number(v))}>
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue placeholder="Month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <SelectItem key={i + 1} value={(i + 1).toString()}>
+                              {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(Number(v))}>
+                        <SelectTrigger className="w-[100px]">
+                          <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[2024, 2025, 2026, 2027].map(y => (
+                            <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
-                  {orders.filter(o =>
-                    ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status) &&
-                    (
-                      o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      (o.tableNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                  ).length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No order history found</p>
+                  {orders.filter(o => {
+                    const d = new Date(o.createdAt)
+                    return ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status) &&
+                      d.getMonth() + 1 === reportMonth &&
+                      d.getFullYear() === reportYear &&
+                      (
+                        o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (o.tableNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                  }).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No order history found for this period</p>
                   ) : (
                     // Desktop Table
                     <div className="hidden md:block">
@@ -2130,10 +2158,17 @@ export default function RestaurantAdminDashboard() {
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'history' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
+          className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${activeTab === 'history' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
         >
           <Clock className="h-5 w-5" />
           <span className="text-[10px] font-medium mt-1">History</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${activeTab === 'analytics' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
+        >
+          <TrendingUp className="h-5 w-5" />
+          <span className="text-[10px] font-medium mt-1">Analytics</span>
         </button>
         <button
           onClick={() => setActiveTab('settings')}

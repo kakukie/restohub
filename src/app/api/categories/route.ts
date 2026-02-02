@@ -45,7 +45,20 @@ export async function POST(request: NextRequest) {
     const resolvedId = await getRestaurantId(restaurantId)
     if (!resolvedId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
 
+    // Check Limits
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: resolvedId },
+      select: { maxCategories: true }
+    })
+
     const count = await prisma.category.count({ where: { restaurantId: resolvedId } })
+
+    if (restaurant?.maxCategories !== null && restaurant?.maxCategories !== undefined && count >= restaurant.maxCategories) {
+      return NextResponse.json({
+        success: false,
+        error: `Category limit reached (${restaurant.maxCategories} max). Please upgrade your plan.`
+      }, { status: 403 })
+    }
 
     const newCategory = await prisma.category.create({
       data: {

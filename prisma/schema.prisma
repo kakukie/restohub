@@ -81,6 +81,9 @@ model Restaurant {
   maxAdmins     Int?     // Null means unlimited
   allowBranches Boolean  @default(false)
   maxStaff      Int?     @default(0)
+  maxCategories Int?     @default(10)
+  allowMaps     Boolean  @default(false)
+  enableAnalytics Boolean @default(false)
 
   // Relations
   adminId       String
@@ -206,6 +209,9 @@ model SubscriptionPlan {
   description String
   price       Float
   menuLimit   Int
+  maxCategories Int?   @default(10)
+  allowMaps     Boolean @default(false)
+  enableAnalytics Boolean @default(false)
   features    String[]
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
