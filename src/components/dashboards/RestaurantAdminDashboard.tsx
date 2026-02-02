@@ -60,7 +60,8 @@ export default function RestaurantAdminDashboard() {
   // Store hooks consolidated at the top
 
   // Derived state
-  const currentRestaurant = restaurants.find(r => r.id === (user?.restaurantId || '1'))
+  const restaurantId = user?.restaurantId || '1'
+  const currentRestaurant = restaurants.find(r => r.id === restaurantId)
   // Ensure pendingOrdersCount is always a number
   const pendingOrdersCount = orders ? orders.filter(o => o.status === 'PENDING').length : 0
 
