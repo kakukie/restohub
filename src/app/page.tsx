@@ -78,7 +78,7 @@ export default function Home() {
     // Fetch latest subscription plans
     const fetchPlans = async () => {
       try {
-        const res = await fetch('/api/subscription-plans')
+        const res = await fetch('/api/subscription-plans', { cache: 'no-store' })
         const data = await res.json()
         if (data.success) {
           setSubscriptionPlans(data.data)
@@ -93,12 +93,9 @@ export default function Home() {
 
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/settings')
+        const res = await fetch('/api/settings', { cache: 'no-store' })
         const data = await res.json()
         if (data.success && data.data) {
-          // We can set it to store or just local state. 
-          // Since we used useAppStore in ContactSection (actually we removed it),
-          // we need to pass it or update store.
           if (useAppStore.getState().updateHelpdeskSettings) {
             useAppStore.getState().updateHelpdeskSettings(data.data)
           }
@@ -461,10 +458,13 @@ export default function Home() {
                         <SelectValue placeholder="Pilih Paket" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="FREE_TRIAL">Free Trial - Rp 0</SelectItem>
-                        <SelectItem value="BASIC">Basic - Rp 199.000</SelectItem>
-                        <SelectItem value="PRO">Pro - Rp 499.000</SelectItem>
-                        <SelectItem value="ENTERPRISE">Enterprise - Rp 999.000</SelectItem>
+                        {subscriptionPlans.length > 0 ? subscriptionPlans.map((plan: any) => (
+                          <SelectItem key={plan.id} value={plan.id}>
+                            {plan.name} - Rp {plan.price.toLocaleString('id-ID')}
+                          </SelectItem>
+                        )) : (
+                          <SelectItem value="FREE_TRIAL">Free Trial - Rp 0</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
