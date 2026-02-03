@@ -1136,12 +1136,6 @@ export default function RestaurantAdminDashboard() {
                               </Badge>
                               <CardDescription className="text-sm line-clamp-2">{item.description}</CardDescription>
                             </div>
-                            <Switch
-                              checked={item.isAvailable}
-                              onCheckedChange={(checked) => {
-                                updateMenuItem(item.id, { isAvailable: checked })
-                              }}
-                            />
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -1190,14 +1184,26 @@ export default function RestaurantAdminDashboard() {
 
           {/* Categories Tab */}
           <TabsContent value="categories" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Categories</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex flex-col gap-1 w-full sm:w-auto">
+                <h2 className="text-2xl font-bold">Categories</h2>
+                <nav className="flex items-center text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Lists</span>
+                  <span className="mx-2 text-muted-foreground/50">/</span>
+                  <span className={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories || 10) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                    {reportStats.totalCategories || 0} / {currentRestaurant?.maxCategories || 10} Used
+                  </span>
+                </nav>
+              </div>
               <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={() => {
                     setEditingCategory(null)
                     setCategoryForm({})
-                  }} className="bg-green-600 hover:bg-green-700">
+                  }}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories || 10)}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Category
                   </Button>
@@ -1247,12 +1253,6 @@ export default function RestaurantAdminDashboard() {
                         <CardTitle className="text-lg mb-1">{category.name}</CardTitle>
                         <CardDescription className="text-sm">{category.description}</CardDescription>
                       </div>
-                      <Switch
-                        checked={category.isActive}
-                        onCheckedChange={(checked) => {
-                          updateCategory(category.id, { isActive: checked })
-                        }}
-                      />
                     </div>
                   </CardHeader>
                   <CardContent>

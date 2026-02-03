@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, ...updates } = body
+    const { id, restaurantId, createdAt, updatedAt, category, ...updates } = body
 
     if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 

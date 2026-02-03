@@ -32,7 +32,8 @@ export async function GET(
 
         const methods = await prisma.paymentMethod.findMany({
             where: {
-                restaurantId: restaurantId
+                restaurantId: restaurantId,
+                isActive: true
             }
         })
         return NextResponse.json({ success: true, data: methods })
