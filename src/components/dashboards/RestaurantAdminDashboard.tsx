@@ -230,6 +230,13 @@ export default function RestaurantAdminDashboard() {
     return () => clearInterval(interval)
   }, [loadOrderData])
 
+  // Sync Reports when tab is verified
+  useEffect(() => {
+    if (activeTab === 'analytics' || activeTab === 'reports') {
+      loadReportData()
+    }
+  }, [activeTab, loadReportData])
+
   // Dialog states
   const [menuItemDialogOpen, setMenuItemDialogOpen] = useState(false)
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
@@ -1402,21 +1409,9 @@ export default function RestaurantAdminDashboard() {
                         // Status Filter
                         const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
 
-                        // Date Filter (Inclusive)
-                        const d = new Date(o.createdAt);
-                        d.setHours(0, 0, 0, 0);
-                        const start = new Date(orderDateRange.start);
-                        const end = new Date(orderDateRange.end);
-                        // If orderDateRange default is today? Maybe check logic. 
-                        // Let's assume default is specific or widespread. 
-                        // If user wants ALL history, they should adjust date. 
-                        // Actually, let's relax date filter if status is PENDING/ACTIVE to ensure they are seen?
-                        // No, strict filter is better for "Unified".
-
-                        // Relaxed Logic: If status is ACTIVE (Pending/Confirmed/Preparing/Ready), show regardless of date?
-                        // User requested "Filter by date/month/year".
-                        // Let's respect the date picker strictly.
-                        const matchDate = d >= start && d <= new Date(end.setHours(23, 59, 59, 999));
+                        // Date Filter (Inclusive, String-based for timezone safety)
+                        const orderDateStr = new Date(o.createdAt).toLocaleDateString('en-CA'); // YYYY-MM-DD Local
+                        const matchDate = orderDateStr >= orderDateRange.start && orderDateStr <= orderDateRange.end;
 
                         // Search
                         const q = orderSearchQuery.toLowerCase();
@@ -1446,33 +1441,35 @@ export default function RestaurantAdminDashboard() {
                               </div>
                               {order.notes && <div className="text-xs text-orange-600 italic bg-orange-50 inline-block px-2 py-1 rounded">Note: {order.notes}</div>}
                             </div>
-                            <div className="flex flex-col items-end gap-2 min-w-[140px]">
+                            <div className="flex flex-col items-end gap-2 w-full sm:w-auto min-w-[140px]">
                               <div className="font-bold text-lg text-emerald-600">Rp {order.totalAmount.toLocaleString('id-ID')}</div>
 
                               {/* Action Buttons Based on Status */}
-                              <div className="flex gap-2 w-full justify-end">
+                              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:justify-end">
                                 {order.status === 'PENDING' && (
                                   <>
-                                    <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 h-8" onClick={() => handleRejectOrder(order.id)}>Reject</Button>
-                                    <Button size="sm" className="bg-green-600 h-8" onClick={() => setValidateOrderId(order.id)}>Accept</Button>
+                                    <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 h-8 w-full sm:w-auto" onClick={() => handleRejectOrder(order.id)}>Reject</Button>
+                                    <Button size="sm" className="bg-green-600 h-8 w-full sm:w-auto" onClick={() => setValidateOrderId(order.id)}>Accept</Button>
                                   </>
                                 )}
                                 {order.status === 'CONFIRMED' && (
-                                  <Button size="sm" className="w-full h-8" onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}>Start Cooking</Button>
+                                  <Button size="sm" className="w-full sm:w-auto h-8" onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}>Start Cooking</Button>
                                 )}
                                 {order.status === 'PREPARING' && (
-                                  <Button size="sm" className="w-full bg-blue-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'READY')}>Mark Ready</Button>
+                                  <Button size="sm" className="w-full sm:w-auto bg-blue-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'READY')}>Mark Ready</Button>
                                 )}
                                 {order.status === 'READY' && (
-                                  <Button size="sm" className="w-full bg-green-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}>Complete</Button>
+                                  <Button size="sm" className="w-full sm:w-auto bg-green-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}>Complete</Button>
                                 )}
 
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePrintOrder(order)}>
-                                  <Printer className="h-4 w-4 text-gray-500" />
-                                </Button>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setViewOrder(order)}>
-                                  <ArrowUpRight className="h-4 w-4 text-blue-500" />
-                                </Button>
+                                <div className="flex gap-2 w-full sm:w-auto">
+                                  <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => handlePrintOrder(order)}>
+                                    <Printer className="h-4 w-4 text-gray-500 mx-auto" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => setViewOrder(order)}>
+                                    <ArrowUpRight className="h-4 w-4 text-blue-500 mx-auto" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1574,7 +1571,7 @@ export default function RestaurantAdminDashboard() {
                       Object.entries(reportDailyData).map(([date, data]: any) => (
                         <div key={date} className="flex flex-col items-center gap-1 group relative min-w-[20px] flex-1">
                           <div className="absolute bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs p-2 rounded z-10 whitespace-nowrap">
-                            {date}: Rp {data.revenue.toLocaleString()} ({data.count} orders)
+                            {date}: Rp {data.revenue.toLocaleString()} ({data.count} Orders, {data.itemsSold || 0} Items)
                           </div>
                           <div
                             className="w-full bg-emerald-500 rounded-t hover:bg-emerald-600 transition-all"
@@ -1766,149 +1763,7 @@ export default function RestaurantAdminDashboard() {
           </TabsContent>
 
           {/* History Tab */}
-          <TabsContent value="history" className="space-y-4">
-            <h2 className="text-2xl font-bold">Order History</h2>
-            <Card>
-              <CardHeader>
-                <CardTitle>Completed & Cancelled Orders</CardTitle>
-                <CardDescription>All your historical orders</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex flex-col md:flex-row gap-4 mb-4">
-                    <Input
-                      placeholder="Search history..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="max-w-sm"
-                    />
-                    <div className="flex gap-2">
-                      <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(Number(v))}>
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue placeholder="Month" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 12 }, (_, i) => (
-                            <SelectItem key={i + 1} value={(i + 1).toString()}>
-                              {new Date(0, i).toLocaleString('default', { month: 'long' })}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(Number(v))}>
-                        <SelectTrigger className="w-[100px]">
-                          <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[2024, 2025, 2026, 2027].map(y => (
-                            <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
 
-                  {orders.filter(o => {
-                    const d = new Date(o.createdAt)
-                    return ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status) &&
-                      d.getMonth() + 1 === reportMonth &&
-                      d.getFullYear() === reportYear &&
-                      (
-                        o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (o.tableNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
-                      )
-                  }).length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">No order history found for this period</p>
-                  ) : (
-                    // Desktop Table
-                    <div className="hidden md:block">
-                      <div className="border rounded-md">
-                        <table className="w-full text-sm">
-                          <thead className="bg-gray-100 border-b">
-                            <tr>
-                              <th className="p-3 text-left">Order ID</th>
-                              <th className="p-3 text-left">Date</th>
-                              <th className="p-3 text-left">Customer</th>
-                              <th className="p-3 text-left">Total</th>
-                              <th className="p-3 text-left">Status</th>
-                              <th className="p-3 text-right">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {orders.filter(o =>
-                              ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status) &&
-                              (
-                                o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                (o.tableNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
-                              )
-                            )
-                              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                              .map(order => (
-                                <tr key={order.id} className="border-b hover:bg-gray-50">
-                                  <td className="p-3 font-medium">#{order.orderNumber}</td>
-                                  <td className="p-3">{new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                                  <td className="p-3">{order.customerName}<br /><span className="text-xs text-gray-500">{order.tableNumber || 'Takeaway'}</span></td>
-                                  <td className="p-3 font-bold text-gray-700">Rp {order.totalAmount.toLocaleString()}</td>
-                                  <td className="p-3"><Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge></td>
-                                  <td className="p-3 text-right">
-                                    <div className="flex justify-end gap-2">
-                                      <Button size="sm" variant="outline" onClick={() => setViewOrder(order)}>
-                                        <ArrowUpRight className="h-3 w-3" />
-                                      </Button>
-                                      <Button size="sm" variant="outline" onClick={() => handlePrintOrder(order)}>
-                                        <Printer className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Mobile List */}
-                  <div className="md:hidden space-y-3">
-                    {orders.filter(o =>
-                      ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status) &&
-                      (
-                        o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (o.tableNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
-                      )
-                    )
-                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                      .map(order => (
-                        <Card key={order.id} className="p-3 border shadow-sm">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <div className="font-bold">#{order.orderNumber}</div>
-                              <div className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleString()}</div>
-                            </div>
-                            <Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge>
-                          </div>
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="text-sm">{order.customerName}</div>
-                            <div className="font-bold text-emerald-600">Rp {order.totalAmount.toLocaleString()}</div>
-                          </div>
-                          <div className="flex justify-end gap-2">
-                            <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => setViewOrder(order)}>
-                              <ArrowUpRight className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => handlePrintOrder(order)}>
-                              <Printer className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </Card>
-                      ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
