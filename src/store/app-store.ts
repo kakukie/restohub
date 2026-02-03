@@ -38,6 +38,8 @@ export interface Restaurant {
   maxStaff?: number
   allowBranches?: boolean
   parentId?: string
+  subscriptionPlan?: SubscriptionPlan
+  maxCategories?: number // Also added per lint feedback
 }
 
 export interface PaymentMethod {

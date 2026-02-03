@@ -47,7 +47,8 @@ export default function RestaurantAdminDashboard() {
     helpdeskSettings,
     systemAnnouncements,
     language, // Get language from store
-    setLanguage // Get setter if needed for toggle
+    setLanguage, // Get setter if needed for toggle
+    updateRestaurant
   } = useAppStore()
 
   // i18n Helper
@@ -199,6 +200,18 @@ export default function RestaurantAdminDashboard() {
     } catch (e) { }
   }, [])
 
+  const loadRestaurantDetails = useCallback(async () => {
+    if (!restaurantId) return;
+    try {
+      const res = await fetch(`/api/restaurants/${restaurantId}?_t=${new Date().getTime()}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        // Update store using updateRestaurant action
+        updateRestaurant(restaurantId, data.data);
+      }
+    } catch (e) { console.error("Resto Detail Error", e); }
+  }, [restaurantId, updateRestaurant]);
+
   // Monolith wrapper for Manual Refresh
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true)
@@ -206,10 +219,11 @@ export default function RestaurantAdminDashboard() {
       loadMenuData(),
       loadOrderData(),
       loadReportData(),
-      loadAnnouncements()
+      loadAnnouncements(),
+      loadRestaurantDetails()
     ])
     setIsLoading(false)
-  }, [loadMenuData, loadOrderData, loadReportData, loadAnnouncements])
+  }, [loadMenuData, loadOrderData, loadReportData, loadAnnouncements, loadRestaurantDetails])
 
   // Initial Load (Parallel)
   useEffect(() => {
@@ -808,20 +822,19 @@ export default function RestaurantAdminDashboard() {
               <Store className="h-8 w-8 text-emerald-600" />
               <div>
                 <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-                  Meenuin
+                  {currentRestaurant?.name || 'Meenuin'}
                   <div className="flex flex-col items-start ml-2">
-                    <Badge variant="secondary" className="text-[10px] h-5 hidden sm:inline-flex">
-                      {currentRestaurant?.package || 'BASIC'} Plan
+                    <Badge variant="secondary" className="text-[10px] h-5 hidden sm:inline-flex bg-purple-100 text-purple-700 border-purple-200">
+                      {currentRestaurant?.subscriptionPlan?.name || currentRestaurant?.package || 'BASIC'} Plan
                     </Badge>
-                    <span className="text-[9px] text-gray-500 hidden sm:inline-block">
-                      {menuItems.length} / {currentRestaurant?.maxMenuItems || '15'} Items
-                    </span>
                   </div>
                 </h1>
                 <div className="flex items-center gap-2">
-                  <p className="text-xs text-muted-foreground">{t.dashboard}</p>
-                  <Badge variant="outline" className="text-[10px] h-4 sm:hidden bg-emerald-100 text-emerald-800 border-emerald-200">
-                    {currentRestaurant?.package || 'BASIC'}
+                  <span className="text-[9px] text-gray-500 hidden sm:inline-block">
+                    {menuItems.length} / {currentRestaurant?.maxMenuItems || '15'} Items
+                  </span>
+                  <Badge variant="outline" className="text-[10px] h-4 sm:hidden bg-purple-100 text-purple-700 border-purple-200">
+                    {currentRestaurant?.subscriptionPlan?.name || 'BASIC'}
                   </Badge>
                 </div>
               </div>
@@ -1144,7 +1157,7 @@ export default function RestaurantAdminDashboard() {
                   </DialogContent>
                 </Dialog>
               </div>
-            </div>
+            </div >
 
             <ScrollArea className="h-[calc(100vh-280px)] sm:h-[600px] w-full rounded-md border p-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
@@ -1214,10 +1227,10 @@ export default function RestaurantAdminDashboard() {
                   ))}
               </div>
             </ScrollArea>
-          </TabsContent>
+          </TabsContent >
 
           {/* Categories Tab */}
-          <TabsContent value="categories" className="space-y-4">
+          < TabsContent value="categories" className="space-y-4" >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex flex-col gap-1 w-full sm:w-auto">
                 <h2 className="text-2xl font-bold">Categories</h2>
@@ -1317,10 +1330,10 @@ export default function RestaurantAdminDashboard() {
                 </Card>
               ))}
             </div>
-          </TabsContent>
+          </TabsContent >
 
           {/* Orders Tab */}
-          <TabsContent value="orders" className="space-y-4">
+          < TabsContent value="orders" className="space-y-4" >
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Incoming Orders</h2>
             </div>
@@ -1409,9 +1422,17 @@ export default function RestaurantAdminDashboard() {
                         // Status Filter
                         const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
 
-                        // Date Filter (Inclusive, String-based for timezone safety)
-                        const orderDateStr = new Date(o.createdAt).toLocaleDateString('en-CA'); // YYYY-MM-DD Local
-                        const matchDate = orderDateStr >= orderDateRange.start && orderDateStr <= orderDateRange.end;
+                        // Date Filter (Strict Timestamp Comparison)
+                        const orderDate = new Date(o.createdAt);
+                        const start = new Date(orderDateRange.start);
+                        start.setHours(0, 0, 0, 0);
+
+                        const end = new Date(orderDateRange.end);
+                        end.setHours(23, 59, 59, 999);
+
+                        // If range invalid, default to show all? Or Show Today? 
+                        // Assuming valid range from state defaults.
+                        const matchDate = orderDate.getTime() >= start.getTime() && orderDate.getTime() <= end.getTime();
 
                         // Search
                         const q = orderSearchQuery.toLowerCase();
@@ -1483,13 +1504,13 @@ export default function RestaurantAdminDashboard() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </TabsContent >
 
 
 
 
           {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-4">
+          < TabsContent value="analytics" className="space-y-4" >
             <h2 className="text-2xl font-bold">Analytics & Reports</h2>
             {/* Filter Controls */}
             <div className="flex items-center gap-4 mb-4">
@@ -1629,10 +1650,10 @@ export default function RestaurantAdminDashboard() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </TabsContent >
 
           {/* Payment Methods Tab */}
-          <TabsContent value="payments" className="space-y-4">
+          < TabsContent value="payments" className="space-y-4" >
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Payment Methods</h2>
               <Dialog open={paymentMethodDialogOpen} onOpenChange={setPaymentMethodDialogOpen}>
@@ -1760,7 +1781,7 @@ export default function RestaurantAdminDashboard() {
                 </Card>
               ))}
             </div>
-          </TabsContent>
+          </TabsContent >
 
           {/* History Tab */}
 
@@ -1913,7 +1934,146 @@ export default function RestaurantAdminDashboard() {
               </Card>
             )}
 
-            <RestaurantSettingsForm restaurantId={restaurantId} />
+            {/* General Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle>General Information</CardTitle>
+                <CardDescription>Update your restaurant's details and branding.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Restaurant Name</Label>
+                    <Input
+                      placeholder="My Restaurant"
+                      defaultValue={currentRestaurant?.name}
+                      onChange={(e) => {
+                        // Use state or ref if we want full form handling, for now simple patch
+                        // Optimally, we need a form state.
+                      }}
+                      onBlur={async (e) => {
+                        const val = e.target.value;
+                        if (val && val !== currentRestaurant?.name) {
+                          // Auto-save on blur? Or add Save Button. Save Button is safer.
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-400">This is how your store appears to customers.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Store URL (Slug)</Label>
+                    <Input
+                      placeholder="my-resto"
+                      defaultValue={currentRestaurant?.slug}
+                      disabled
+                    />
+                    <p className="text-xs text-gray-400">Contact support to change your URL.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Address</Label>
+                    <Input
+                      defaultValue={currentRestaurant?.address}
+                      id="setting-address"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone</Label>
+                    <Input
+                      defaultValue={currentRestaurant?.phone}
+                      id="setting-phone"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <Label>Logo</Label>
+                    <div className="flex items-center gap-4">
+                      {currentRestaurant?.logoUrl ? (
+                        <div className="relative h-16 w-16 rounded-full overflow-hidden border">
+                          <Image src={currentRestaurant.logoUrl} alt="Logo" fill className="object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-dashed">
+                          <Utensils className="h-6 w-6" />
+                        </div>
+                      )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, async (base64) => {
+                          try {
+                            const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ logoUrl: base64 })
+                            });
+                            if (res.ok) {
+                              toast({ title: "Updated", description: "Logo updated successfully" });
+                              fetchDashboardData();
+                            }
+                          } catch (err) { toast({ title: "Error", description: "Failed to upload logo", variant: "destructive" }); }
+                        })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Banner Image</Label>
+                    <div className="space-y-2">
+                      {currentRestaurant?.bannerUrl && (
+                        <div className="relative h-24 w-full rounded overflow-hidden border">
+                          <Image src={currentRestaurant.bannerUrl} alt="Banner" fill className="object-cover" />
+                        </div>
+                      )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, async (base64) => {
+                          try {
+                            const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ bannerUrl: base64 })
+                            });
+                            if (res.ok) {
+                              toast({ title: "Updated", description: "Banner updated successfully" });
+                              fetchDashboardData();
+                            }
+                          } catch (err) { toast({ title: "Error", description: "Failed to upload banner", variant: "destructive" }); }
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  className="bg-emerald-600 hover:bg-emerald-700 mt-4"
+                  onClick={async () => {
+                    const name = (document.getElementById('setting-name') as HTMLInputElement)?.value || currentRestaurant?.name;
+                    const address = (document.getElementById('setting-address') as HTMLInputElement)?.value;
+                    const phone = (document.getElementById('setting-phone') as HTMLInputElement)?.value;
+
+                    try {
+                      const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          name: name, // If we added ID to input
+                          address,
+                          phone
+                        })
+                      });
+                      if (res.ok) {
+                        toast({ title: "Saved", description: "Settings saved successfully" });
+                        fetchDashboardData();
+                      }
+                    } catch (err) { toast({ title: "Error", description: "Failed to save", variant: "destructive" }); }
+                  }}
+                >
+                  Save Changes
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Reports Tab */}
@@ -2065,7 +2225,7 @@ export default function RestaurantAdminDashboard() {
                           {date}
                         </div>
                         <div>{data.count}</div>
-                        <div>-</div>
+                        <div>{data.itemsSold || 0}</div>
                         <div className="text-right font-medium">Rp {data.revenue.toLocaleString('id-ID')}</div>
                       </div>
                     ))}
@@ -2079,11 +2239,11 @@ export default function RestaurantAdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-      </main>
+        </Tabs >
+      </main >
 
       {/* Mobile Bottom Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex justify-around py-2 safe-area-pb">
+      < div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex justify-around py-2 safe-area-pb" >
         <button
           onClick={() => setActiveTab('menu')}
           className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'menu' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
@@ -2127,19 +2287,19 @@ export default function RestaurantAdminDashboard() {
           <Settings className="h-5 w-5" />
           <span className="text-[10px] font-medium mt-1">Settings</span>
         </button>
-      </div>
+      </div >
 
       {/* Footer */}
-      <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0">
+      < footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0" >
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             © 2026 Meenuin. Digital Restaurant Platform
           </p>
         </div>
-      </footer>
+      </footer >
 
       {/* Helpdesk Floating Button - Visible on all devices */}
-      <div className="fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex flex-col items-end gap-2 group">
+      < div className="fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex flex-col items-end gap-2 group" >
         <div className="bg-black/75 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
           Chat Helpdesk
         </div>
@@ -2149,13 +2309,14 @@ export default function RestaurantAdminDashboard() {
         >
           <MessageCircle className="h-7 w-7" />
         </Button>
-      </div>
+      </div >
 
       {/* QR Code Dialog for Restaurant Menu */}
-      <QRCodeDialog
+      < QRCodeDialog
         open={qrCodeDialogOpen}
         onOpenChange={setQrCodeDialogOpen}
-        restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId || ''}
+        restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId || ''
+        }
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
 
@@ -2206,7 +2367,7 @@ export default function RestaurantAdminDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   )
 }
 
