@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
-import { translations } from '@/lib/i18n'
+import { translations, useTranslation } from '@/lib/i18n'
 import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/app-store'
 import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal, Filter, X, QrCode, Printer, MessageCircle, FileText, Download, Calendar, LifeBuoy, ChefHat, Package, LayoutGrid, Clock, XCircle, CreditCard, Sun, Moon, Languages, RefreshCw, Wallet, Settings } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
@@ -51,8 +51,9 @@ export default function RestaurantAdminDashboard() {
     updateRestaurant
   } = useAppStore()
 
-  // i18n Helper
-  const t = translations[language] || translations.en
+  // i18n Helper - Fix: Use the hook to get the function, not the object
+  const getTranslation = useTranslation(language as 'en' | 'id' || 'en');
+  const t = (key: string) => getTranslation(key as any);
 
   // Loading State
   const [isLoading, setIsLoading] = useState(true)
