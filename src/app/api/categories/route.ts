@@ -120,10 +120,17 @@ export async function DELETE(request: NextRequest) {
 
   try {
     // Soft Delete
-    await prisma.category.update({
+    const category = await prisma.category.update({
       where: { id },
-      data: { deletedAt: new Date(), isActive: false }
+      data: { deletedAt: new Date(), isActive: false },
+      select: { restaurantId: true }
     })
+
+    if (category.restaurantId) {
+      await invalidateCache(`categories:${category.restaurantId}`)
+      await invalidateCache(`dashboard:${category.restaurantId}`)
+    }
+
     return NextResponse.json({ success: true })
   } catch (error) {
     return NextResponse.json({ success: false }, { status: 500 })

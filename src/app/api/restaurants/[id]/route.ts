@@ -145,7 +145,7 @@ export async function PUT(
         const allowedFields = [
             'name', 'description', 'address', 'phone', 'email',
             'logo', 'banner', 'slug', 'theme', 'status', 'isActive',
-            'detailAddress', 'googleMapsUrl'
+            'detailAddress', 'googleMapsUrl', 'latitude', 'longitude'
         ]
 
         // Filter updates

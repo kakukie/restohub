@@ -550,6 +550,7 @@ export default function RestaurantAdminDashboard() {
   }
 
   const handleDeleteCategory = async (id: string) => {
+    if (!confirm(t('deleteConfirm'))) return;
     try {
       const res = await fetch(`/api/categories?id=${id}`, {
         method: 'DELETE'
@@ -850,6 +851,10 @@ export default function RestaurantAdminDashboard() {
             <div className="flex items-center gap-2">
               {/* Desktop Actions */}
               <div className="hidden sm:flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleShowQRCode(currentRestaurant?.menuItems?.[0] || {} as any)}>
+                  <QrCode className="h-4 w-4 mr-2" />
+                  {t('qrCode')}
+                </Button>
                 <LanguageToggle />
                 <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                   <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -858,11 +863,11 @@ export default function RestaurantAdminDashboard() {
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => loadReportData()}>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
+                  {t('search')}
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleDownloadReport}>
                   <Download className="h-4 w-4 mr-2" />
-                  Export CSV
+                  {t('download')}
                 </Button>
               </div>
             </div>
@@ -879,11 +884,11 @@ export default function RestaurantAdminDashboard() {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => setQrCodeDialogOpen(true)}>
                     <QrCode className="h-4 w-4 mr-2" />
-                    {t.qrCode}
+                    {t('qrCode')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                     {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-                    {t.theme}
+                    {t('theme')}
                   </DropdownMenuItem>
                   {/* Language Toggle is complex to embed as item, so maybe keep it out or custom item */}
                   {/* Using a simple toggle for mobile logic if possible, or just standard Items */}
@@ -893,7 +898,7 @@ export default function RestaurantAdminDashboard() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
-                    {t.logout}
+                    {t('logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -911,7 +916,7 @@ export default function RestaurantAdminDashboard() {
           activeAnnouncements.map((announcement: any) => (
             <Alert key={announcement.id} className="mb-6 border-blue-200 bg-blue-50 text-blue-800">
               <MegaphoneIcon className="h-4 w-4" />
-              <AlertTitle>{t.systemBroadcast}</AlertTitle>
+              <AlertTitle>{t('systemBroadcast')}</AlertTitle>
               <AlertDescription>{announcement.message}</AlertDescription>
             </Alert>
           ))
@@ -980,15 +985,15 @@ export default function RestaurantAdminDashboard() {
             <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-auto min-w-full sm:w-auto sm:min-w-0">
               <TabsTrigger value="menu">
                 <Package className="h-4 w-4 mr-2" />
-                {t.menu}
+                {t('menu')}
               </TabsTrigger>
               <TabsTrigger value="categories">
                 <LayoutGrid className="h-4 w-4 mr-2" />
-                {t.categories}
+                {t('categories')}
               </TabsTrigger>
               <TabsTrigger value="orders" className="relative overflow-visible">
                 <ShoppingBag className="h-4 w-4 mr-2" />
-                {t.orders}
+                {t('orders')}
                 {orders.filter(o => o.status === 'PENDING').length > 0 && (
                   <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full bg-red-600 text-[10px] text-white font-bold border-2 border-white shadow-sm z-10 transition-transform">
                     {orders.filter(o => o.status === 'PENDING').length > 99 ? '99+' : orders.filter(o => o.status === 'PENDING').length}
@@ -1982,6 +1987,7 @@ export default function RestaurantAdminDashboard() {
                     <Input
                       placeholder="my-resto"
                       id="setting-slug"
+                      key={currentRestaurant?.slug}
                       defaultValue={currentRestaurant?.slug}
                     />
                     <p className="text-xs text-gray-400">Unique URL identifier for your menu.</p>
