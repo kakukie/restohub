@@ -122,12 +122,47 @@ export default function RestaurantAdminDashboard() {
 
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([])
 
-  // Fetch all data
-  const fetchDashboardData = useCallback(async (isPolling = false) => {
+  // Split fetching for performance
+  const loadMenuData = useCallback(async () => {
     if (!restaurantId) return
-    if (!isPolling) setIsLoading(true)
+    const ts = new Date().getTime()
     try {
-      // ... existing URL definitions ...
+      const [resMenu, resCat, resPay] = await Promise.all([
+        fetch(`/api/menu-items?restaurantId=${restaurantId}&_t=${ts}`),
+        fetch(`/api/categories?restaurantId=${restaurantId}&_t=${ts}`),
+        fetch(`/api/restaurants/${restaurantId}/payment-methods?_t=${ts}`)
+      ])
+      const [dataMenu, dataCat, dataPay] = await Promise.all([resMenu.json(), resCat.json(), resPay.json()])
+
+      if (dataMenu.success) setMenuItems(dataMenu.data || [])
+      if (dataCat.success) setCategories(dataCat.data || [])
+      if (dataPay.success) setPaymentMethods(dataPay.data || [])
+    } catch (e) {
+      console.error("Menu Load Error", e)
+    }
+  }, [restaurantId])
+
+  const loadOrderData = useCallback(async () => {
+    if (!restaurantId) return
+    const ts = new Date().getTime()
+    try {
+      const [resOrder, resOrderItems] = await Promise.all([
+        fetch(`/api/orders?restaurantId=${restaurantId}&_t=${ts}`),
+        fetch(`/api/order-items?restaurantId=${restaurantId}&_t=${ts}`)
+      ])
+      const [dataOrder, dataOrderItems] = await Promise.all([resOrder.json(), resOrderItems.json()])
+
+      if (dataOrder.success) setOrders(dataOrder.data || [])
+      // resOrderItems not used currently but fetched for cache/potential usage
+    } catch (e) {
+      console.error("Order Load Error", e)
+    }
+  }, [restaurantId])
+
+  const loadReportData = useCallback(async () => {
+    if (!restaurantId) return
+    const ts = new Date().getTime()
+    try {
       let startDate, endDate
       if (reportFilterType === 'monthly') {
         startDate = new Date(reportYear, reportMonth - 1, 1)
@@ -138,63 +173,57 @@ export default function RestaurantAdminDashboard() {
         endDate.setHours(23, 59, 59, 999)
       }
 
-      const ts = new Date().getTime()
-      const [resMenu, resCat, resOrder, resPay, resReport, resOrderItems, resAnn] = await Promise.all([
-        fetch(`/api/menu-items?restaurantId=${restaurantId}&_t=${ts}`),
-        fetch(`/api/categories?restaurantId=${restaurantId}&_t=${ts}`),
-        fetch(`/api/orders?restaurantId=${restaurantId}&_t=${ts}`),
-        fetch(`/api/restaurants/${restaurantId}/payment-methods?_t=${ts}`),
-        fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&_t=${ts}`),
-        fetch(`/api/order-items?restaurantId=${restaurantId}&_t=${ts}`),
-        fetch(`/api/announcements?active=true&_t=${ts}`)
-      ])
-
-      const [dataMenu, dataCat, dataOrder, dataPay, dataReport, dataOrderItems, dataAnn] = await Promise.all([
-        resMenu.json(), resCat.json(), resOrder.json(), resPay.json(), resReport.json(), resOrderItems.json(), resAnn.json()
-      ])
-
-      if (dataAnn.success) setActiveAnnouncements(dataAnn.data || [])
-      if (dataMenu.success) setMenuItems(dataMenu.data || [])
-      if (dataCat.success) setCategories(dataCat.data || [])
-      // Also refresh restaurant details if possible
-      try {
-        const resResto = await fetch(`/api/restaurants/${restaurantId}`)
-        const dataResto = await resResto.json()
-        if (dataResto.success) {
-          const currentList = useAppStore.getState().restaurants
-          const exists = currentList.find(r => r.id === restaurantId)
-          if (exists) {
-            useAppStore.getState().updateRestaurant(restaurantId, dataResto.data)
-          } else {
-            useAppStore.getState().setRestaurants([dataResto.data])
-          }
-        }
-      } catch (err) {
-        console.error("Failed to refresh restaurant details", err)
-      }
-
-      if (dataOrder.success) setOrders(dataOrder.data || [])
-      if (dataPay.success) setPaymentMethods(dataPay.data || [])
+      const resReport = await fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&_t=${ts}`)
+      const dataReport = await resReport.json()
 
       if (dataReport.success) {
         setReportStats(dataReport.data.stats || {})
-        setReportDailyData(dataReport.data.daily || {})
+        setReportDailyData(dataReport.data.daily || dataReport.data.chartData || {})
         setTopMenuItems(dataReport.data.topItems || [])
       }
-
     } catch (e) {
-      console.error("Sync Error", e)
-    } finally {
-      if (!isPolling) setIsLoading(false)
+      console.error("Report Load Error", e)
     }
-  }, [restaurantId, reportYear, reportMonth])
+  }, [restaurantId, reportYear, reportMonth, reportFilterType, reportDateRange])
 
-  // Poll
+  const loadAnnouncements = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/announcements?active=true&_t=${new Date().getTime()}`)
+      const data = await res.json()
+      if (data.success) setActiveAnnouncements(data.data || [])
+    } catch (e) { }
+  }, [])
+
+  // Monolith wrapper for Manual Refresh
+  const fetchDashboardData = useCallback(async () => {
+    setIsLoading(true)
+    await Promise.all([
+      loadMenuData(),
+      loadOrderData(),
+      loadReportData(),
+      loadAnnouncements()
+    ])
+    setIsLoading(false)
+  }, [loadMenuData, loadOrderData, loadReportData, loadAnnouncements])
+
+  // Initial Load (Parallel)
   useEffect(() => {
-    fetchDashboardData(false) // Initial load
-    const interval = setInterval(() => fetchDashboardData(true), 15000)
+    if (restaurantId) {
+      // Fire all independently for faster perception (progressive loading)
+      loadMenuData()
+      loadOrderData()
+      loadReportData()
+      loadAnnouncements()
+    }
+  }, [restaurantId, loadMenuData, loadOrderData, loadReportData, loadAnnouncements])
+
+  // Polling (Orders ONLY - lightweight)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadOrderData()
+    }, 15000)
     return () => clearInterval(interval)
-  }, [fetchDashboardData, activeTab])
+  }, [loadOrderData])
 
   // ... (rest of logic) ...
 
