@@ -5,41 +5,51 @@ set -e
 # echo "Waiting for database..."
 
 # Run database migrations
-# Debug User
-echo "User: $(whoami) ($(id -u))"
-echo "PATH: $PATH"
-
-# Find Bun
+# === Runtime Detection ===
+# Try to find Bun
 BUN_BIN=""
-
-# Check /usr/local/bin (Standard for Docker images)
-if [ -x "/usr/local/bin/bun" ]; then
-    BUN_BIN="/usr/local/bin/bun"
-# Check /home/bun/.bun/bin (Standard for bun user)
+if [ -x "/root/.bun/bin/bun" ]; then
+    BUN_BIN="/root/.bun/bin/bun"
 elif [ -x "/home/bun/.bun/bin/bun" ]; then
     BUN_BIN="/home/bun/.bun/bin/bun"
-# Check /root/.bun/bin (Only if root)
-elif [ "$(id -u)" -eq 0 ] && [ -x "/root/.bun/bin/bun" ]; then
-    BUN_BIN="/root/.bun/bin/bun"
-# Check PATH
 elif command -v bun >/dev/null 2>&1; then
     BUN_BIN=$(command -v bun)
 fi
 
-if [ -z "$BUN_BIN" ]; then
-    echo "CRITICAL ERROR: Bun not found!"
-    echo "Listing /usr/local/bin:"
-    ls -la /usr/local/bin || echo "Cannot list /usr/local/bin"
+# Try to find Node/Npx
+NODE_BIN=$(command -v node || true)
+NPX_BIN=$(command -v npx || true)
+
+echo "Detected Environment:"
+echo "User: $(whoami)"
+echo "Bun: ${BUN_BIN:-Not Found}"
+echo "Node: ${NODE_BIN:-Not Found}"
+
+# === Database Migration ===
+echo "Applying database schema (db push)..."
+
+if [ -n "$BUN_BIN" ]; then
+    # Bun Environment
+    export PATH="$(dirname $BUN_BIN):$PATH"
+    "$BUN_BIN" run db:push --accept-data-loss
+elif [ -n "$NPX_BIN" ]; then
+    # Node Environment
+    "$NPX_BIN" prisma db push --accept-data-loss
+else
+    echo "CRITICAL ERROR: Neither Bun nor Npx found. Cannot migrate DB."
     exit 1
 fi
 
-echo "Found Bun at: $BUN_BIN"
-
-# Run database migrations
-echo "Applying database schema (db push)..."
-export PATH="$(dirname $BUN_BIN):$PATH"
-"$BUN_BIN" run db:push --accept-data-loss
-
-# Start the application
-echo "Starting application with Bun..."
-exec "$BUN_BIN" run start
+# === Start Application ===
+if [ -n "$BUN_BIN" ]; then 
+    echo "Starting with Bun..."
+    # Bun typically uses 'bun run start' which maps to package.json
+    exec "$BUN_BIN" run start
+elif [ -n "$NODE_BIN" ]; then
+    echo "Starting with Node (Standalone)..."
+    # Node environment (likely Next.js standalone)
+    exec "$NODE_BIN" server.js
+else
+    echo "CRITICAL ERROR: No runtime found to start application."
+    exit 1
+fi
