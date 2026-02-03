@@ -91,7 +91,7 @@ export default function RestaurantAdminDashboard() {
   const [activeTab, setActiveTab] = useState('menu')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const [stats, setStats] = useState({
+  const [reportStats, setReportStats] = useState({
     totalMenuItems: 0,
     totalCategories: 0,
     totalOrders: 0,
@@ -100,12 +100,13 @@ export default function RestaurantAdminDashboard() {
     cancelledOrders: 0,
     cancelledRevenue: 0
   })
+  const [reportDailyData, setReportDailyData] = useState<any>({})
+
   const [topMenuItems, setTopMenuItems] = useState<any[]>([])
   const [topPaymentMethods, setTopPaymentMethods] = useState<any[]>([])
 
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1)
   const [reportYear, setReportYear] = useState(new Date().getFullYear())
-  const [chartData, setChartData] = useState<any>({})
 
   const [viewOrder, setViewOrder] = useState<Order | null>(null)
   const [historyDateRange, setHistoryDateRange] = useState({
@@ -162,8 +163,9 @@ export default function RestaurantAdminDashboard() {
       if (dataPay.success) setPaymentMethods(dataPay.data)
 
       if (dataReport.success) {
-        // ... Report logic ... 
-        // We are not changing report logic here but we need to match context
+        setReportStats(dataReport.data.stats)
+        setReportDailyData(dataReport.data.daily)
+        setTopMenuItems(dataReport.data.topItems || [])
       }
 
     } catch (e) {
