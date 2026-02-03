@@ -173,7 +173,7 @@ export default function RestaurantAdminDashboard() {
         endDate.setHours(23, 59, 59, 999)
       }
 
-      const resReport = await fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&_t=${ts}`)
+      const resReport = await fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&status=${reportStatusFilter}&_t=${ts}`)
       const dataReport = await resReport.json()
 
       if (dataReport.success) {

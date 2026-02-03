@@ -4,9 +4,7 @@ import prisma from '@/lib/prisma'
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams
-        const restaurantId = searchParams.get('restaurantId')
-        const yearParam = searchParams.get('year')
-        const monthParam = searchParams.get('month')
+        const statusParam = searchParams.get('status')
 
         if (!restaurantId) {
             return NextResponse.json({ success: false, error: 'Restaurant ID required' }, { status: 400 })
@@ -29,12 +27,19 @@ export async function GET(request: NextRequest) {
             endDate = new Date(year, month, 0, 23, 59, 59)
         }
 
+        // Build Where Clause
+        const whereClause: any = {
+            restaurantId,
+            createdAt: { gte: startDate, lte: endDate }
+        }
+
+        if (statusParam && statusParam !== 'ALL') {
+            whereClause.status = statusParam
+        }
+
         // 1. Fetch Orders for calculations
         const orders = await prisma.order.findMany({
-            where: {
-                restaurantId,
-                createdAt: { gte: startDate, lte: endDate }
-            },
+            where: whereClause,
             include: {
                 orderItems: {
                     include: { menuItem: true }
