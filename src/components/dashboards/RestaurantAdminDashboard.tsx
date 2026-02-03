@@ -71,6 +71,13 @@ export default function RestaurantAdminDashboard() {
   const pendingOrdersCount = orders ? orders.filter(o => o.status === 'PENDING').length : 0
 
   const [prevPendingCount, setPrevPendingCount] = useState(0)
+  const [slugValue, setSlugValue] = useState('')
+
+  useEffect(() => {
+    if (currentRestaurant?.slug) {
+      setSlugValue(currentRestaurant.slug)
+    }
+  }, [currentRestaurant?.slug])
 
   // ... (sound effect code)
 
@@ -1000,16 +1007,16 @@ export default function RestaurantAdminDashboard() {
               {/* Analytics Merged into Reports */}
               <TabsTrigger value="payments">
                 <CreditCard className="h-4 w-4 mr-2" />
-                {t.paymentMethods}
+                {t('paymentMethods')}
               </TabsTrigger>
 
               <TabsTrigger value="settings">
                 <Settings className="h-4 w-4 mr-2" />
-                {t.settings}
+                {t('settings')}
               </TabsTrigger>
-              <TabsTrigger value="reports">
+              <TabsTrigger value="analytics">
                 <FileText className="h-4 w-4 mr-2" />
-                {t.reports}
+                {t('reports')}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -1807,10 +1814,10 @@ export default function RestaurantAdminDashboard() {
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Restaurant Settings</h2>
+              <h2 className="text-2xl font-bold">{t('restaurantSettings')}</h2>
               <div className="flex gap-2">
                 <Button variant="destructive" onClick={async () => {
-                  if (!confirm('Are you sure you want to DELETE this restaurant? This action cannot be undone.')) return
+                  if (!confirm(t('deleteConfirm'))) return
                   try {
                     const res = await fetch(`/api/restaurants/${restaurantId}`, { method: 'DELETE' })
                     const data = await res.json()
@@ -1824,14 +1831,14 @@ export default function RestaurantAdminDashboard() {
                     toast({ title: 'Error', variant: 'destructive', description: e.message })
                   }
                 }}>
-                  <Trash2 className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">{t.delete}</span>
+                  <Trash2 className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">{t('delete')}</span>
                 </Button>
                 {/* Create Branch Button - Only if allowed */}
                 {currentRestaurant?.allowBranches && (
                   <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" onClick={() => setBranchForm({})}>
-                        <Plus className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">{t.createBranch}</span>
+                        <Plus className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">{t('createBranch')}</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -1928,8 +1935,8 @@ export default function RestaurantAdminDashboard() {
             {myBranches.length > 0 && (
               <Card className="mb-6">
                 <CardHeader>
-                  <CardTitle>My Branches</CardTitle>
-                  <CardDescription>Switch between your restaurant outlets</CardDescription>
+                  <CardTitle>{t('myBranches')}</CardTitle>
+                  <CardDescription>{t('switchBranches')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -1984,8 +1991,8 @@ export default function RestaurantAdminDashboard() {
                     <Input
                       placeholder="my-resto"
                       id="setting-slug"
-                      key={currentRestaurant?.slug}
-                      defaultValue={currentRestaurant?.slug}
+                      value={slugValue}
+                      onChange={(e) => setSlugValue(e.target.value)}
                     />
                     <p className="text-xs text-gray-400">Unique URL identifier for your menu.</p>
                   </div>
@@ -2184,20 +2191,26 @@ export default function RestaurantAdminDashboard() {
                           name: name, // If we added ID to input
                           address,
                           phone,
-                          slug: (document.getElementById('setting-slug') as HTMLInputElement)?.value,
+                          slug: slugValue,
                           googleMapsUrl: (document.getElementById('setting-googleMapsUrl') as HTMLInputElement)?.value,
                           latitude: parseFloat((document.getElementById('setting-latitude') as HTMLInputElement)?.value || '0'),
                           longitude: parseFloat((document.getElementById('setting-longitude') as HTMLInputElement)?.value || '0'),
                         })
                       });
                       if (res.ok) {
-                        toast({ title: "Saved", description: "Settings saved successfully" });
-                        fetchDashboardData();
+                        const data = await res.json();
+                        toast({ title: t('save'), description: "Settings saved successfully" });
+                        // Update local state if needed or fetch
+                        if (data.data && data.data.slug !== currentRestaurant?.slug) {
+                          window.location.reload(); // Reload to reflect slug change across app
+                        } else {
+                          fetchDashboardData();
+                        }
                       }
                     } catch (err) { toast({ title: "Error", description: "Failed to save", variant: "destructive" }); }
                   }}
                 >
-                  Save Changes
+                  {t('save')}
                 </Button>
               </CardContent>
             </Card>

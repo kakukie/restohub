@@ -66,7 +66,10 @@ export const translations = {
         disconnected: "Disconnected",
         checkConnection: "Check Connection",
         printerReady: "Printer is ready",
-        printerError: "Printer connection failed"
+        printerError: "Printer connection failed",
+        restaurantSettings: "Restaurant Settings",
+        myBranches: "My Branches",
+        switchBranches: "Switch between your restaurant outlets"
     },
     id: {
         dashboard: "Dasbor",
@@ -134,9 +137,13 @@ export const translations = {
         disconnected: "Terputus",
         checkConnection: "Cek Koneksi",
         printerReady: "Printer siap",
-        printerError: "Koneksi printer gagal"
+        printerError: "Koneksi printer gagal",
+        restaurantSettings: "Pengaturan Restoran",
+        myBranches: "Cabang Saya",
+        switchBranches: "Ganti outlet restoran anda"
     }
 }
+
 
 export type Language = 'en' | 'id'
 export type TranslationKey = keyof typeof translations.en
