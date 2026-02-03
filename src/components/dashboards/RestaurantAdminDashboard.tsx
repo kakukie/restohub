@@ -107,6 +107,11 @@ export default function RestaurantAdminDashboard() {
 
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1)
   const [reportYear, setReportYear] = useState(new Date().getFullYear())
+  const [reportFilterType, setReportFilterType] = useState<'monthly' | 'custom'>('monthly')
+  const [reportDateRange, setReportDateRange] = useState({
+    start: new Date().toISOString().split('T')[0],
+    end: new Date().toISOString().split('T')[0]
+  })
 
   const [viewOrder, setViewOrder] = useState<Order | null>(null)
   const [historyDateRange, setHistoryDateRange] = useState({
@@ -122,8 +127,15 @@ export default function RestaurantAdminDashboard() {
     if (!isPolling) setIsLoading(true)
     try {
       // ... existing URL definitions ...
-      const startDate = new Date(reportYear, reportMonth - 1, 1)
-      const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999)
+      let startDate, endDate
+      if (reportFilterType === 'monthly') {
+        startDate = new Date(reportYear, reportMonth - 1, 1)
+        endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999)
+      } else {
+        startDate = new Date(reportDateRange.start)
+        endDate = new Date(reportDateRange.end)
+        endDate.setHours(23, 59, 59, 999)
+      }
 
       const ts = new Date().getTime()
       const [resMenu, resCat, resOrder, resPay, resReport, resOrderItems, resAnn] = await Promise.all([
@@ -913,10 +925,7 @@ export default function RestaurantAdminDashboard() {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="analytics">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Analytics
-              </TabsTrigger>
+              {/* Analytics Merged into Reports */}
               <TabsTrigger value="payments">
                 <CreditCard className="h-4 w-4 mr-2" />
                 {t.paymentMethods}
@@ -2115,28 +2124,61 @@ export default function RestaurantAdminDashboard() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <h2 className="text-2xl font-bold">Sales Reports</h2>
               <div className="flex items-center gap-2">
-                <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Select Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                      <SelectItem key={m} value={m.toString()}>
-                        {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(parseInt(v))}>
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[2024, 2025, 2026].map(y => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col sm:flex-row items-base sm:items-center gap-2">
+                  <Select value={reportFilterType} onValueChange={(v: any) => setReportFilterType(v)}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="custom">Custom Range</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {reportFilterType === 'monthly' ? (
+                    <>
+                      <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue placeholder="Select Month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                            <SelectItem key={m} value={m.toString()}>
+                              {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(parseInt(v))}>
+                        <SelectTrigger className="w-[100px]">
+                          <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[2024, 2025, 2026].map(y => (
+                            <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        className="border rounded px-2 py-2 text-sm"
+                        value={reportDateRange.start}
+                        onChange={(e) => setReportDateRange(prev => ({ ...prev, start: e.target.value }))}
+                      />
+                      <span className="text-gray-400">-</span>
+                      <input
+                        type="date"
+                        className="border rounded px-2 py-2 text-sm"
+                        value={reportDateRange.end}
+                        onChange={(e) => setReportDateRange(prev => ({ ...prev, end: e.target.value }))}
+                      />
+                      <Button size="sm" onClick={() => fetchDashboardData()}>Refresh</Button>
+                    </div>
+                  )}
+                </div>
                 <Button variant="outline" onClick={handleDownloadReport}>
                   <Download className="h-4 w-4 mr-2" />
                   Export

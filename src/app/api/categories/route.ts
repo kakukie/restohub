@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       select: { maxCategories: true }
     })
 
-    const count = await prisma.category.count({ where: { restaurantId: resolvedId } })
+    const count = await prisma.category.count({ where: { restaurantId: resolvedId, deletedAt: null } })
 
     if (restaurant?.maxCategories !== null && restaurant?.maxCategories !== undefined && count >= restaurant.maxCategories) {
       return NextResponse.json({

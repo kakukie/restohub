@@ -32,8 +32,7 @@ export async function GET(
 
         const methods = await prisma.paymentMethod.findMany({
             where: {
-                restaurantId: restaurantId,
-                deletedAt: null
+                restaurantId: restaurantId
             }
         })
         return NextResponse.json({ success: true, data: methods })
@@ -55,12 +54,16 @@ export async function POST(
         const body = await request.json()
         const { type, merchantId, qrCode, isActive } = body
 
+        if (!type) {
+            return NextResponse.json({ success: false, error: 'Payment type is required' }, { status: 400 })
+        }
+
         const newMethod = await prisma.paymentMethod.create({
             data: {
                 restaurantId: restaurantId,
                 type,
-                merchantId,
-                qrCode,
+                merchantId: merchantId || null,
+                qrCode: qrCode || null,
                 isActive: isActive ?? true
             }
         })
@@ -115,7 +118,7 @@ export async function DELETE(
     try {
         await prisma.paymentMethod.update({
             where: { id: paymentId },
-            data: { deletedAt: new Date(), isActive: false }
+            data: { isActive: false }
         })
         return NextResponse.json({ success: true })
     } catch (error) {
