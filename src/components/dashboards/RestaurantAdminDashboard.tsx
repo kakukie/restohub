@@ -260,7 +260,7 @@ export default function RestaurantAdminDashboard() {
 
         // Optimistically update stats if adding new item
         if (!editingMenuItem) {
-          setStats(prev => ({ ...prev, totalMenuItems: prev.totalMenuItems + 1 }))
+          setReportStats(prev => ({ ...prev, totalMenuItems: prev.totalMenuItems + 1 }))
         }
 
         setMenuItemDialogOpen(false)
