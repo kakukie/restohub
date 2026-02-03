@@ -1372,13 +1372,20 @@ export default function RestaurantAdminDashboard() {
                       <SelectItem value="REJECTED">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="flex items-center border rounded-md px-2 bg-white w-full sm:w-auto" title="Filter Date">
-                    <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                  <div className="flex items-center gap-2 border rounded-md px-2 bg-white w-full sm:w-auto" title="Filter Date">
+                    <Calendar className="h-4 w-4 text-gray-500" />
                     <input
                       type="date"
                       className="text-sm outline-none w-[110px] py-2"
                       value={orderDateRange.start}
                       onChange={(e) => setOrderDateRange(prev => ({ ...prev, start: e.target.value }))}
+                    />
+                    <span className="text-gray-400">-</span>
+                    <input
+                      type="date"
+                      className="text-sm outline-none w-[110px] py-2"
+                      value={orderDateRange.end}
+                      onChange={(e) => setOrderDateRange(prev => ({ ...prev, end: e.target.value }))}
                     />
                   </div>
                   <Button variant="outline" size="icon" onClick={() => fetchDashboardData()}>
@@ -1429,83 +1436,97 @@ export default function RestaurantAdminDashboard() {
                         // Status Filter
                         const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
 
-                        // Date Filter (Strict Timestamp Comparison)
+                        // Date Filter (Strict Range)
                         const orderDate = new Date(o.createdAt);
                         const start = new Date(orderDateRange.start);
                         start.setHours(0, 0, 0, 0);
-
                         const end = new Date(orderDateRange.end);
                         end.setHours(23, 59, 59, 999);
 
-                        // If range invalid, default to show all? Or Show Today? 
-                        // Assuming valid range from state defaults.
-                        const matchDate = orderDate.getTime() >= start.getTime() && orderDate.getTime() <= end.getTime();
+                        const matchDate = orderDate >= start && orderDate <= end;
 
-                        // Search
-                        const q = orderSearchQuery.toLowerCase();
-                        const matchSearch = !q ||
-                          o.orderNumber.toLowerCase().includes(q) ||
-                          o.customerName.toLowerCase().includes(q) ||
-                          (o.tableNumber || '').toLowerCase().includes(q);
+                        // Search Filter
+                        {
+                          orders.filter(o => {
+                            // Status Filter
+                            const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
 
-                        return matchStatus && matchDate && matchSearch;
-                      })
-                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                        .map(order => (
-                          <div key={order.id} className="p-4 hover:bg-gray-50 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between transition-colors">
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-lg">#{order.orderNumber}</span>
-                                <Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge>
-                                <span className="text-xs text-gray-500 ml-2">{new Date(order.createdAt).toLocaleString('id-ID')}</span>
-                              </div>
-                              <div className="flex items-center gap-4 text-sm text-gray-700">
-                                <div className="flex items-center gap-1"><Users className="h-3 w-3" /> {order.customerName}</div>
-                                <div className="flex items-center gap-1"><Utensils className="h-3 w-3" /> {order.tableNumber || 'Takeaway'}</div>
-                                <div className="flex items-center gap-1 font-medium">{getPaymentMethodIcon(order.paymentMethod)} {order.paymentMethod}</div>
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {order.items.map(i => `${i.quantity}x ${i.menuItemName}`).join(', ')}
-                              </div>
-                              {order.notes && <div className="text-xs text-orange-600 italic bg-orange-50 inline-block px-2 py-1 rounded">Note: {order.notes}</div>}
-                            </div>
-                            <div className="flex flex-col items-end gap-2 w-full sm:w-auto min-w-[140px]">
-                              <div className="font-bold text-lg text-emerald-600">Rp {order.totalAmount.toLocaleString('id-ID')}</div>
+                            // Date Filter (Strict Range)
+                            const orderDate = new Date(o.createdAt);
+                            const start = new Date(orderDateRange.start);
+                            start.setHours(0, 0, 0, 0);
+                            const end = new Date(orderDateRange.end);
+                            end.setHours(23, 59, 59, 999);
 
-                              {/* Action Buttons Based on Status */}
-                              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:justify-end">
-                                {order.status === 'PENDING' && (
-                                  <>
-                                    <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 h-8 w-full sm:w-auto" onClick={() => handleRejectOrder(order.id)}>Reject</Button>
-                                    <Button size="sm" className="bg-green-600 h-8 w-full sm:w-auto" onClick={() => setValidateOrderId(order.id)}>Accept</Button>
-                                  </>
-                                )}
-                                {order.status === 'CONFIRMED' && (
-                                  <Button size="sm" className="w-full sm:w-auto h-8" onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}>Start Cooking</Button>
-                                )}
-                                {order.status === 'PREPARING' && (
-                                  <Button size="sm" className="w-full sm:w-auto bg-blue-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'READY')}>Mark Ready</Button>
-                                )}
-                                {order.status === 'READY' && (
-                                  <Button size="sm" className="w-full sm:w-auto bg-green-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}>Complete</Button>
-                                )}
+                            const matchDate = orderDate >= start && orderDate <= end;
 
-                                <div className="flex gap-2 w-full sm:w-auto">
-                                  <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => handlePrintOrder(order)}>
-                                    <Printer className="h-4 w-4 text-gray-500 mx-auto" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => setViewOrder(order)}>
-                                    <ArrowUpRight className="h-4 w-4 text-blue-500 mx-auto" />
-                                  </Button>
+                            // Search Filter (Fixing mangled code)
+                            const q = orderSearchQuery.toLowerCase();
+                            const matchSearch = !q ||
+                              o.orderNumber?.toLowerCase().includes(q) ||
+                              o.customerName?.toLowerCase().includes(q);
+
+                            return matchStatus && matchDate && matchSearch;
+                          })
+                            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                            .map((order) => (
+                              <div key={order.id} className="p-4 hover:bg-gray-50 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between transition-colors">
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-lg">#{order.orderNumber}</span>
+                                    <Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge>
+                                    <span className="text-xs text-gray-500 ml-2">{new Date(order.createdAt).toLocaleString('id-ID')}</span>
+                                  </div>
+                                  <div className="flex items-center gap-4 text-sm text-gray-700">
+                                    <div className="flex items-center gap-1"><Users className="h-3 w-3" /> {order.customerName}</div>
+                                    <div className="flex items-center gap-1"><Utensils className="h-3 w-3" /> {order.tableNumber || 'Takeaway'}</div>
+                                    <div className="flex items-center gap-1 font-medium">{getPaymentMethodIcon(order.paymentMethod)} {order.paymentMethod}</div>
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    {order.items.map(i => `${i.quantity}x ${i.menuItemName}`).join(', ')}
+                                  </div>
+                                  {order.notes && <div className="text-xs text-orange-600 italic bg-orange-50 inline-block px-2 py-1 rounded">Note: {order.notes}</div>}
+                                </div>
+                                <div className="flex flex-col items-end gap-2 w-full sm:w-auto min-w-[140px]">
+                                  <div className="font-bold text-lg text-emerald-600">Rp {order.totalAmount.toLocaleString('id-ID')}</div>
+
+                                  {/* Action Buttons Based on Status */}
+                                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:justify-end">
+                                    {order.status === 'PENDING' && (
+                                      <>
+                                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 h-8 w-full sm:w-auto" onClick={() => handleRejectOrder(order.id)}>Reject</Button>
+                                        <Button size="sm" className="bg-green-600 h-8 w-full sm:w-auto" onClick={() => setValidateOrderId(order.id)}>Accept</Button>
+                                      </>
+                                    )}
+                                    {order.status === 'CONFIRMED' && (
+                                      <Button size="sm" className="w-full sm:w-auto h-8" onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}>Start Cooking</Button>
+                                    )}
+                                    {order.status === 'PREPARING' && (
+                                      <Button size="sm" className="w-full sm:w-auto bg-blue-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'READY')}>Mark Ready</Button>
+                                    )}
+                                    {order.status === 'READY' && (
+                                      <Button size="sm" className="w-full sm:w-auto bg-green-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}>Complete</Button>
+                                    )}
+
+                                    <div className="flex gap-2 w-full sm:w-auto">
+                                      <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => handlePrintOrder(order)}>
+                                        <Printer className="h-4 w-4 text-gray-500 mx-auto" />
+                                      </Button>
+                                      <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => setViewOrder(order)}>
+                                        <ArrowUpRight className="h-4 w-4 text-blue-500 mx-auto" />
+                                      </Button>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        ))}
+                            ))
+                        }
 
-                      {orders.length === 0 && (
-                        <div className="p-12 text-center text-gray-400">No orders found</div>
-                      )}
+                        {
+                          orders.length === 0 && (
+                            <div className="p-12 text-center text-gray-400">No orders found</div>
+                          )
+                        }
                     </div>
                   </ScrollArea>
                 </CardContent>
@@ -2044,99 +2065,140 @@ export default function RestaurantAdminDashboard() {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-2">
-                    <Label>Logo</Label>
-                    <div className="flex items-center gap-4">
-                      {currentRestaurant?.logoUrl ? (
-                        <div className="relative h-16 w-16 rounded-full overflow-hidden border">
-                          <Image src={currentRestaurant.logoUrl} alt="Logo" fill className="object-cover" />
-                        </div>
-                      ) : (
-                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-dashed">
-                          <Utensils className="h-6 w-6" />
-                        </div>
-                      )}
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, async (base64) => {
-                          try {
-                            const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                  {/* Printer Settings */}
+                  {/* Printer Settings */}
+                  <div className="border rounded-lg p-4 space-y-4 mt-6">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Printer className="h-4 w-4" />
+                      {t('printerSettings')}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>{t('paperSize')}</Label>
+                        <Select
+                          value={currentRestaurant?.printerSettings?.paperSize || '58mm'}
+                          onValueChange={(val) => {
+                            const newSettings = { ...(currentRestaurant?.printerSettings || {}), paperSize: val };
+                            fetch(`/api/restaurants/${restaurantId}`, {
                               method: 'PUT',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ logo: base64 })
-                            });
-                            if (res.ok) {
-                              toast({ title: "Updated", description: "Logo updated successfully" });
-                              fetchDashboardData();
-                            }
-                          } catch (err) { toast({ title: "Error", description: "Failed to upload logo", variant: "destructive" }); }
-                        })}
-                      />
+                              body: JSON.stringify({ printerSettings: newSettings })
+                            }).then(() => { toast({ title: "Saved", description: "Printer size updated" }); loadRestaurantDetails(); });
+                          }}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="58mm">58mm (Standard)</SelectItem>
+                            <SelectItem value="80mm">80mm (Wide)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-end">
+                        <Button variant="outline" onClick={() => handlePrintOrder({
+                          ...orders[0],
+                          items: orders[0]?.items || [],
+                          totalAmount: 0,
+                          orderNumber: 'TEST-PRINT'
+                        } as any)}>
+                          {t('testPrint')}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Banner Image</Label>
+
+                  {/* Logo and Banner */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div className="space-y-2">
-                      {currentRestaurant?.bannerUrl && (
-                        <div className="relative h-24 w-full rounded overflow-hidden border">
-                          <Image src={currentRestaurant.bannerUrl} alt="Banner" fill className="object-cover" />
-                        </div>
-                      )}
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, async (base64) => {
-                          try {
-                            const res = await fetch(`/api/restaurants/${restaurantId}`, {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ banner: base64 })
-                            });
-                            if (res.ok) {
-                              toast({ title: "Updated", description: "Banner updated successfully" });
-                              fetchDashboardData();
-                            }
-                          } catch (err) { toast({ title: "Error", description: "Failed to upload banner", variant: "destructive" }); }
-                        })}
-                      />
+                      <Label>Logo</Label>
+                      <div className="flex items-center gap-4">
+                        {currentRestaurant?.logo ? (
+                          <div className="relative h-16 w-16 rounded-full overflow-hidden border">
+                            <Image src={currentRestaurant.logo} alt="Logo" fill className="object-cover" />
+                          </div>
+                        ) : (
+                          <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-dashed">
+                            <Utensils className="h-6 w-6" />
+                          </div>
+                        )}
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, async (base64) => {
+                            try {
+                              const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ logo: base64 })
+                              });
+                              if (res.ok) {
+                                toast({ title: "Updated", description: "Logo updated successfully" });
+                                fetchDashboardData();
+                              }
+                            } catch (err) { toast({ title: "Error", description: "Failed to upload logo", variant: "destructive" }); }
+                          })}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Banner Image</Label>
+                      <div className="space-y-2">
+                        {currentRestaurant?.banner && (
+                          <div className="relative h-24 w-full rounded overflow-hidden border">
+                            <Image src={currentRestaurant.banner} alt="Banner" fill className="object-cover" />
+                          </div>
+                        )}
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, async (base64) => {
+                            try {
+                              const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ banner: base64 })
+                              });
+                              if (res.ok) {
+                                toast({ title: "Updated", description: "Banner updated successfully" });
+                                fetchDashboardData();
+                              }
+                            } catch (err) { toast({ title: "Error", description: "Failed to upload banner", variant: "destructive" }); }
+                          })}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <Button
-                  className="bg-emerald-600 hover:bg-emerald-700 mt-4"
-                  onClick={async () => {
-                    const name = (document.getElementById('setting-name') as HTMLInputElement)?.value || currentRestaurant?.name;
-                    const address = (document.getElementById('setting-address') as HTMLInputElement)?.value;
-                    const phone = (document.getElementById('setting-phone') as HTMLInputElement)?.value;
+                  <Button
+                    className="bg-emerald-600 hover:bg-emerald-700 mt-4"
+                    onClick={async () => {
+                      const name = (document.getElementById('setting-name') as HTMLInputElement)?.value || currentRestaurant?.name;
+                      const address = (document.getElementById('setting-address') as HTMLInputElement)?.value;
+                      const phone = (document.getElementById('setting-phone') as HTMLInputElement)?.value;
 
-                    try {
-                      const res = await fetch(`/api/restaurants/${restaurantId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          name: name, // If we added ID to input
-                          address,
-                          phone,
-                          slug: (document.getElementById('setting-slug') as HTMLInputElement)?.value,
-                          googleMapsUrl: (document.getElementById('setting-googleMapsUrl') as HTMLInputElement)?.value,
-                          latitude: parseFloat((document.getElementById('setting-latitude') as HTMLInputElement)?.value || '0'),
-                          longitude: parseFloat((document.getElementById('setting-longitude') as HTMLInputElement)?.value || '0'),
-                        })
-                      });
-                      if (res.ok) {
-                        toast({ title: "Saved", description: "Settings saved successfully" });
-                        fetchDashboardData();
-                      }
-                    } catch (err) { toast({ title: "Error", description: "Failed to save", variant: "destructive" }); }
-                  }}
-                >
-                  Save Changes
-                </Button>
+                      try {
+                        const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            name: name, // If we added ID to input
+                            address,
+                            phone,
+                            slug: (document.getElementById('setting-slug') as HTMLInputElement)?.value,
+                            googleMapsUrl: (document.getElementById('setting-googleMapsUrl') as HTMLInputElement)?.value,
+                            latitude: parseFloat((document.getElementById('setting-latitude') as HTMLInputElement)?.value || '0'),
+                            longitude: parseFloat((document.getElementById('setting-longitude') as HTMLInputElement)?.value || '0'),
+                          })
+                        });
+                        if (res.ok) {
+                          toast({ title: "Saved", description: "Settings saved successfully" });
+                          fetchDashboardData();
+                        }
+                      } catch (err) { toast({ title: "Error", description: "Failed to save", variant: "destructive" }); }
+                    }}
+                  >
+                    Save Changes
+                  </Button>
               </CardContent>
             </Card>
           </TabsContent>

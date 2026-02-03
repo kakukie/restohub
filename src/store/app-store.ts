@@ -41,6 +41,7 @@ export interface Restaurant {
   subscriptionPlan?: SubscriptionPlan
   maxCategories?: number // Also added per lint feedback
   allowMaps?: boolean
+  printerSettings?: any
 }
 
 export interface PaymentMethod {

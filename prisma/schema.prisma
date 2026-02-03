@@ -89,6 +89,7 @@ model Restaurant {
   maxCategories   Int?    @default(5)
   allowMaps       Boolean @default(false)
   enableAnalytics Boolean @default(false)
+  printerSettings Json? // { paperSize: "58mm" | "80mm", autoPrint: boolean, ... }
 
   // Relations
   adminId        String

@@ -50,7 +50,12 @@ export const translations = {
         logoutConfirm: "Are you sure you want to logout?",
         light: "Light",
         dark: "Dark",
-        system: "System"
+        system: "System",
+        printerSettings: "Printer Settings",
+        paperSize: "Paper Size",
+        testPrint: "Test Print",
+        startDate: "Start Date",
+        endDate: "End Date"
     },
     id: {
         dashboard: "Dasbor",
@@ -102,7 +107,12 @@ export const translations = {
         logoutConfirm: "Apakah Anda yakin ingin keluar?",
         light: "Terang",
         dark: "Gelap",
-        system: "Sistem"
+        system: "Sistem",
+        printerSettings: "Pengaturan Printer",
+        paperSize: "Ukuran Kertas",
+        testPrint: "Tes Cetak",
+        startDate: "Tanggal Mulai",
+        endDate: "Tanggal Akhir"
     }
 }
 
