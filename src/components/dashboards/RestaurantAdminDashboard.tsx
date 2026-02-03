@@ -499,23 +499,17 @@ export default function RestaurantAdminDashboard() {
     if (!categoryForm.name) return
 
     try {
+      let res;
       if (editingCategory) {
         // Update existing category
-        const res = await fetch(`/api/categories`, {
+        res = await fetch(`/api/categories`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: editingCategory.id, ...categoryForm })
         })
-        const data = await res.json()
-        if (data.success) {
-          toast({ title: 'Success', description: 'Category updated' })
-          await fetchDashboardData() // Refresh data
-        } else {
-          throw new Error(data.error)
-        }
       } else {
         // Create new category
-        const res = await fetch(`/api/categories`, {
+        res = await fetch(`/api/categories`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -524,13 +518,23 @@ export default function RestaurantAdminDashboard() {
             restaurantId
           })
         })
-        const data = await res.json()
-        if (data.success) {
-          toast({ title: 'Success', description: 'Category added' })
-          await fetchDashboardData() // Refresh data
+      }
+
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Success', description: 'Category saved' })
+
+        // Optimistic / Faster Update
+        if (editingCategory) {
+          setCategories(prev => prev.map(c => c.id === editingCategory.id ? data.data : c))
         } else {
-          throw new Error(data.error)
+          setCategories(prev => [...prev, data.data])
+          setReportStats(prev => ({ ...prev, totalCategories: (prev.totalCategories || 0) + 1 }))
         }
+        // Background sync
+        loadMenuData()
+      } else {
+        throw new Error(data.error)
       }
       setCategoryDialogOpen(false)
       setEditingCategory(null)

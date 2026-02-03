@@ -21,6 +21,17 @@ services:
     networks:
       - meenuin-prod-net
 
+  redis:
+    image: redis:alpine
+    container_name: meenuin-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - meenuin-prod-net
+
 networks:
   meenuin-prod-net:
     driver: bridge

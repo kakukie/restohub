@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+import { getCache, setCache, invalidateCache } from '@/lib/redis'
+
 export async function GET(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params;
     const idOrSlug = params.id
+    const cacheKey = `dashboard:${idOrSlug}`
 
     try {
-        // Try to find by ID first, then Slug
+        // 1. Check Redis Cache
+        const cachedData = await getCache(cacheKey)
+        if (cachedData) {
+            return NextResponse.json({ success: true, data: cachedData })
+        }
+
+        // 2. Fetch from DB
         const restaurant = await prisma.restaurant.findFirst({
             where: {
                 deletedAt: null,
@@ -21,7 +30,7 @@ export async function GET(
             include: {
                 menuItems: {
                     where: { isAvailable: true },
-                    include: { category: true } // Include category to get name
+                    include: { category: true }
                 },
                 categories: true,
                 paymentMethods: {
@@ -40,7 +49,7 @@ export async function GET(
             )
         }
 
-        // Transform data if necessary (e.g. flattening categoryName)
+        // Transform data
         const transformedData = {
             ...restaurant,
             menuItems: restaurant.menuItems.map(item => ({
@@ -49,14 +58,12 @@ export async function GET(
             }))
         }
 
+        // 3. Set Cache (TTL 60s)
+        await setCache(cacheKey, transformedData, 60)
+
         return NextResponse.json({
             success: true,
             data: transformedData
-        }, {
-            headers: {
-                // Cache for 60 seconds, SWR for 5 mins to improve performance
-                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
-            }
         })
     } catch (error) {
         console.error('Error fetching restaurant:', error)
@@ -171,6 +178,13 @@ export async function PUT(
             where: { id: restaurant.id },
             data: cleanUpdates
         })
+
+        // Redis Invalidation
+        await invalidateCache(`dashboard:${restaurant.id}`)
+        await invalidateCache(`dashboard:${restaurant.slug}`)
+        if (updated.slug !== restaurant.slug) {
+            await invalidateCache(`dashboard:${updated.slug}`)
+        }
 
         // Revalidate cache to prevent stale data
         try {

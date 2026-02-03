@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getCache, setCache, invalidateCache } from '@/lib/redis'
 
 async function getRestaurantId(idOrSlug: string) {
   const restaurant = await prisma.restaurant.findFirst({
@@ -22,14 +23,23 @@ export async function GET(request: NextRequest) {
     const where: any = {}
     if (restaurantIdParam) {
       const resolvedId = await getRestaurantId(restaurantIdParam)
-      if (!resolvedId) return NextResponse.json({ success: true, data: [] }) // Or 404? Empty list is safer for filter.
+      if (!resolvedId) return NextResponse.json({ success: true, data: [] })
       where.restaurantId = resolvedId
+
+      // Check Cache
+      const cacheKey = `categories:${resolvedId}`
+      const cached = await getCache(cacheKey)
+      if (cached) return NextResponse.json({ success: true, data: cached })
     }
 
     const categories = await prisma.category.findMany({
       where: { ...where, deletedAt: null },
       orderBy: { displayOrder: 'asc' }
     })
+
+    if (restaurantIdParam && where.restaurantId) {
+      await setCache(`categories:${where.restaurantId}`, categories, 300) // 5 min
+    }
 
     return NextResponse.json({ success: true, data: categories })
   } catch (error) {
@@ -70,6 +80,10 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Invalidate
+    await invalidateCache(`categories:${resolvedId}`)
+    await invalidateCache(`dashboard:${resolvedId}`)
+
     return NextResponse.json({ success: true, data: newCategory }, { status: 201 })
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
@@ -85,6 +99,13 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: updates
     })
+
+    // Invalidate
+    if (updated.restaurantId) {
+      await invalidateCache(`categories:${updated.restaurantId}`)
+      await invalidateCache(`dashboard:${updated.restaurantId}`)
+    }
+
     return NextResponse.json({ success: true, data: updated })
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
