@@ -125,23 +125,24 @@ export default function RestaurantAdminDashboard() {
       const startDate = new Date(reportYear, reportMonth - 1, 1)
       const endDate = new Date(reportYear, reportMonth, 0, 23, 59, 59, 999)
 
+      const ts = new Date().getTime()
       const [resMenu, resCat, resOrder, resPay, resReport, resOrderItems, resAnn] = await Promise.all([
-        fetch(`/api/menu-items?restaurantId=${restaurantId}`),
-        fetch(`/api/categories?restaurantId=${restaurantId}`),
-        fetch(`/api/orders?restaurantId=${restaurantId}`),
-        fetch(`/api/restaurants/${restaurantId}/payment-methods`),
-        fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`),
-        fetch(`/api/order-items?restaurantId=${restaurantId}`),
-        fetch(`/api/announcements?active=true`)
+        fetch(`/api/menu-items?restaurantId=${restaurantId}&_t=${ts}`),
+        fetch(`/api/categories?restaurantId=${restaurantId}&_t=${ts}`),
+        fetch(`/api/orders?restaurantId=${restaurantId}&_t=${ts}`),
+        fetch(`/api/restaurants/${restaurantId}/payment-methods?_t=${ts}`),
+        fetch(`/api/reports?restaurantId=${restaurantId}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&_t=${ts}`),
+        fetch(`/api/order-items?restaurantId=${restaurantId}&_t=${ts}`),
+        fetch(`/api/announcements?active=true&_t=${ts}`)
       ])
 
       const [dataMenu, dataCat, dataOrder, dataPay, dataReport, dataOrderItems, dataAnn] = await Promise.all([
         resMenu.json(), resCat.json(), resOrder.json(), resPay.json(), resReport.json(), resOrderItems.json(), resAnn.json()
       ])
 
-      if (dataAnn.success) setActiveAnnouncements(dataAnn.data)
-      if (dataMenu.success) setMenuItems(dataMenu.data)
-      if (dataCat.success) setCategories(dataCat.data)
+      if (dataAnn.success) setActiveAnnouncements(dataAnn.data || [])
+      if (dataMenu.success) setMenuItems(dataMenu.data || [])
+      if (dataCat.success) setCategories(dataCat.data || [])
       // Also refresh restaurant details if possible
       try {
         const resResto = await fetch(`/api/restaurants/${restaurantId}`)
@@ -159,8 +160,8 @@ export default function RestaurantAdminDashboard() {
         console.error("Failed to refresh restaurant details", err)
       }
 
-      if (dataOrder.success) setOrders(dataOrder.data)
-      if (dataPay.success) setPaymentMethods(dataPay.data)
+      if (dataOrder.success) setOrders(dataOrder.data || [])
+      if (dataPay.success) setPaymentMethods(dataPay.data || [])
 
       if (dataReport.success) {
         setReportStats(dataReport.data.stats || {})
@@ -598,7 +599,7 @@ export default function RestaurantAdminDashboard() {
       o.status,
       o.totalAmount.toString(),
       o.paymentStatus,
-      o.customer?.name || 'Guest'
+      o.customerName || 'Guest'
     ])
 
     const csvContent = "data:text/csv;charset=utf-8,"
@@ -1152,7 +1153,7 @@ export default function RestaurantAdminDashboard() {
                                 variant="outline"
                                 size="sm"
                                 className="text-red-600 hover:text-red-700"
-                                onClick={() => setMenuItemToDelete(item)}
+                                onClick={() => handleDeleteMenuItem(item.id)}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -1459,29 +1460,30 @@ export default function RestaurantAdminDashboard() {
 
           {/* History Tab */}
           <TabsContent value="history" className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <h2 className="text-2xl font-bold">Order History</h2>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center border rounded-md px-2 py-1 bg-white">
-                  <span className="text-sm text-gray-500 mr-2">From:</span>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full md:w-auto">
+                <div className="flex items-center border rounded-md px-2 py-1 bg-white w-full sm:w-auto">
+                  <span className="text-sm text-gray-500 mr-2 min-w-[40px]">From:</span>
                   <input
                     type="date"
-                    className="text-sm outline-none"
+                    className="text-sm outline-none w-full"
                     value={historyDateRange.start}
                     onChange={(e) => setHistoryDateRange(prev => ({ ...prev, start: e.target.value }))}
                   />
                 </div>
-                <div className="flex items-center border rounded-md px-2 py-1 bg-white">
-                  <span className="text-sm text-gray-500 mr-2">To:</span>
+                <div className="flex items-center border rounded-md px-2 py-1 bg-white w-full sm:w-auto">
+                  <span className="text-sm text-gray-500 mr-2 min-w-[20px]">To:</span>
                   <input
                     type="date"
-                    className="text-sm outline-none"
+                    className="text-sm outline-none w-full"
                     value={historyDateRange.end}
                     onChange={(e) => setHistoryDateRange(prev => ({ ...prev, end: e.target.value }))}
                   />
                 </div>
-                <Button variant="outline" size="sm" onClick={() => fetchDashboardData()}>
-                  Filter
+                <Button variant="outline" size="sm" onClick={() => fetchDashboardData()} className="w-full sm:w-auto">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
                 </Button>
               </div>
             </div>
@@ -1496,7 +1498,13 @@ export default function RestaurantAdminDashboard() {
               <CardContent>
                 <ScrollArea className="h-[500px]">
                   <div className="space-y-4">
-                    {orders.filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status)).length === 0 ? (
+                    {orders.filter(o => {
+                      const orderDate = new Date(o.createdAt).setHours(0, 0, 0, 0)
+                      const startDate = new Date(historyDateRange.start).setHours(0, 0, 0, 0)
+                      const endDate = new Date(historyDateRange.end).setHours(23, 59, 59, 999)
+                      const isStatusMatch = ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status)
+                      return isStatusMatch && orderDate >= startDate && orderDate <= endDate
+                    }).length === 0 ? (
                       <p className="text-center py-8 text-gray-500">No history found for this period.</p>
                     ) : (
                       orders
