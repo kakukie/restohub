@@ -34,7 +34,8 @@ if [ -n "$BUN_BIN" ]; then
     "$BUN_BIN" run db:push --accept-data-loss
 elif [ -n "$NPX_BIN" ]; then
     # Node Environment
-    "$NPX_BIN" prisma db push --accept-data-loss
+    # Node Environment
+    "$NPX_BIN" prisma@6.11.1 db push --accept-data-loss
 else
     echo "CRITICAL ERROR: Neither Bun nor Npx found. Cannot migrate DB."
     exit 1
