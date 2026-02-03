@@ -825,7 +825,9 @@ export default function RestaurantAdminDashboard() {
                   {currentRestaurant?.name || 'Meenuin'}
                   <div className="flex flex-col items-start ml-2">
                     <Badge variant="secondary" className="text-[10px] h-5 hidden sm:inline-flex bg-purple-100 text-purple-700 border-purple-200">
-                      {currentRestaurant?.subscriptionPlan?.name || currentRestaurant?.package || 'BASIC'} Plan
+                      {currentRestaurant?.package === 'FREE_TRIAL' ? 'Free Trial' :
+                        currentRestaurant?.package === 'PRO' ? 'Pro' :
+                          currentRestaurant?.package === 'ENTERPRISE' ? 'Enterprise' : 'Basic'} Plan
                     </Badge>
                   </div>
                 </h1>
@@ -834,7 +836,7 @@ export default function RestaurantAdminDashboard() {
                     {menuItems.length} / {currentRestaurant?.maxMenuItems || '15'} Items
                   </span>
                   <Badge variant="outline" className="text-[10px] h-4 sm:hidden bg-purple-100 text-purple-700 border-purple-200">
-                    {currentRestaurant?.subscriptionPlan?.name || 'BASIC'}
+                    {currentRestaurant?.package === 'FREE_TRIAL' ? 'Free' : (currentRestaurant?.package || 'Basic')}
                   </Badge>
                 </div>
               </div>
@@ -1946,6 +1948,7 @@ export default function RestaurantAdminDashboard() {
                     <Label>Restaurant Name</Label>
                     <Input
                       placeholder="My Restaurant"
+                      id="setting-name" // Added ID for save logic
                       defaultValue={currentRestaurant?.name}
                       onChange={(e) => {
                         // Use state or ref if we want full form handling, for now simple patch
@@ -2006,7 +2009,7 @@ export default function RestaurantAdminDashboard() {
                             const res = await fetch(`/api/restaurants/${restaurantId}`, {
                               method: 'PUT',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ logoUrl: base64 })
+                              body: JSON.stringify({ logo: base64 })
                             });
                             if (res.ok) {
                               toast({ title: "Updated", description: "Logo updated successfully" });
@@ -2033,7 +2036,7 @@ export default function RestaurantAdminDashboard() {
                             const res = await fetch(`/api/restaurants/${restaurantId}`, {
                               method: 'PUT',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ bannerUrl: base64 })
+                              body: JSON.stringify({ banner: base64 })
                             });
                             if (res.ok) {
                               toast({ title: "Updated", description: "Banner updated successfully" });

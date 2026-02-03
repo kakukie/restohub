@@ -124,8 +124,30 @@ export async function PUT(
     try {
         const body = await request.json()
         // Extract 'theme' and 'id' to exclude them from the update payload
+        // Also map legacy frontend keys if present (logoUrl -> logo, bannerUrl -> banner)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, ...updates } = body
+        const { id, logoUrl, bannerUrl, ...otherUpdates } = body
+
+        const updates: any = { ...otherUpdates }
+
+        // Map keys if they exist
+        if (logoUrl) updates.logo = logoUrl
+        if (bannerUrl) updates.banner = bannerUrl
+
+        // White-list allowed fields to prevent schema errors
+        const allowedFields = [
+            'name', 'description', 'address', 'phone', 'email',
+            'logo', 'banner', 'slug', 'theme', 'status', 'isActive',
+            'detailAddress', 'googleMapsUrl'
+        ]
+
+        // Filter updates
+        const cleanUpdates: any = {}
+        Object.keys(updates).forEach(key => {
+            if (allowedFields.includes(key)) {
+                cleanUpdates[key] = updates[key]
+            }
+        })
 
         // 1. Resolve to actual ID
         const restaurant = await prisma.restaurant.findFirst({
@@ -143,11 +165,11 @@ export async function PUT(
             return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
         }
 
-        console.log(`[PUT] Updating restaurant ${restaurant.id}`) // DEBUG LOG
+        console.log(`[PUT] Updating restaurant ${restaurant.id} with keys: ${Object.keys(cleanUpdates).join(', ')}`) // DEBUG LOG
 
         const updated = await prisma.restaurant.update({
             where: { id: restaurant.id },
-            data: updates
+            data: cleanUpdates
         })
 
         // Revalidate cache to prevent stale data
