@@ -2199,7 +2199,7 @@ export default function RestaurantAdminDashboard() {
                     <div className="text-right">Revenue</div>
                   </div>
                   <ScrollArea className="h-[300px]">
-                    {Object.entries(chartData).map(([date, data]: [string, any]) => (
+                    {Object.entries(reportDailyData).map(([date, data]: [string, any]) => (
                       <div key={date} className="grid grid-cols-4 p-3 text-sm border-b last:border-0 hover:bg-gray-50">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-gray-400" />
@@ -2210,7 +2210,7 @@ export default function RestaurantAdminDashboard() {
                         <div className="text-right font-medium">Rp {data.revenue.toLocaleString('id-ID')}</div>
                       </div>
                     ))}
-                    {Object.keys(chartData).length === 0 && (
+                    {Object.keys(reportDailyData).length === 0 && (
                       <div className="p-8 text-center text-gray-500">No sales data for this period</div>
                     )}
 
