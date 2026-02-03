@@ -69,7 +69,20 @@ export const translations = {
         printerError: "Printer connection failed",
         restaurantSettings: "Restaurant Settings",
         myBranches: "My Branches",
-        switchBranches: "Switch between your restaurant outlets"
+        switchBranches: "Switch between your restaurant outlets",
+        generalInfo: "General Information",
+        generalInfoDesc: "Update your restaurant's details and branding.",
+        restaurantName: "Restaurant Name",
+        restaurantNameDesc: "This is how your store appears to customers.",
+        storeUrl: "Store URL (Slug)",
+        storeUrlDesc: "Unique URL identifier for your menu.",
+        address: "Address",
+        phone: "Phone",
+        locationMaps: "Location & Maps",
+        googleMapsUrl: "Google Maps URL",
+        showMap: "Show Map on Menu",
+        latitude: "Latitude",
+        longitude: "Longitude"
     },
     id: {
         dashboard: "Dasbor",
@@ -140,7 +153,20 @@ export const translations = {
         printerError: "Koneksi printer gagal",
         restaurantSettings: "Pengaturan Restoran",
         myBranches: "Cabang Saya",
-        switchBranches: "Ganti outlet restoran anda"
+        switchBranches: "Ganti outlet restoran anda",
+        generalInfo: "Informasi Umum",
+        generalInfoDesc: "Perbarui detail dan branding restoran Anda.",
+        restaurantName: "Nama Restoran",
+        restaurantNameDesc: "Ini adalah nama toko Anda untuk pelanggan.",
+        storeUrl: "URL Toko (Slug)",
+        storeUrlDesc: "Identifier URL unik untuk menu Anda.",
+        address: "Alamat",
+        phone: "Telepon",
+        locationMaps: "Lokasi & Peta",
+        googleMapsUrl: "URL Google Maps",
+        showMap: "Tampilkan Peta di Menu",
+        latitude: "Latitude",
+        longitude: "Longitude"
     }
 }
 

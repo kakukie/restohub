@@ -1962,13 +1962,13 @@ export default function RestaurantAdminDashboard() {
             {/* General Settings */}
             <Card>
               <CardHeader>
-                <CardTitle>General Information</CardTitle>
-                <CardDescription>Update your restaurant's details and branding.</CardDescription>
+                <CardTitle>{t('generalInfo')}</CardTitle>
+                <CardDescription>{t('generalInfoDesc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Restaurant Name</Label>
+                    <Label>{t('restaurantName')}</Label>
                     <Input
                       placeholder="My Restaurant"
                       id="setting-name" // Added ID for save logic
@@ -1984,27 +1984,27 @@ export default function RestaurantAdminDashboard() {
                         }
                       }}
                     />
-                    <p className="text-xs text-gray-400">This is how your store appears to customers.</p>
+                    <p className="text-xs text-gray-400">{t('restaurantNameDesc')}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label>Store URL (Slug)</Label>
+                    <Label>{t('storeUrl')}</Label>
                     <Input
                       placeholder="my-resto"
                       id="setting-slug"
                       value={slugValue}
                       onChange={(e) => setSlugValue(e.target.value)}
                     />
-                    <p className="text-xs text-gray-400">Unique URL identifier for your menu.</p>
+                    <p className="text-xs text-gray-400">{t('storeUrlDesc')}</p>
                   </div>
                   <div className="space-y-2">
-                    <Label>Address</Label>
+                    <Label>{t('address')}</Label>
                     <Input
                       defaultValue={currentRestaurant?.address}
                       id="setting-address"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Phone</Label>
+                    <Label>{t('phone')}</Label>
                     <Input
                       defaultValue={currentRestaurant?.phone}
                       id="setting-phone"
@@ -2012,10 +2012,10 @@ export default function RestaurantAdminDashboard() {
                   </div>
                   {/* Map Settings */}
                   <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
-                    <h3 className="font-medium mb-2">Location & Maps</h3>
+                    <h3 className="font-medium mb-2">{t('locationMaps')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Google Maps URL</Label>
+                        <Label>{t('googleMapsUrl')}</Label>
                         <Input
                           id="setting-googleMapsUrl"
                           placeholder="https://maps.google.com/..."
@@ -2042,11 +2042,11 @@ export default function RestaurantAdminDashboard() {
                               }).then(() => { toast({ title: "Updated", description: "Map visibility updated" }); fetchDashboardData(); });
                             }}
                           />
-                          <Label htmlFor="setting-allowMaps">Show Map on Menu</Label>
+                          <Label htmlFor="setting-allowMaps">{t('showMap')}</Label>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>Latitude</Label>
+                        <Label>{t('latitude')}</Label>
                         <Input
                           id="setting-latitude"
                           type="number" step="any"
@@ -2054,7 +2054,7 @@ export default function RestaurantAdminDashboard() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Longitude</Label>
+                        <Label>{t('longitude')}</Label>
                         <Input
                           id="setting-longitude"
                           type="number" step="any"
