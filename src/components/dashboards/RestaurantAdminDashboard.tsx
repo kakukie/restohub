@@ -112,6 +112,7 @@ export default function RestaurantAdminDashboard() {
     start: new Date().toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
   })
+  const [reportStatusFilter, setReportStatusFilter] = useState('COMPLETED')
 
   const [viewOrder, setViewOrder] = useState<Order | null>(null)
   const [historyDateRange, setHistoryDateRange] = useState({
@@ -884,7 +885,7 @@ export default function RestaurantAdminDashboard() {
       </header>
 
       {/* Main Content */}
-      < main className="container mx-auto px-4 py-8 pb-32 flex-1" >
+      <main className="container mx-auto px-4 py-8 pb-32 flex-1">
 
         {/* System Announcements */}
         {/* System Announcements */}
@@ -2204,6 +2205,18 @@ export default function RestaurantAdminDashboard() {
                     </SelectContent>
                   </Select>
 
+                  {/* Status Filter */}
+                  <Select value={reportStatusFilter} onValueChange={setReportStatusFilter}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="COMPLETED">Completed</SelectItem>
+                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                      <SelectItem value="ALL">All Status</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   {reportFilterType === 'monthly' ? (
                     <>
                       <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
@@ -2340,10 +2353,10 @@ export default function RestaurantAdminDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
-      </main >
+      </main>
 
       {/* Mobile Bottom Nav */}
-      < div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex justify-around py-2 safe-area-pb" >
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex justify-around py-2 safe-area-pb">
         <button
           onClick={() => setActiveTab('menu')}
           className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'menu' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
@@ -2393,19 +2406,19 @@ export default function RestaurantAdminDashboard() {
           <Settings className="h-5 w-5" />
           <span className="text-[10px] font-medium mt-1">Settings</span>
         </button>
-      </div >
+      </div>
 
       {/* Footer */}
-      < footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0" >
+      <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             © 2026 Meenuin. Digital Restaurant Platform
           </p>
         </div>
-      </footer >
+      </footer>
 
       {/* Helpdesk Floating Button - Visible on all devices */}
-      < div className="fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex flex-col items-end gap-2 group" >
+      <div className="fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex flex-col items-end gap-2 group">
         <div className="bg-black/75 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
           Chat Helpdesk
         </div>
@@ -2415,14 +2428,13 @@ export default function RestaurantAdminDashboard() {
         >
           <MessageCircle className="h-7 w-7" />
         </Button>
-      </div >
+      </div>
 
       {/* QR Code Dialog for Restaurant Menu */}
-      < QRCodeDialog
+      <QRCodeDialog
         open={qrCodeDialogOpen}
         onOpenChange={setQrCodeDialogOpen}
-        restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId
-        }
+        restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId || ''}
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
 
@@ -2473,7 +2485,7 @@ export default function RestaurantAdminDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div >
+    </div>
   )
 }
 
