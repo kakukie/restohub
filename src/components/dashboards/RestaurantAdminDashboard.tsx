@@ -850,6 +850,7 @@ export default function RestaurantAdminDashboard() {
             </div>
             <div className="flex items-center gap-2">
               {/* Desktop Actions */}
+              {/* Desktop Actions */}
               <div className="hidden sm:flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleShowQRCode(currentRestaurant?.menuItems?.[0] || {} as any)}>
                   <QrCode className="h-4 w-4 mr-2" />
@@ -861,13 +862,9 @@ export default function RestaurantAdminDashboard() {
                   <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                   <span className="sr-only">Toggle theme</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => loadReportData()}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  {t('search')}
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleDownloadReport}>
-                  <Download className="h-4 w-4 mr-2" />
-                  {t('download')}
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {t('logout')}
                 </Button>
               </div>
             </div>
@@ -926,52 +923,52 @@ export default function RestaurantAdminDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Menu Items</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('itemsSold')}</CardTitle>
               <Package className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{reportStats.itemsSold || 0}</div>
-              <p className="text-xs text-gray-500">Items Sold</p>
+              <p className="text-xs text-gray-500">{t('itemsSold')}</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Categories</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('categories')}</CardTitle>
               <LayoutGrid className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{reportStats.totalCategories || 0}</div>
-              <p className="text-xs text-gray-500">Menu categories</p>
+              <p className="text-xs text-gray-500">{t('menuCategories')}</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('totalOrders')}</CardTitle>
               <ShoppingBag className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{reportStats.totalOrders || 0}</div>
-              <p className="text-xs text-gray-500">This month</p>
+              <p className="text-xs text-gray-500">{t('thisMonth')}</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('totalRevenue')}</CardTitle>
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-xl sm:text-2xl font-bold">Rp {(reportStats.totalRevenue || 0).toLocaleString('id-ID')}</div>
-              <p className="text-xs text-gray-500">Gross validated revenue</p>
+              <p className="text-xs text-gray-500">{t('grossValidatedRevenue')}</p>
             </CardContent>
           </Card>
           <Card className="bg-red-50 dark:bg-red-900/10 border-red-100">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-red-600">Cancelled</CardTitle>
+              <CardTitle className="text-sm font-medium text-red-600">{t('cancelled')}</CardTitle>
               <XCircle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
               <div className="text-xl sm:text-2xl font-bold text-red-600">Rp {(reportStats.cancelledRevenue || 0).toLocaleString('id-ID')}</div>
-              <p className="text-xs text-red-600/70">{reportStats.cancelledOrders || 0} orders cancelled</p>
+              <p className="text-xs text-red-600/70">{reportStats.cancelledOrders || 0} {t('cancelled')}</p>
             </CardContent>
           </Card>
         </div>
@@ -2063,10 +2060,16 @@ export default function RestaurantAdminDashboard() {
 
                 {/* Printer Settings */}
                 <div className="border rounded-lg p-4 space-y-4 mt-6">
-                  <h3 className="font-medium flex items-center gap-2">
-                    <Printer className="h-4 w-4" />
-                    {t('printerSettings')}
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Printer className="h-4 w-4" />
+                      {t('printerSettings')}
+                    </h3>
+                    <Badge variant={currentRestaurant?.printerSettings?.paperSize ? "secondary" : "outline"} className={currentRestaurant?.printerSettings?.paperSize ? "bg-green-100 text-green-700" : ""}>
+                      {currentRestaurant?.printerSettings?.paperSize ? t('connected') : t('disconnected')}
+                    </Badge>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>{t('paperSize')}</Label>
@@ -2088,14 +2091,17 @@ export default function RestaurantAdminDashboard() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="flex items-end">
-                      <Button variant="outline" onClick={() => handlePrintOrder({
+                    <div className="flex items-end gap-2">
+                      <Button variant="outline" className="flex-1" onClick={() => handlePrintOrder({
                         ...orders[0],
                         items: orders[0]?.items || [],
                         totalAmount: 0,
                         orderNumber: 'TEST-PRINT'
                       } as any)}>
                         {t('testPrint')}
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => toast({ title: t('printerStatus'), description: t('printerReady') })}>
+                        <RefreshCw className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>

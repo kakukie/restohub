@@ -55,7 +55,18 @@ export const translations = {
         paperSize: "Paper Size",
         testPrint: "Test Print",
         startDate: "Start Date",
-        endDate: "End Date"
+        endDate: "End Date",
+        grossRevenue: "Gross Revenue",
+        grossValidatedRevenue: "Gross validated revenue",
+        lostRevenue: "Lost Revenue",
+        thisMonth: "This month",
+        menuCategories: "Menu categories",
+        printerStatus: "Printer Status",
+        connected: "Connected",
+        disconnected: "Disconnected",
+        checkConnection: "Check Connection",
+        printerReady: "Printer is ready",
+        printerError: "Printer connection failed"
     },
     id: {
         dashboard: "Dasbor",
@@ -112,7 +123,18 @@ export const translations = {
         paperSize: "Ukuran Kertas",
         testPrint: "Tes Cetak",
         startDate: "Tanggal Mulai",
-        endDate: "Tanggal Akhir"
+        endDate: "Tanggal Akhir",
+        grossRevenue: "Pendapatan Kotor",
+        grossValidatedRevenue: "Pendapatan tervalidasi",
+        lostRevenue: "Pendapatan Hilang",
+        thisMonth: "Bulan ini",
+        menuCategories: "Kategori Menu",
+        printerStatus: "Status Printer",
+        connected: "Terhubung",
+        disconnected: "Terputus",
+        checkConnection: "Cek Koneksi",
+        printerReady: "Printer siap",
+        printerError: "Koneksi printer gagal"
     }
 }
 
