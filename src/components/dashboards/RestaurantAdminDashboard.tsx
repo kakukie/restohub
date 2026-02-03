@@ -842,7 +842,7 @@ export default function RestaurantAdminDashboard() {
               <Package className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.itemsSold || 0}</div>
+              <div className="text-2xl font-bold">{reportStats.itemsSold || 0}</div>
               <p className="text-xs text-gray-500">Items Sold</p>
             </CardContent>
           </Card>
@@ -852,7 +852,7 @@ export default function RestaurantAdminDashboard() {
               <LayoutGrid className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCategories}</div>
+              <div className="text-2xl font-bold">{reportStats.totalCategories}</div>
               <p className="text-xs text-gray-500">Menu categories</p>
             </CardContent>
           </Card>
@@ -862,7 +862,7 @@ export default function RestaurantAdminDashboard() {
               <ShoppingBag className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalOrders}</div>
+              <div className="text-2xl font-bold">{reportStats.totalOrders}</div>
               <p className="text-xs text-gray-500">This month</p>
             </CardContent>
           </Card>
@@ -872,7 +872,7 @@ export default function RestaurantAdminDashboard() {
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-xl sm:text-2xl font-bold">Rp {stats.totalRevenue.toLocaleString('id-ID')}</div>
+              <div className="text-xl sm:text-2xl font-bold">Rp {reportStats.totalRevenue.toLocaleString('id-ID')}</div>
               <p className="text-xs text-gray-500">Gross validated revenue</p>
             </CardContent>
           </Card>
@@ -882,8 +882,8 @@ export default function RestaurantAdminDashboard() {
               <XCircle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-xl sm:text-2xl font-bold text-red-600">Rp {stats.cancelledRevenue.toLocaleString('id-ID')}</div>
-              <p className="text-xs text-red-600/70">{stats.cancelledOrders} orders cancelled</p>
+              <div className="text-xl sm:text-2xl font-bold text-red-600">Rp {reportStats.cancelledRevenue.toLocaleString('id-ID')}</div>
+              <p className="text-xs text-red-600/70">{reportStats.cancelledOrders} orders cancelled</p>
             </CardContent>
           </Card>
         </div>
@@ -945,8 +945,8 @@ export default function RestaurantAdminDashboard() {
                   <span className="mx-2 text-muted-foreground/50">/</span>
                   <span className="font-medium text-foreground">Menu</span>
                   <span className="mx-2 text-muted-foreground/50">/</span>
-                  <span className={stats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
-                    {stats.totalMenuItems} / {currentRestaurant?.maxMenuItems || 10} Items
+                  <span className={reportStats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                    {reportStats.totalMenuItems} / {currentRestaurant?.maxMenuItems || 10} Items
                   </span>
                 </nav>
                 <div className="mt-4 w-full sm:w-[300px]">
@@ -963,7 +963,7 @@ export default function RestaurantAdminDashboard() {
               </div>
 
               <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 w-full sm:w-auto">
-                {stats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10) && (
+                {reportStats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10) && (
                   <span className="text-xs text-red-500 font-medium bg-red-50 px-2 py-1 rounded">Limit Reached</span>
                 )}
                 <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
@@ -974,7 +974,7 @@ export default function RestaurantAdminDashboard() {
                         setMenuItemForm({})
                       }}
                       className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
-                      disabled={stats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10)}
+                      disabled={reportStats.totalMenuItems >= (currentRestaurant?.maxMenuItems || 10)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Item
