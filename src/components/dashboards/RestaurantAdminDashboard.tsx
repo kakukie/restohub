@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { translations } from '@/lib/i18n'
 import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/app-store'
-import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal, Filter, X, QrCode, Printer, MessageCircle, FileText, Download, Calendar, LifeBuoy, ChefHat, Package, LayoutGrid, Clock, XCircle, CreditCard, Sun, Moon, Languages, RefreshCw } from 'lucide-react'
+import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal, Filter, X, QrCode, Printer, MessageCircle, FileText, Download, Calendar, LifeBuoy, ChefHat, Package, LayoutGrid, Clock, XCircle, CreditCard, Sun, Moon, Languages, RefreshCw, Wallet, Settings } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import QRCodeDialog from '@/components/common/QRCodeDialog'
@@ -118,6 +118,7 @@ export default function RestaurantAdminDashboard() {
     start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
   })
+  const [historyStatusFilter, setHistoryStatusFilter] = useState('ALL')
 
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([])
 
@@ -595,8 +596,20 @@ export default function RestaurantAdminDashboard() {
   const handleDownloadReport = () => {
     // Filter orders by selected month/year
     const filteredOrders = orders.filter(o => {
+      // Check date filter
       const d = new Date(o.createdAt);
-      return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+      d.setHours(0, 0, 0, 0);
+
+      let dateMatch = true;
+      if (reportFilterType === 'monthly') {
+        dateMatch = d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+      } else {
+        const start = new Date(reportDateRange.start);
+        const end = new Date(reportDateRange.end);
+        end.setHours(23, 59, 59, 999);
+        dateMatch = d >= start && d <= end;
+      }
+      return dateMatch;
     });
 
     if (filteredOrders.length === 0) {
@@ -714,16 +727,15 @@ export default function RestaurantAdminDashboard() {
   }
 
   const getPaymentMethodIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      QRIS: 'ðŸ’³',
-      GOPAY: 'ðŸŸ¢',
-      OVO: 'ðŸŸ£',
-      DANA: 'ðŸ”µ',
-      LINKAJA: 'ðŸ”´',
-      SHOPEEPAY: 'ðŸŸ ',
-      CASH: 'ðŸ’µ'
+    switch (type) {
+      case 'QRIS': return <QrCode className="h-8 w-8 text-blue-600" />
+      case 'GOPAY': return <Wallet className="h-8 w-8 text-green-600" />
+      case 'OVO': return <Wallet className="h-8 w-8 text-purple-600" /> // Wallet generic
+      case 'DANA': return <Wallet className="h-8 w-8 text-blue-400" />
+      case 'SHOPEEPAY': return <ShoppingBag className="h-8 w-8 text-orange-500" />
+      case 'CASH': return <DollarSign className="h-8 w-8 text-green-700" />
+      default: return <CreditCard className="h-8 w-8 text-gray-600" />
     }
-    return icons[type] || 'ðŸ’³'
   }
 
   const getOrderStatusBadge = (status: Order['status']) => {
@@ -1472,8 +1484,22 @@ export default function RestaurantAdminDashboard() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <h2 className="text-2xl font-bold">Order History</h2>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full md:w-auto">
+                {/* Status Filter */}
+                <Select onValueChange={(v) => setHistoryStatusFilter(v)} defaultValue="ALL">
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Status</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    <SelectItem value="REJECTED">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Date Filter */}
                 <div className="flex items-center border rounded-md px-2 py-1 bg-white w-full sm:w-auto">
-                  <span className="text-sm text-gray-500 mr-2 min-w-[40px]">From:</span>
+                  <span className="text-sm text-gray-500 mr-2 min-w-[30px]">From</span>
                   <input
                     type="date"
                     className="text-sm outline-none w-full"
@@ -1482,7 +1508,7 @@ export default function RestaurantAdminDashboard() {
                   />
                 </div>
                 <div className="flex items-center border rounded-md px-2 py-1 bg-white w-full sm:w-auto">
-                  <span className="text-sm text-gray-500 mr-2 min-w-[20px]">To:</span>
+                  <span className="text-sm text-gray-500 mr-2 min-w-[20px]">To</span>
                   <input
                     type="date"
                     className="text-sm outline-none w-full"
@@ -1492,7 +1518,7 @@ export default function RestaurantAdminDashboard() {
                 </div>
                 <Button variant="outline" size="sm" onClick={() => fetchDashboardData()} className="w-full sm:w-auto">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
+                  Filter
                 </Button>
               </div>
             </div>
@@ -1511,8 +1537,12 @@ export default function RestaurantAdminDashboard() {
                       const orderDate = new Date(o.createdAt).setHours(0, 0, 0, 0)
                       const startDate = new Date(historyDateRange.start).setHours(0, 0, 0, 0)
                       const endDate = new Date(historyDateRange.end).setHours(23, 59, 59, 999)
-                      const isStatusMatch = ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status)
-                      return isStatusMatch && orderDate >= startDate && orderDate <= endDate
+
+                      // Status Check
+                      const isCompletedOrCancelled = ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status)
+                      const matchesStatusFilter = historyStatusFilter === 'ALL' || o.status === historyStatusFilter
+
+                      return isCompletedOrCancelled && matchesStatusFilter && orderDate >= startDate && orderDate <= endDate
                     }).length === 0 ? (
                       <p className="text-center py-8 text-gray-500">No history found for this period.</p>
                     ) : (
@@ -1784,7 +1814,7 @@ export default function RestaurantAdminDashboard() {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="text-4xl">{getPaymentMethodIcon(method.type)}</div>
+                        <div className="">{getPaymentMethodIcon(method.type)}</div>
                         <div>
                           <CardTitle className="text-lg">{method.type}</CardTitle>
                           {method.merchantId && (
@@ -2330,7 +2360,7 @@ export default function RestaurantAdminDashboard() {
       < footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0" >
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Â© 2026 Meenuin. Digital Restaurant Platform
+            © 2026 Meenuin. Digital Restaurant Platform
           </p>
         </div>
       </footer >
