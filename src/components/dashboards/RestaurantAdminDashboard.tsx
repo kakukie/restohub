@@ -1432,92 +1432,88 @@ export default function RestaurantAdminDashboard() {
                 <CardContent className="p-0">
                   <ScrollArea className="h-[600px]">
                     <div className="divide-y">
-                      {orders.filter(o => {
-                        // Status Filter
-                        const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
 
-                        // Date Filter (Strict Range)
-                        {
-                          orders.filter(o => {
-                            // Status Filter
-                            const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
+                      {
+                        orders.filter(o => {
+                          // Status Filter
+                          const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
 
-                            // Date Filter (Strict Range)
-                            const orderDate = new Date(o.createdAt);
-                            const start = new Date(orderDateRange.start);
-                            start.setHours(0, 0, 0, 0);
-                            const end = new Date(orderDateRange.end);
-                            end.setHours(23, 59, 59, 999);
+                          // Date Filter (Strict Range)
+                          const orderDate = new Date(o.createdAt);
+                          const start = new Date(orderDateRange.start);
+                          start.setHours(0, 0, 0, 0);
+                          const end = new Date(orderDateRange.end);
+                          end.setHours(23, 59, 59, 999);
 
-                            const matchDate = orderDate >= start && orderDate <= end;
+                          const matchDate = orderDate >= start && orderDate <= end;
 
-                            // Search Filter (Fixing mangled code)
-                            const q = orderSearchQuery.toLowerCase();
-                            const matchSearch = !q ||
-                              o.orderNumber?.toLowerCase().includes(q) ||
-                              o.customerName?.toLowerCase().includes(q);
+                          // Search Filter (Fixing mangled code)
+                          const q = orderSearchQuery.toLowerCase();
+                          const matchSearch = !q ||
+                            o.orderNumber?.toLowerCase().includes(q) ||
+                            o.customerName?.toLowerCase().includes(q);
 
-                            return matchStatus && matchDate && matchSearch;
-                          })
-                            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                            .map((order) => (
-                              <div key={order.id} className="p-4 hover:bg-gray-50 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between transition-colors">
-                                <div className="flex-1 space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-lg">#{order.orderNumber}</span>
-                                    <Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge>
-                                    <span className="text-xs text-gray-500 ml-2">{new Date(order.createdAt).toLocaleString('id-ID')}</span>
-                                  </div>
-                                  <div className="flex items-center gap-4 text-sm text-gray-700">
-                                    <div className="flex items-center gap-1"><Users className="h-3 w-3" /> {order.customerName}</div>
-                                    <div className="flex items-center gap-1"><Utensils className="h-3 w-3" /> {order.tableNumber || 'Takeaway'}</div>
-                                    <div className="flex items-center gap-1 font-medium">{getPaymentMethodIcon(order.paymentMethod)} {order.paymentMethod}</div>
-                                  </div>
-                                  <div className="text-sm text-gray-600">
-                                    {order.items.map(i => `${i.quantity}x ${i.menuItemName}`).join(', ')}
-                                  </div>
-                                  {order.notes && <div className="text-xs text-orange-600 italic bg-orange-50 inline-block px-2 py-1 rounded">Note: {order.notes}</div>}
+                          return matchStatus && matchDate && matchSearch;
+                        })
+                          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                          .map((order) => (
+                            <div key={order.id} className="p-4 hover:bg-gray-50 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between transition-colors">
+                              <div className="flex-1 space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-lg">#{order.orderNumber}</span>
+                                  <Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge>
+                                  <span className="text-xs text-gray-500 ml-2">{new Date(order.createdAt).toLocaleString('id-ID')}</span>
                                 </div>
-                                <div className="flex flex-col items-end gap-2 w-full sm:w-auto min-w-[140px]">
-                                  <div className="font-bold text-lg text-emerald-600">Rp {order.totalAmount.toLocaleString('id-ID')}</div>
+                                <div className="flex items-center gap-4 text-sm text-gray-700">
+                                  <div className="flex items-center gap-1"><Users className="h-3 w-3" /> {order.customerName}</div>
+                                  <div className="flex items-center gap-1"><Utensils className="h-3 w-3" /> {order.tableNumber || 'Takeaway'}</div>
+                                  <div className="flex items-center gap-1 font-medium">{getPaymentMethodIcon(order.paymentMethod)} {order.paymentMethod}</div>
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {order.items.map(i => `${i.quantity}x ${i.menuItemName}`).join(', ')}
+                                </div>
+                                {order.notes && <div className="text-xs text-orange-600 italic bg-orange-50 inline-block px-2 py-1 rounded">Note: {order.notes}</div>}
+                              </div>
+                              <div className="flex flex-col items-end gap-2 w-full sm:w-auto min-w-[140px]">
+                                <div className="font-bold text-lg text-emerald-600">Rp {order.totalAmount.toLocaleString('id-ID')}</div>
 
-                                  {/* Action Buttons Based on Status */}
-                                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:justify-end">
-                                    {order.status === 'PENDING' && (
-                                      <>
-                                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 h-8 w-full sm:w-auto" onClick={() => handleRejectOrder(order.id)}>Reject</Button>
-                                        <Button size="sm" className="bg-green-600 h-8 w-full sm:w-auto" onClick={() => setValidateOrderId(order.id)}>Accept</Button>
-                                      </>
-                                    )}
-                                    {order.status === 'CONFIRMED' && (
-                                      <Button size="sm" className="w-full sm:w-auto h-8" onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}>Start Cooking</Button>
-                                    )}
-                                    {order.status === 'PREPARING' && (
-                                      <Button size="sm" className="w-full sm:w-auto bg-blue-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'READY')}>Mark Ready</Button>
-                                    )}
-                                    {order.status === 'READY' && (
-                                      <Button size="sm" className="w-full sm:w-auto bg-green-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}>Complete</Button>
-                                    )}
+                                {/* Action Buttons Based on Status */}
+                                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:justify-end">
+                                  {order.status === 'PENDING' && (
+                                    <>
+                                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 h-8 w-full sm:w-auto" onClick={() => handleRejectOrder(order.id)}>Reject</Button>
+                                      <Button size="sm" className="bg-green-600 h-8 w-full sm:w-auto" onClick={() => setValidateOrderId(order.id)}>Accept</Button>
+                                    </>
+                                  )}
+                                  {order.status === 'CONFIRMED' && (
+                                    <Button size="sm" className="w-full sm:w-auto h-8" onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}>Start Cooking</Button>
+                                  )}
+                                  {order.status === 'PREPARING' && (
+                                    <Button size="sm" className="w-full sm:w-auto bg-blue-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'READY')}>Mark Ready</Button>
+                                  )}
+                                  {order.status === 'READY' && (
+                                    <Button size="sm" className="w-full sm:w-auto bg-green-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}>Complete</Button>
+                                  )}
 
-                                    <div className="flex gap-2 w-full sm:w-auto">
-                                      <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => handlePrintOrder(order)}>
-                                        <Printer className="h-4 w-4 text-gray-500 mx-auto" />
-                                      </Button>
-                                      <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => setViewOrder(order)}>
-                                        <ArrowUpRight className="h-4 w-4 text-blue-500 mx-auto" />
-                                      </Button>
-                                    </div>
+                                  <div className="flex gap-2 w-full sm:w-auto">
+                                    <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => handlePrintOrder(order)}>
+                                      <Printer className="h-4 w-4 text-gray-500 mx-auto" />
+                                    </Button>
+                                    <Button size="sm" variant="ghost" className="h-8 flex-1 sm:flex-none sm:w-8 p-0 border sm:border-0" onClick={() => setViewOrder(order)}>
+                                      <ArrowUpRight className="h-4 w-4 text-blue-500 mx-auto" />
+                                    </Button>
                                   </div>
                                 </div>
                               </div>
-                            ))
-                        }
+                            </div>
+                          ))
+                      }
 
-                        {
-                          orders.length === 0 && (
-                            <div className="p-12 text-center text-gray-400">No orders found</div>
-                          )
-                        }
+                      {
+                        orders.length === 0 && (
+                          <div className="p-12 text-center text-gray-400">No orders found</div>
+                        )
+                      }
                     </div>
                   </ScrollArea>
                 </CardContent>
