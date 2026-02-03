@@ -1437,15 +1437,6 @@ export default function RestaurantAdminDashboard() {
                         const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
 
                         // Date Filter (Strict Range)
-                        const orderDate = new Date(o.createdAt);
-                        const start = new Date(orderDateRange.start);
-                        start.setHours(0, 0, 0, 0);
-                        const end = new Date(orderDateRange.end);
-                        end.setHours(23, 59, 59, 999);
-
-                        const matchDate = orderDate >= start && orderDate <= end;
-
-                        // Search Filter
                         {
                           orders.filter(o => {
                             // Status Filter
@@ -2065,140 +2056,140 @@ export default function RestaurantAdminDashboard() {
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Printer Settings */}
-                  {/* Printer Settings */}
-                  <div className="border rounded-lg p-4 space-y-4 mt-6">
-                    <h3 className="font-medium flex items-center gap-2">
-                      <Printer className="h-4 w-4" />
-                      {t('printerSettings')}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>{t('paperSize')}</Label>
-                        <Select
-                          value={currentRestaurant?.printerSettings?.paperSize || '58mm'}
-                          onValueChange={(val) => {
-                            const newSettings = { ...(currentRestaurant?.printerSettings || {}), paperSize: val };
-                            fetch(`/api/restaurants/${restaurantId}`, {
+                {/* Printer Settings */}
+                <div className="border rounded-lg p-4 space-y-4 mt-6">
+                  <h3 className="font-medium flex items-center gap-2">
+                    <Printer className="h-4 w-4" />
+                    {t('printerSettings')}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>{t('paperSize')}</Label>
+                      <Select
+                        value={currentRestaurant?.printerSettings?.paperSize || '58mm'}
+                        onValueChange={(val) => {
+                          const newSettings = { ...(currentRestaurant?.printerSettings || {}), paperSize: val };
+                          fetch(`/api/restaurants/${restaurantId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ printerSettings: newSettings })
+                          }).then(() => { toast({ title: "Saved", description: "Printer size updated" }); loadRestaurantDetails(); });
+                        }}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="58mm">58mm (Standard)</SelectItem>
+                          <SelectItem value="80mm">80mm (Wide)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end">
+                      <Button variant="outline" onClick={() => handlePrintOrder({
+                        ...orders[0],
+                        items: orders[0]?.items || [],
+                        totalAmount: 0,
+                        orderNumber: 'TEST-PRINT'
+                      } as any)}>
+                        {t('testPrint')}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logo and Banner */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <Label>Logo</Label>
+                    <div className="flex items-center gap-4">
+                      {currentRestaurant?.logo ? (
+                        <div className="relative h-16 w-16 rounded-full overflow-hidden border">
+                          <Image src={currentRestaurant.logo} alt="Logo" fill className="object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-dashed">
+                          <Utensils className="h-6 w-6" />
+                        </div>
+                      )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, async (base64) => {
+                          try {
+                            const res = await fetch(`/api/restaurants/${restaurantId}`, {
                               method: 'PUT',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ printerSettings: newSettings })
-                            }).then(() => { toast({ title: "Saved", description: "Printer size updated" }); loadRestaurantDetails(); });
-                          }}
-                        >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="58mm">58mm (Standard)</SelectItem>
-                            <SelectItem value="80mm">80mm (Wide)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex items-end">
-                        <Button variant="outline" onClick={() => handlePrintOrder({
-                          ...orders[0],
-                          items: orders[0]?.items || [],
-                          totalAmount: 0,
-                          orderNumber: 'TEST-PRINT'
-                        } as any)}>
-                          {t('testPrint')}
-                        </Button>
-                      </div>
+                              body: JSON.stringify({ logo: base64 })
+                            });
+                            if (res.ok) {
+                              toast({ title: "Updated", description: "Logo updated successfully" });
+                              fetchDashboardData();
+                            }
+                          } catch (err) { toast({ title: "Error", description: "Failed to upload logo", variant: "destructive" }); }
+                        })}
+                      />
                     </div>
                   </div>
-
-                  {/* Logo and Banner */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <Label>Banner Image</Label>
                     <div className="space-y-2">
-                      <Label>Logo</Label>
-                      <div className="flex items-center gap-4">
-                        {currentRestaurant?.logo ? (
-                          <div className="relative h-16 w-16 rounded-full overflow-hidden border">
-                            <Image src={currentRestaurant.logo} alt="Logo" fill className="object-cover" />
-                          </div>
-                        ) : (
-                          <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-dashed">
-                            <Utensils className="h-6 w-6" />
-                          </div>
-                        )}
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, async (base64) => {
-                            try {
-                              const res = await fetch(`/api/restaurants/${restaurantId}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ logo: base64 })
-                              });
-                              if (res.ok) {
-                                toast({ title: "Updated", description: "Logo updated successfully" });
-                                fetchDashboardData();
-                              }
-                            } catch (err) { toast({ title: "Error", description: "Failed to upload logo", variant: "destructive" }); }
-                          })}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Banner Image</Label>
-                      <div className="space-y-2">
-                        {currentRestaurant?.banner && (
-                          <div className="relative h-24 w-full rounded overflow-hidden border">
-                            <Image src={currentRestaurant.banner} alt="Banner" fill className="object-cover" />
-                          </div>
-                        )}
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, async (base64) => {
-                            try {
-                              const res = await fetch(`/api/restaurants/${restaurantId}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ banner: base64 })
-                              });
-                              if (res.ok) {
-                                toast({ title: "Updated", description: "Banner updated successfully" });
-                                fetchDashboardData();
-                              }
-                            } catch (err) { toast({ title: "Error", description: "Failed to upload banner", variant: "destructive" }); }
-                          })}
-                        />
-                      </div>
+                      {currentRestaurant?.banner && (
+                        <div className="relative h-24 w-full rounded overflow-hidden border">
+                          <Image src={currentRestaurant.banner} alt="Banner" fill className="object-cover" />
+                        </div>
+                      )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, async (base64) => {
+                          try {
+                            const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ banner: base64 })
+                            });
+                            if (res.ok) {
+                              toast({ title: "Updated", description: "Banner updated successfully" });
+                              fetchDashboardData();
+                            }
+                          } catch (err) { toast({ title: "Error", description: "Failed to upload banner", variant: "destructive" }); }
+                        })}
+                      />
                     </div>
                   </div>
+                </div>
 
-                  <Button
-                    className="bg-emerald-600 hover:bg-emerald-700 mt-4"
-                    onClick={async () => {
-                      const name = (document.getElementById('setting-name') as HTMLInputElement)?.value || currentRestaurant?.name;
-                      const address = (document.getElementById('setting-address') as HTMLInputElement)?.value;
-                      const phone = (document.getElementById('setting-phone') as HTMLInputElement)?.value;
+                <Button
+                  className="bg-emerald-600 hover:bg-emerald-700 mt-4"
+                  onClick={async () => {
+                    const name = (document.getElementById('setting-name') as HTMLInputElement)?.value || currentRestaurant?.name;
+                    const address = (document.getElementById('setting-address') as HTMLInputElement)?.value;
+                    const phone = (document.getElementById('setting-phone') as HTMLInputElement)?.value;
 
-                      try {
-                        const res = await fetch(`/api/restaurants/${restaurantId}`, {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            name: name, // If we added ID to input
-                            address,
-                            phone,
-                            slug: (document.getElementById('setting-slug') as HTMLInputElement)?.value,
-                            googleMapsUrl: (document.getElementById('setting-googleMapsUrl') as HTMLInputElement)?.value,
-                            latitude: parseFloat((document.getElementById('setting-latitude') as HTMLInputElement)?.value || '0'),
-                            longitude: parseFloat((document.getElementById('setting-longitude') as HTMLInputElement)?.value || '0'),
-                          })
-                        });
-                        if (res.ok) {
-                          toast({ title: "Saved", description: "Settings saved successfully" });
-                          fetchDashboardData();
-                        }
-                      } catch (err) { toast({ title: "Error", description: "Failed to save", variant: "destructive" }); }
-                    }}
-                  >
-                    Save Changes
-                  </Button>
+                    try {
+                      const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          name: name, // If we added ID to input
+                          address,
+                          phone,
+                          slug: (document.getElementById('setting-slug') as HTMLInputElement)?.value,
+                          googleMapsUrl: (document.getElementById('setting-googleMapsUrl') as HTMLInputElement)?.value,
+                          latitude: parseFloat((document.getElementById('setting-latitude') as HTMLInputElement)?.value || '0'),
+                          longitude: parseFloat((document.getElementById('setting-longitude') as HTMLInputElement)?.value || '0'),
+                        })
+                      });
+                      if (res.ok) {
+                        toast({ title: "Saved", description: "Settings saved successfully" });
+                        fetchDashboardData();
+                      }
+                    } catch (err) { toast({ title: "Error", description: "Failed to save", variant: "destructive" }); }
+                  }}
+                >
+                  Save Changes
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
