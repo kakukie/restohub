@@ -185,7 +185,8 @@ export default function RestaurantAdminDashboard() {
       if (dataReport.success) {
         setReportStats(dataReport.data.stats || {})
         setReportDailyData(dataReport.data.daily || dataReport.data.chartData || {})
-        setTopMenuItems(dataReport.data.topItems || [])
+        setTopMenuItems(dataReport.data.topMenuItems || [])
+        setTopPaymentMethods(dataReport.data.topPaymentMethods || [])
       }
     } catch (e) {
       console.error("Report Load Error", e)
@@ -1967,10 +1968,10 @@ export default function RestaurantAdminDashboard() {
                     <Label>Store URL (Slug)</Label>
                     <Input
                       placeholder="my-resto"
+                      id="setting-slug"
                       defaultValue={currentRestaurant?.slug}
-                      disabled
                     />
-                    <p className="text-xs text-gray-400">Contact support to change your URL.</p>
+                    <p className="text-xs text-gray-400">Unique URL identifier for your menu.</p>
                   </div>
                   <div className="space-y-2">
                     <Label>Address</Label>
@@ -1985,6 +1986,59 @@ export default function RestaurantAdminDashboard() {
                       defaultValue={currentRestaurant?.phone}
                       id="setting-phone"
                     />
+                  </div>
+                  {/* Map Settings */}
+                  <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
+                    <h3 className="font-medium mb-2">Location & Maps</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Google Maps URL</Label>
+                        <Input
+                          id="setting-googleMapsUrl"
+                          placeholder="https://maps.google.com/..."
+                          defaultValue={currentRestaurant?.googleMapsUrl || ''}
+                        />
+                      </div>
+                      <div className="flex items-center gap-4 pt-8">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="setting-allowMaps"
+                            defaultChecked={currentRestaurant?.allowMaps}
+                            onCheckedChange={(checked) => {
+                              // We handle switch state via a hidden input or direct fetch? 
+                              // Simplified: use a temp state or save directly?
+                              // For simplicity in this mono-save button design, we might need a Ref or State.
+                              // Let's use a dataset attribute on the save button or just read this element if possible.
+                              // Actually, Radix Switch doesn't expose value easily to getElementById.
+                              // Better to autosave this specific toggle or use state.
+                              // Let's auto-save the toggle for better UX.
+                              fetch(`/api/restaurants/${restaurantId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ allowMaps: checked })
+                              }).then(() => { toast({ title: "Updated", description: "Map visibility updated" }); fetchDashboardData(); });
+                            }}
+                          />
+                          <Label htmlFor="setting-allowMaps">Show Map on Menu</Label>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Latitude</Label>
+                        <Input
+                          id="setting-latitude"
+                          type="number" step="any"
+                          defaultValue={currentRestaurant?.latitude || ''}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Longitude</Label>
+                        <Input
+                          id="setting-longitude"
+                          type="number" step="any"
+                          defaultValue={currentRestaurant?.longitude || ''}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -2063,7 +2117,11 @@ export default function RestaurantAdminDashboard() {
                         body: JSON.stringify({
                           name: name, // If we added ID to input
                           address,
-                          phone
+                          phone,
+                          slug: (document.getElementById('setting-slug') as HTMLInputElement)?.value,
+                          googleMapsUrl: (document.getElementById('setting-googleMapsUrl') as HTMLInputElement)?.value,
+                          latitude: parseFloat((document.getElementById('setting-latitude') as HTMLInputElement)?.value || '0'),
+                          longitude: parseFloat((document.getElementById('setting-longitude') as HTMLInputElement)?.value || '0'),
                         })
                       });
                       if (res.ok) {

@@ -40,6 +40,7 @@ export interface Restaurant {
   parentId?: string
   subscriptionPlan?: SubscriptionPlan
   maxCategories?: number // Also added per lint feedback
+  allowMaps?: boolean
 }
 
 export interface PaymentMethod {

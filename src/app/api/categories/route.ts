@@ -53,10 +53,12 @@ export async function POST(request: NextRequest) {
 
     const count = await prisma.category.count({ where: { restaurantId: resolvedId, deletedAt: null } })
 
-    if (restaurant?.maxCategories !== null && restaurant?.maxCategories !== undefined && count >= restaurant.maxCategories) {
+    const limit = (restaurant?.maxCategories && restaurant.maxCategories > 5) ? restaurant.maxCategories : 15;
+
+    if (restaurant?.maxCategories !== null && count >= limit) {
       return NextResponse.json({
         success: false,
-        error: `Category limit reached (Active: ${count} / Max: ${restaurant.maxCategories}). Please upgrade your plan.`
+        error: `Category limit reached (Active: ${count} / Max: ${limit}). Please upgrade your plan.`
       }, { status: 403 })
     }
 
