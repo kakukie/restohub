@@ -115,11 +115,15 @@ export default function RestaurantAdminDashboard() {
   const [reportStatusFilter, setReportStatusFilter] = useState('COMPLETED')
 
   const [viewOrder, setViewOrder] = useState<Order | null>(null)
-  const [historyDateRange, setHistoryDateRange] = useState({
-    start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+
+
+  // Unified Order List State
+  const [orderSearchQuery, setOrderSearchQuery] = useState('')
+  const [orderFilterStatus, setOrderFilterStatus] = useState('ALL')
+  const [orderDateRange, setOrderDateRange] = useState({
+    start: new Date().toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
   })
-  const [historyStatusFilter, setHistoryStatusFilter] = useState('ALL')
 
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([])
 
@@ -835,22 +839,8 @@ export default function RestaurantAdminDashboard() {
               </div>
             </div>
 
-            {/* Status Filter for Report */}
-            <div className="flex items-center gap-2 mb-4 bg-white p-2 rounded-md border inline-flex">
-              <span className="text-sm font-medium">Filter Status:</span>
-              <Select value={reportStatusFilter} onValueChange={setReportStatusFilter}>
-                <SelectTrigger className="w-[150px] h-8">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                  <SelectItem value="REJECTED">Rejected</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>    {/* Mobile Actions (Dropdown) */}
+            {/* Status Filter for Report - REMOVED per user request */}
+            {/* Mobile Actions (Dropdown) */}
             <div className="sm:hidden flex items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -982,10 +972,7 @@ export default function RestaurantAdminDashboard() {
                 <CreditCard className="h-4 w-4 mr-2" />
                 {t.paymentMethods}
               </TabsTrigger>
-              <TabsTrigger value="history">
-                <Clock className="h-4 w-4 mr-2" />
-                History
-              </TabsTrigger>
+
               <TabsTrigger value="settings">
                 <Settings className="h-4 w-4 mr-2" />
                 {t.settings}
@@ -1330,83 +1317,48 @@ export default function RestaurantAdminDashboard() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">Incoming Orders</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Incoming Orders */}
-              <Card className="md:col-span-1 shadow-md border-orange-100 bg-orange-50/50">
-                <CardHeader className="bg-orange-100/50 border-b border-orange-100 pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-orange-700">
-                    <Clock className="h-5 w-5" />
-                    Incoming Orders
-                    <Badge className="ml-auto bg-orange-600 hover:bg-orange-700">
-                      {/* Force sync with pendingOrdersCount */}
-                      {pendingOrdersCount}
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>
-                    Orders waiting for confirmation
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-[500px] p-4">
-                    {orders.filter(o => o.status === 'PENDING').length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">
-                        <ShoppingBag className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                        <p>No pending orders</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {orders.filter(o => o.status === 'PENDING').map(order => (
-                          <Card key={order.id} className="border border-orange-200 shadow-sm bg-white overflow-hidden">
-                            <div className="p-4">
-                              <div className="flex justify-between items-start mb-3">
-                                <div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-bold text-lg">#{order.orderNumber}</span>
-                                    <Badge variant="outline" className="text-xs border-orange-300 text-orange-700 bg-orange-50">
-                                      {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-sm text-gray-600 font-medium">{order.customerName}</div>
-                                  <div className="text-xs text-gray-500">Table: {order.tableNumber || '-'}</div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="font-bold text-orange-600">Rp {order.totalAmount.toLocaleString()}</div>
-                                  <div className="text-xs text-gray-500 mt-1 flex items-center justify-end gap-1">
-                                    {getPaymentMethodIcon(order.paymentMethod)} {order.paymentMethod}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="bg-gray-50 rounded pl-3 py-2 text-sm border-l-2 border-orange-300 mb-3 space-y-1">
-                                {order.items.map((item, idx) => (
-                                  <div key={idx} className="flex justify-between text-gray-700">
-                                    <span>{item.quantity}x {item.menuItemName}</span>
-                                    {item.notes && <span className="text-xs text-red-500 italic ml-2">({item.notes})</span>}
-                                  </div>
-                                ))}
-                              </div>
-                              {order.notes && (
-                                <div className="text-xs text-gray-500 italic mb-3 bg-yellow-50 p-2 rounded border border-yellow-100">
-                                  Note: {order.notes}
-                                </div>
-                              )}
-
-                              <div className="grid grid-cols-2 gap-2 mt-2">
-                                <Button variant="outline" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleRejectOrder(order.id)}>
-                                  Reject
-                                </Button>
-                                <Button className="w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => setValidateOrderId(order.id)}>
-                                  Accept & Validate
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+            <div className="flex flex-col space-y-4">
+              <div className="flex flex-col md:flex-row items-base md:items-center justify-between gap-4">
+                <h2 className="text-2xl font-bold">Orders Management</h2>
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                  <div className="relative w-full sm:w-[200px]">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search IDs or Customer..."
+                      className="pl-8"
+                      value={orderSearchQuery}
+                      onChange={(e) => setOrderSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <Select value={orderFilterStatus} onValueChange={setOrderFilterStatus}>
+                    <SelectTrigger className="w-full sm:w-[150px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Status</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                      <SelectItem value="PREPARING">Preparing</SelectItem>
+                      <SelectItem value="READY">Ready</SelectItem>
+                      <SelectItem value="COMPLETED">Completed</SelectItem>
+                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                      <SelectItem value="REJECTED">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center border rounded-md px-2 bg-white w-full sm:w-auto" title="Filter Date">
+                    <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                    <input
+                      type="date"
+                      className="text-sm outline-none w-[110px] py-2"
+                      value={orderDateRange.start}
+                      onChange={(e) => setOrderDateRange(prev => ({ ...prev, start: e.target.value }))}
+                    />
+                  </div>
+                  <Button variant="outline" size="icon" onClick={() => fetchDashboardData()}>
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
               {/* Validation Dialog */}
               <Dialog open={!!validateOrderId} onOpenChange={(open) => !open && setValidateOrderId(null)}>
@@ -1442,181 +1394,101 @@ export default function RestaurantAdminDashboard() {
                 </DialogContent>
               </Dialog>
 
-              {/* Active / In Progress */}
-              <Card className="md:col-span-1 shadow-md border-blue-100 bg-blue-50/50">
-                <CardHeader className="bg-blue-100/50 border-b border-blue-100 pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-blue-700">
-                    <ChefHat className="h-5 w-5" />
-                    Kitchen & Ready
-                  </CardTitle>
-                  <CardDescription>
-                    Orders being prepared or ready
-                  </CardDescription>
-                </CardHeader>
+              <Card>
                 <CardContent className="p-0">
-                  <ScrollArea className="h-[500px] p-4">
-                    {orders.filter(o => ['CONFIRMED', 'PREPARING', 'READY'].includes(o.status)).length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">
-                        <Utensils className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                        <p>No active kitchen orders</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {orders.filter(o => ['CONFIRMED', 'PREPARING', 'READY'].includes(o.status)).map(order => (
-                          <Card key={order.id} className="border border-blue-200 shadow-sm bg-white">
-                            <div className="p-4">
-                              <div className="flex justify-between mb-2">
-                                <span className="font-bold">#{order.orderNumber}</span>
+                  <ScrollArea className="h-[600px]">
+                    <div className="divide-y">
+                      {orders.filter(o => {
+                        // Status Filter
+                        const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
+
+                        // Date Filter (Inclusive)
+                        const d = new Date(o.createdAt);
+                        d.setHours(0, 0, 0, 0);
+                        const start = new Date(orderDateRange.start);
+                        const end = new Date(orderDateRange.end);
+                        // If orderDateRange default is today? Maybe check logic. 
+                        // Let's assume default is specific or widespread. 
+                        // If user wants ALL history, they should adjust date. 
+                        // Actually, let's relax date filter if status is PENDING/ACTIVE to ensure they are seen?
+                        // No, strict filter is better for "Unified".
+
+                        // Relaxed Logic: If status is ACTIVE (Pending/Confirmed/Preparing/Ready), show regardless of date?
+                        // User requested "Filter by date/month/year".
+                        // Let's respect the date picker strictly.
+                        const matchDate = d >= start && d <= new Date(end.setHours(23, 59, 59, 999));
+
+                        // Search
+                        const q = orderSearchQuery.toLowerCase();
+                        const matchSearch = !q ||
+                          o.orderNumber.toLowerCase().includes(q) ||
+                          o.customerName.toLowerCase().includes(q) ||
+                          (o.tableNumber || '').toLowerCase().includes(q);
+
+                        return matchStatus && matchDate && matchSearch;
+                      })
+                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                        .map(order => (
+                          <div key={order.id} className="p-4 hover:bg-gray-50 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between transition-colors">
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-lg">#{order.orderNumber}</span>
                                 <Badge variant={getOrderStatusBadge(order.status).variant as any}>{getOrderStatusBadge(order.status).label}</Badge>
+                                <span className="text-xs text-gray-500 ml-2">{new Date(order.createdAt).toLocaleString('id-ID')}</span>
                               </div>
-                              <div className="text-sm space-y-1 mb-3">
-                                {order.items.map((item, i) => (
-                                  <div key={i}>{item.quantity}x {item.menuItemName}</div>
-                                ))}
+                              <div className="flex items-center gap-4 text-sm text-gray-700">
+                                <div className="flex items-center gap-1"><Users className="h-3 w-3" /> {order.customerName}</div>
+                                <div className="flex items-center gap-1"><Utensils className="h-3 w-3" /> {order.tableNumber || 'Takeaway'}</div>
+                                <div className="flex items-center gap-1 font-medium">{getPaymentMethodIcon(order.paymentMethod)} {order.paymentMethod}</div>
                               </div>
-                              <div className="flex gap-2">
+                              <div className="text-sm text-gray-600">
+                                {order.items.map(i => `${i.quantity}x ${i.menuItemName}`).join(', ')}
+                              </div>
+                              {order.notes && <div className="text-xs text-orange-600 italic bg-orange-50 inline-block px-2 py-1 rounded">Note: {order.notes}</div>}
+                            </div>
+                            <div className="flex flex-col items-end gap-2 min-w-[140px]">
+                              <div className="font-bold text-lg text-emerald-600">Rp {order.totalAmount.toLocaleString('id-ID')}</div>
+
+                              {/* Action Buttons Based on Status */}
+                              <div className="flex gap-2 w-full justify-end">
+                                {order.status === 'PENDING' && (
+                                  <>
+                                    <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 h-8" onClick={() => handleRejectOrder(order.id)}>Reject</Button>
+                                    <Button size="sm" className="bg-green-600 h-8" onClick={() => setValidateOrderId(order.id)}>Accept</Button>
+                                  </>
+                                )}
                                 {order.status === 'CONFIRMED' && (
-                                  <Button size="sm" className="w-full" onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}>Start Cooking</Button>
+                                  <Button size="sm" className="w-full h-8" onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}>Start Cooking</Button>
                                 )}
                                 {order.status === 'PREPARING' && (
-                                  <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => handleUpdateOrderStatus(order.id, 'READY')}>Mark Ready</Button>
+                                  <Button size="sm" className="w-full bg-blue-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'READY')}>Mark Ready</Button>
                                 )}
                                 {order.status === 'READY' && (
-                                  <div className="flex gap-1 w-full">
-                                    <Button size="sm" variant="outline" className="flex-1" onClick={() => handlePrintOrder(order)}>
-                                      <Printer className="h-4 w-4" />
-                                    </Button>
-                                    <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}>Complete</Button>
-                                  </div>
+                                  <Button size="sm" className="w-full bg-green-600 h-8" onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}>Complete</Button>
                                 )}
+
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePrintOrder(order)}>
+                                  <Printer className="h-4 w-4 text-gray-500" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setViewOrder(order)}>
+                                  <ArrowUpRight className="h-4 w-4 text-blue-500" />
+                                </Button>
                               </div>
                             </div>
-                          </Card>
+                          </div>
                         ))}
-                      </div>
-                    )}
+
+                      {orders.length === 0 && (
+                        <div className="p-12 text-center text-gray-400">No orders found</div>
+                      )}
+                    </div>
                   </ScrollArea>
                 </CardContent>
               </Card>
-
-              {/* QR Code Generate Shortcut */}
-              <Card className="shadow-md border-emerald-100 bg-emerald-50/50">
-                <CardHeader className="bg-emerald-100/50 border-b border-emerald-100 pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-emerald-700">
-                    <QrCode className="h-5 w-5" />
-                    QR Menu
-                  </CardTitle>
-                  <CardDescription>Generate and download menu QR</CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 flex flex-col items-center justify-center gap-3">
-                  <p className="text-sm text-center text-gray-600 mb-2">Display this QR code on tables for customers to scan.</p>
-                  <Button onClick={() => setQrCodeDialogOpen(true)} className="w-full bg-emerald-600 hover:bg-emerald-700">
-                    <QrCode className="h-4 w-4 mr-2" />
-                    Generate QR Code
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
 
-          {/* History Tab */}
-          <TabsContent value="history" className="space-y-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold">Order History</h2>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full md:w-auto">
-                {/* Status Filter */}
-                <Select onValueChange={(v) => setHistoryStatusFilter(v)} defaultValue="ALL">
-                  <SelectTrigger className="w-[130px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Status</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    <SelectItem value="REJECTED">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
 
-                {/* Date Filter */}
-                <div className="flex items-center border rounded-md px-2 py-1 bg-white w-full sm:w-auto">
-                  <span className="text-sm text-gray-500 mr-2 min-w-[30px]">From</span>
-                  <input
-                    type="date"
-                    className="text-sm outline-none w-full"
-                    value={historyDateRange.start}
-                    onChange={(e) => setHistoryDateRange(prev => ({ ...prev, start: e.target.value }))}
-                  />
-                </div>
-                <div className="flex items-center border rounded-md px-2 py-1 bg-white w-full sm:w-auto">
-                  <span className="text-sm text-gray-500 mr-2 min-w-[20px]">To</span>
-                  <input
-                    type="date"
-                    className="text-sm outline-none w-full"
-                    value={historyDateRange.end}
-                    onChange={(e) => setHistoryDateRange(prev => ({ ...prev, end: e.target.value }))}
-                  />
-                </div>
-                <Button variant="outline" size="sm" onClick={() => fetchDashboardData()} className="w-full sm:w-auto">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Filter
-                </Button>
-              </div>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Past Orders</CardTitle>
-                <CardDescription>
-                  Showing orders from {new Date(historyDateRange.start).toLocaleDateString()} to {new Date(historyDateRange.end).toLocaleDateString()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px]">
-                  <div className="space-y-4">
-                    {orders.filter(o => {
-                      const orderDate = new Date(o.createdAt).setHours(0, 0, 0, 0)
-                      const startDate = new Date(historyDateRange.start).setHours(0, 0, 0, 0)
-                      const endDate = new Date(historyDateRange.end).setHours(23, 59, 59, 999)
-
-                      // Status Check
-                      const isCompletedOrCancelled = ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status)
-                      const matchesStatusFilter = historyStatusFilter === 'ALL' || o.status === historyStatusFilter
-
-                      return isCompletedOrCancelled && matchesStatusFilter && orderDate >= startDate && orderDate <= endDate
-                    }).length === 0 ? (
-                      <p className="text-center py-8 text-gray-500">No history found for this period.</p>
-                    ) : (
-                      orders
-                        .filter(o => ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(o.status))
-                        .map((order) => (
-                          <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-gray-50/50">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold">#{order.orderNumber}</span>
-                                <Badge variant={order.status === 'COMPLETED' ? 'default' : 'destructive'} className={order.status === 'COMPLETED' ? 'bg-green-600' : ''}>
-                                  {order.status}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-gray-500">
-                                {new Date(order.createdAt).toLocaleString()} • {order.paymentMethod}
-                              </p>
-                              <p className="text-sm font-medium">{order.customerName} - Table {order.tableNumber}</p>
-                            </div>
-                            <div className="mt-4 sm:mt-0 flex items-center gap-4">
-                              <div className="text-right">
-                                <p className="font-bold">Rp {order.totalAmount.toLocaleString()}</p>
-                                <p className="text-xs text-gray-500">{order.items.length} items</p>
-                              </div>
-                              <Button variant="outline" size="sm" onClick={() => setViewOrder(order)}>View</Button>
-                            </div>
-                          </div>
-                        ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
 
           {/* Analytics Tab */}
@@ -2385,13 +2257,7 @@ export default function RestaurantAdminDashboard() {
           </div>
           <span className="text-[10px] font-medium mt-1">Orders</span>
         </button>
-        <button
-          onClick={() => setActiveTab('history')}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${activeTab === 'history' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
-        >
-          <Clock className="h-5 w-5" />
-          <span className="text-[10px] font-medium mt-1">History</span>
-        </button>
+
         <button
           onClick={() => setActiveTab('analytics')}
           className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${activeTab === 'analytics' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
