@@ -184,7 +184,7 @@ export default function RestaurantAdminDashboard() {
     } catch (e) {
       console.error("Report Load Error", e)
     }
-  }, [restaurantId, reportYear, reportMonth, reportFilterType, reportDateRange])
+  }, [restaurantId, reportYear, reportMonth, reportFilterType, reportDateRange, reportStatusFilter])
 
   const loadAnnouncements = useCallback(async () => {
     try {
@@ -217,7 +217,7 @@ export default function RestaurantAdminDashboard() {
     }
   }, [restaurantId, loadMenuData, loadOrderData, loadReportData, loadAnnouncements])
 
-  // Polling (Orders ONLY - lightweight)
+  // Polling (Orders ONLY)
   useEffect(() => {
     const interval = setInterval(() => {
       loadOrderData()

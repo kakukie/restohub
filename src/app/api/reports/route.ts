@@ -4,6 +4,9 @@ import prisma from '@/lib/prisma'
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams
+        const restaurantId = searchParams.get('restaurantId')
+        const yearParam = searchParams.get('year')
+        const monthParam = searchParams.get('month')
         const statusParam = searchParams.get('status')
 
         if (!restaurantId) {
