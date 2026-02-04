@@ -635,128 +635,130 @@ export default function SuperAdminDashboard() {
 
         {/* Restaurant Edit Dialog */}
         <Dialog open={restaurantDialogOpen} onOpenChange={setRestaurantDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>{editingRestaurant ? 'Edit Restaurant' : 'Add New Restaurant'}</DialogTitle>
               <DialogDescription>
                 {editingRestaurant ? 'Update restaurant details' : 'Create a new restaurant profile'}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Restaurant Name</Label>
-                <Input
-                  value={restaurantForm.name || ''}
-                  onChange={(e) => setRestaurantForm({ ...restaurantForm, name: e.target.value })}
-                  placeholder="e.g. Warung Nusantara"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Input
-                  value={restaurantForm.description || ''}
-                  onChange={(e) => setRestaurantForm({ ...restaurantForm, description: e.target.value })}
-                  placeholder="Brief description"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Address</Label>
-                <Input
-                  value={restaurantForm.address || ''}
-                  onChange={(e) => setRestaurantForm({ ...restaurantForm, address: e.target.value })}
-                  placeholder="Full address"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input
-                  value={restaurantForm.phone || ''}
-                  onChange={(e) => setRestaurantForm({ ...restaurantForm, phone: e.target.value })}
-                  placeholder="Contact number"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+            <ScrollArea className="flex-1 pr-4">
+              <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Max Menu Items (0 = Unlimited)</Label>
+                  <Label>Restaurant Name</Label>
                   <Input
-                    type="number"
-                    value={restaurantForm.maxMenuItems || ''}
-                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxMenuItems: parseInt(e.target.value) || 0 })}
-                    placeholder="Unlimited"
+                    value={restaurantForm.name || ''}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, name: e.target.value })}
+                    placeholder="e.g. Warung Nusantara"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Max Admins (0 = Unlimited)</Label>
+                  <Label>Description</Label>
                   <Input
-                    type="number"
-                    value={restaurantForm.maxAdmins || ''}
-                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxAdmins: parseInt(e.target.value) || 0 })}
-                    placeholder="Unlimited"
+                    value={restaurantForm.description || ''}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, description: e.target.value })}
+                    placeholder="Brief description"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Max Staff (0 = Unlimited)</Label>
+                  <Label>Address</Label>
                   <Input
-                    type="number"
-                    value={restaurantForm.maxStaff || ''}
-                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxStaff: parseInt(e.target.value) || 0 })}
-                    placeholder="Unlimited"
+                    value={restaurantForm.address || ''}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, address: e.target.value })}
+                    placeholder="Full address"
                   />
                 </div>
-              </div>
-              <div className="flex items-center space-x-2 py-2">
-                <input
-                  type="checkbox"
-                  id="allowBranches"
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                  checked={restaurantForm.allowBranches || false}
-                  onChange={(e) => setRestaurantForm({ ...restaurantForm, allowBranches: e.target.checked })}
-                />
-                <Label htmlFor="allowBranches" className="cursor-pointer">Allow Multi-Branch?</Label>
-              </div>
-              <div className="flex items-center space-x-2 py-2">
-                <input
-                  type="checkbox"
-                  id="allowMaps"
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                  checked={restaurantForm.allowMaps || false}
-                  onChange={(e) => setRestaurantForm({ ...restaurantForm, allowMaps: e.target.checked })}
-                />
-                <Label htmlFor="allowMaps" className="cursor-pointer">Allow Google Maps?</Label>
-              </div>
-              <div className="flex items-center space-x-2 py-2">
-                <input
-                  type="checkbox"
-                  id="enableAnalytics"
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                  checked={restaurantForm.enableAnalytics || false}
-                  onChange={(e) => setRestaurantForm({ ...restaurantForm, enableAnalytics: e.target.checked })}
-                />
-                <Label htmlFor="enableAnalytics" className="cursor-pointer">Enable Advanced Analytics?</Label>
-              </div>
-              <div className="space-y-2">
-                <Label>Max Categories (0 = Unlimited)</Label>
-                <Input
-                  type="number"
-                  value={restaurantForm.maxCategories || ''}
-                  onChange={(e) => setRestaurantForm({ ...restaurantForm, maxCategories: parseInt(e.target.value) || 0 })}
-                  placeholder="Unlimited"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Restaurant Logo</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, (base64) => setRestaurantForm({ ...restaurantForm, logo: base64 }))}
-                />
-                {restaurantForm.logo && (
-                  <div className="mt-2 w-20 h-20 border rounded overflow-hidden relative">
-                    <Image src={restaurantForm.logo} alt="Preview" fill className="object-cover" />
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input
+                    value={restaurantForm.phone || ''}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, phone: e.target.value })}
+                    placeholder="Contact number"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Max Menu Items (0 = Unlimited)</Label>
+                    <Input
+                      type="number"
+                      value={restaurantForm.maxMenuItems || ''}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, maxMenuItems: parseInt(e.target.value) || 0 })}
+                      placeholder="Unlimited"
+                    />
                   </div>
-                )}
+                  <div className="space-y-2">
+                    <Label>Max Admins (0 = Unlimited)</Label>
+                    <Input
+                      type="number"
+                      value={restaurantForm.maxAdmins || ''}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, maxAdmins: parseInt(e.target.value) || 0 })}
+                      placeholder="Unlimited"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Max Staff (0 = Unlimited)</Label>
+                    <Input
+                      type="number"
+                      value={restaurantForm.maxStaff || ''}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, maxStaff: parseInt(e.target.value) || 0 })}
+                      placeholder="Unlimited"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 py-2">
+                  <input
+                    type="checkbox"
+                    id="allowBranches"
+                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    checked={restaurantForm.allowBranches || false}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, allowBranches: e.target.checked })}
+                  />
+                  <Label htmlFor="allowBranches" className="cursor-pointer">Allow Multi-Branch?</Label>
+                </div>
+                <div className="flex items-center space-x-2 py-2">
+                  <input
+                    type="checkbox"
+                    id="allowMaps"
+                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    checked={restaurantForm.allowMaps || false}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, allowMaps: e.target.checked })}
+                  />
+                  <Label htmlFor="allowMaps" className="cursor-pointer">Allow Google Maps?</Label>
+                </div>
+                <div className="flex items-center space-x-2 py-2">
+                  <input
+                    type="checkbox"
+                    id="enableAnalytics"
+                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    checked={restaurantForm.enableAnalytics || false}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, enableAnalytics: e.target.checked })}
+                  />
+                  <Label htmlFor="enableAnalytics" className="cursor-pointer">Enable Advanced Analytics?</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>Max Categories (0 = Unlimited)</Label>
+                  <Input
+                    type="number"
+                    value={restaurantForm.maxCategories || ''}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxCategories: parseInt(e.target.value) || 0 })}
+                    placeholder="Unlimited"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Restaurant Logo</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, (base64) => setRestaurantForm({ ...restaurantForm, logo: base64 }))}
+                  />
+                  {restaurantForm.logo && (
+                    <div className="mt-2 w-20 h-20 border rounded overflow-hidden relative">
+                      <Image src={restaurantForm.logo} alt="Preview" fill className="object-cover" />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </ScrollArea>
             <DialogFooter>
               <Button variant="outline" onClick={() => setRestaurantDialogOpen(false)}>Cancel</Button>
               <Button onClick={handleSaveRestaurant}>{editingRestaurant ? 'Update' : 'Create'}</Button>

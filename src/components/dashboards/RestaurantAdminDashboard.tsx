@@ -147,7 +147,6 @@ export default function RestaurantAdminDashboard() {
 
   const [activeAnnouncements, setActiveAnnouncements] = useState<any[]>([])
 
-  // Split fetching for performance
   const loadMenuData = useCallback(async () => {
     if (!restaurantId) return
     const ts = new Date().getTime()
@@ -236,6 +235,7 @@ export default function RestaurantAdminDashboard() {
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true)
     await Promise.all([
+      fetchRestaurantDetails(), // Sync details
       loadMenuData(),
       loadOrderData(),
       loadReportData(),
@@ -249,6 +249,7 @@ export default function RestaurantAdminDashboard() {
   useEffect(() => {
     if (restaurantId) {
       // Fire all independently for faster perception (progressive loading)
+      loadRestaurantDetails() // Sync latest limits/slug
       loadMenuData()
       loadOrderData()
       loadReportData()
