@@ -64,6 +64,10 @@ export async function GET(
         // Transform data
         const transformedData = {
             ...restaurant,
+            // Ensure scalars are present (though ...restaurant should have them)
+            maxCategories: restaurant.maxCategories,
+            slugChangeCount: restaurant.slugChangeCount,
+            maxSlugChanges: restaurant.maxSlugChanges,
             menuItems: restaurant.menuItems.map(item => ({
                 ...item,
                 categoryName: item.category?.name || 'Other'

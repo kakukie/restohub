@@ -2217,8 +2217,10 @@ export default function RestaurantAdminDashboard() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(settingsForm)
                       });
+
+                      const data = await res.json();
+
                       if (res.ok) {
-                        const data = await res.json();
                         toast({ title: t('save'), description: "Settings saved successfully" });
 
                         try {
@@ -2233,11 +2235,11 @@ export default function RestaurantAdminDashboard() {
                           console.error("Refresh failed", refreshErr)
                         }
                       } else {
-                        throw new Error('API Error')
+                        throw new Error(data.error || 'Failed to save settings')
                       }
-                    } catch (err) {
+                    } catch (err: any) {
                       console.error(err)
-                      toast({ title: "Error", description: "Failed to save", variant: "destructive" });
+                      toast({ title: "Error", description: err.message, variant: "destructive" });
                     }
                   }}
                 >
