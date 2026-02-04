@@ -635,14 +635,14 @@ export default function SuperAdminDashboard() {
 
         {/* Restaurant Edit Dialog */}
         <Dialog open={restaurantDialogOpen} onOpenChange={setRestaurantDialogOpen}>
-          <DialogContent className="max-h-[90vh] flex flex-col">
+          <DialogContent className="max-h-[95vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>{editingRestaurant ? 'Edit Restaurant' : 'Add New Restaurant'}</DialogTitle>
               <DialogDescription>
                 {editingRestaurant ? 'Update restaurant details' : 'Create a new restaurant profile'}
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="flex-1 pr-4">
+            <ScrollArea className="h-[65vh] pr-4">
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>Restaurant Name</Label>
