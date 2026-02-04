@@ -1,5 +1,6 @@
 
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export type UserRole = 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' | 'CUSTOMER'
 
@@ -39,7 +40,7 @@ export interface Restaurant {
   allowBranches?: boolean
   parentId?: string
   subscriptionPlan?: SubscriptionPlan
-  maxCategories?: number // Also added per lint feedback
+  maxCategories?: number
   allowMaps?: boolean
   printerSettings?: any
 }
@@ -184,6 +185,7 @@ interface AppState {
   resetPassword: (email: string, newPassword: string) => void
   updateSubscriptionPlan: (id: string, updates: Partial<SubscriptionPlan>) => void
   setSubscriptionPlans: (plans: SubscriptionPlan[]) => void
+  initSubscriptionPlans: () => void
   updateHelpdeskSettings: (settings: HelpdeskSettings) => void
   systemAnnouncements: Announcement[]
   broadcastAnnouncement: (message: string) => void
@@ -235,216 +237,219 @@ const INITIAL_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 ]
 
 export const useAppStore = create<AppState>()(
-  (set, get) => ({
-    user: null,
-    isInitialized: false,
-    language: 'en',
-    cart: [],
-    selectedRestaurant: null,
-    users: INITIAL_USERS,
-    restaurants: INITIAL_RESTAURANTS,
-    orders: [],
-    menuItems: INITIAL_MENU_ITEMS,
-    categories: INITIAL_CATEGORIES,
-    subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS,
-    helpdeskSettings: {
-      whatsapp: '6281234567890',
-      email: 'support@meenuin.biz.id'
-    },
-    systemAnnouncements: [],
+  persist(
+    (set, get) => ({
+      user: null,
+      isInitialized: false,
+      language: 'en',
+      cart: [],
+      selectedRestaurant: null,
+      users: INITIAL_USERS,
+      restaurants: INITIAL_RESTAURANTS,
+      orders: [],
+      menuItems: INITIAL_MENU_ITEMS,
+      categories: INITIAL_CATEGORIES,
+      subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS,
+      helpdeskSettings: {
+        whatsapp: '6281234567890',
+        email: 'support@meenuin.biz.id'
+      },
+      systemAnnouncements: [],
 
-    // Actions
-    setLanguage: (lang) => set({ language: lang }),
-    setUser: (user) => set({ user }),
-    setRestaurants: (restaurants) => set({ restaurants }),
-    setOrders: (orders) => set({ orders }),
-    setUsers: (users) => set({ users }),
+      // Actions
+      setLanguage: (lang) => set({ language: lang }),
+      setUser: (user) => set({ user }),
+      setRestaurants: (restaurants) => set({ restaurants }),
+      setOrders: (orders) => set({ orders }),
+      setUsers: (users) => set({ users }),
 
-    checkSession: async (role) => {
-      try {
-        const res = await fetch(`/api/auth/me${role ? `?role=${role}` : ''}`, {
-          cache: 'no-store',
-          headers: { 'Pragma': 'no-cache' }
-        })
-        const data = await res.json()
-        if (data.success) {
-          set({ user: data.user })
-        }
-      } catch (error) {
-        console.error('Session check failed', error)
-      } finally {
-        set({ isInitialized: true })
-      }
-    },
-
-    logout: async () => {
-      const { user } = get()
-      const role = user?.role
-      set({ user: null, cart: [], selectedRestaurant: null })
-      if (typeof window !== 'undefined') {
+      checkSession: async (role) => {
         try {
-          await fetch(`/api/auth/logout${role ? `?role=${role}` : ''}`, { method: 'POST' })
-          window.location.href = '/'
-        } catch (e) {
-          console.error('Logout failed', e)
+          const res = await fetch(`/api/auth/me${role ? `?role=${role}` : ''}`, {
+            cache: 'no-store',
+            headers: { 'Pragma': 'no-cache' }
+          })
+          const data = await res.json()
+          if (data.success) {
+            set({ user: data.user })
+          }
+        } catch (error) {
+          console.error('Session check failed', error)
+        } finally {
+          set({ isInitialized: true })
         }
-      }
-    },
+      },
 
-    addToCart: (item) => {
-      const cart = get().cart
-      const existingItem = cart.find(i => i.menuItemId === item.menuItemId)
+      logout: async () => {
+        const { user } = get()
+        const role = user?.role
+        set({ user: null, cart: [], selectedRestaurant: null })
+        if (typeof window !== 'undefined') {
+          try {
+            await fetch(`/api/auth/logout${role ? `?role=${role}` : ''}`, { method: 'POST' })
+            window.location.href = '/'
+          } catch (e) {
+            console.error('Logout failed', e)
+          }
+        }
+      },
 
-      if (existingItem) {
+      addToCart: (item) => {
+        const cart = get().cart
+        const existingItem = cart.find(i => i.menuItemId === item.menuItemId)
+
+        if (existingItem) {
+          set({
+            cart: cart.map(i =>
+              i.menuItemId === item.menuItemId
+                ? { ...i, quantity: i.quantity + item.quantity }
+                : i
+            )
+          })
+        } else {
+          set({ cart: [...cart, item] })
+        }
+      },
+
+      removeFromCart: (menuItemId) => {
+        set({ cart: get().cart.filter(i => i.menuItemId !== menuItemId) })
+      },
+
+      updateCartItemQuantity: (menuItemId, quantity) => {
+        if (quantity <= 0) {
+          get().removeFromCart(menuItemId)
+        } else {
+          set({
+            cart: get().cart.map(i =>
+              i.menuItemId === menuItemId ? { ...i, quantity } : i
+            )
+          })
+        }
+      },
+
+      clearCart: () => set({ cart: [] }),
+
+      setSelectedRestaurant: (restaurantId) => set({ selectedRestaurant: restaurantId, cart: [] }),
+
+      getTotalCartAmount: () => get().cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+
+      getTotalCartItems: () => get().cart.reduce((total, item) => total + item.quantity, 0),
+
+      getRestaurantBySlug: (slug) => get().restaurants.find(r => r.slug === slug),
+
+      addUser: (user) => set((state) => ({ users: [...state.users, user] })),
+
+      resetPassword: (email: string, newPassword: string) => set((state) => ({
+        users: state.users.map(u =>
+          u.email === email ? { ...u, password: newPassword } : u
+        )
+      })),
+
+      addRestaurant: (resto) => set((state) => ({
+        restaurants: [...state.restaurants, {
+          ...resto,
+          slug: resto.slug || resto.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+        }]
+      })),
+
+      updateUser: (id, updates) => set((state) => ({
+        users: state.users.map(u => u.id === id ? { ...u, ...updates } : u)
+      })),
+
+      deleteUser: (id) => set((state) => ({
+        users: state.users.filter(u => u.id !== id)
+      })),
+
+      resetSystem: () => {
         set({
-          cart: cart.map(i =>
-            i.menuItemId === item.menuItemId
-              ? { ...i, quantity: i.quantity + item.quantity }
-              : i
-          )
+          users: INITIAL_USERS,
+          restaurants: INITIAL_RESTAURANTS,
+          menuItems: INITIAL_MENU_ITEMS,
+          categories: INITIAL_CATEGORIES,
+          orders: [],
+          cart: [],
+          selectedRestaurant: null,
+          user: null
         })
-      } else {
-        set({ cart: [...cart, item] })
-      }
-    },
+        if (typeof window !== 'undefined') {
+          window.location.href = '/'
+        }
+      },
 
-    removeFromCart: (menuItemId) => {
-      set({ cart: get().cart.filter(i => i.menuItemId !== menuItemId) })
-    },
+      updateRestaurant: (id, updates) => set((state) => ({
+        restaurants: state.restaurants.map(r => r.id === id ? { ...r, ...updates } : r)
+      })),
 
-    updateCartItemQuantity: (menuItemId, quantity) => {
-      if (quantity <= 0) {
-        get().removeFromCart(menuItemId)
-      } else {
-        set({
-          cart: get().cart.map(i =>
-            i.menuItemId === menuItemId ? { ...i, quantity } : i
-          )
-        })
-      }
-    },
+      addOrder: (order) => set((state) => ({
+        orders: [order, ...state.orders]
+      })),
 
-    clearCart: () => set({ cart: [] }),
+      updateOrderStatus: (orderId, status) => set((state) => ({
+        orders: state.orders.map(o => o.id === orderId ? { ...o, status } : o)
+      })),
 
-    setSelectedRestaurant: (restaurantId) => set({ selectedRestaurant: restaurantId, cart: [] }),
+      updateRestaurantStatus: (id, status) => set((state) => ({
+        restaurants: state.restaurants.map(r => r.id === id ? { ...r, status } : r)
+      })),
 
-    getTotalCartAmount: () => get().cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+      validateOrder: (orderId) => get().updateOrderStatus(orderId, 'CONFIRMED'),
+      rejectOrder: (orderId) => get().updateOrderStatus(orderId, 'CANCELLED'),
 
-    getTotalCartItems: () => get().cart.reduce((total, item) => total + item.quantity, 0),
+      addMenuItem: (item) => set((state) => ({ menuItems: [...state.menuItems, item] })),
+      updateMenuItem: (id, updates) => set((state) => ({
+        menuItems: state.menuItems.map(i => i.id === id ? { ...i, ...updates } : i)
+      })),
+      deleteMenuItem: (id) => set((state) => ({
+        menuItems: state.menuItems.filter(i => i.id !== id)
+      })),
 
-    getRestaurantBySlug: (slug) => get().restaurants.find(r => r.slug === slug),
+      addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
+      updateCategory: (id, updates) => set((state) => ({
+        categories: state.categories.map(c => c.id === id ? { ...c, ...updates } : c)
+      })),
+      deleteCategory: (id) => set((state) => ({
+        categories: state.categories.filter(c => c.id !== id)
+      })),
 
-    // Data Actions Implemented:
-    // setRestaurants already defined above in object literal references? 
-    // Wait, create((set) => ({ ... actions }))
-    // The previous edit added setRestaurants, setOrders, setUsers at the top of actions (lines 247+).
-    // Now lines 328+ duplicate them.
-    // I should REMOVE lines 328, 329.
+      updateSubscriptionPlan: (id, updates) => set((state) => ({
+        subscriptionPlans: state.subscriptionPlans.map(p => p.id === id ? { ...p, ...updates } : p)
+      })),
 
-    addUser: (user) => set((state) => ({ users: [...state.users, user] })),
+      setSubscriptionPlans: (plans) => set({ subscriptionPlans: plans }),
 
-    resetPassword: (email: string, newPassword: string) => set((state) => ({
-      users: state.users.map(u =>
-        u.email === email ? { ...u, password: newPassword } : u
-      )
-    })),
+      initSubscriptionPlans: () => set((state) => {
+        if (state.subscriptionPlans.length === 0) {
+          return { subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS }
+        }
+        return {}
+      }),
 
-    addRestaurant: (resto) => set((state) => ({
-      restaurants: [...state.restaurants, {
-        ...resto,
-        slug: resto.slug || resto.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
-      }]
-    })),
+      updateHelpdeskSettings: (settings) => set({ helpdeskSettings: settings }),
 
-    updateUser: (id, updates) => set((state) => ({
-      users: state.users.map(u => u.id === id ? { ...u, ...updates } : u)
-    })),
+      broadcastAnnouncement: (message) => set((state) => ({
+        systemAnnouncements: [
+          {
+            id: crypto.randomUUID(),
+            message,
+            isActive: true,
+            createdAt: new Date().toISOString()
+          },
+          ...state.systemAnnouncements
+        ]
+      })),
 
-    deleteUser: (id) => set((state) => ({
-      users: state.users.filter(u => u.id !== id)
-    })),
-
-    resetSystem: () => {
-      set({
-        users: INITIAL_USERS,
-        restaurants: INITIAL_RESTAURANTS,
-        menuItems: INITIAL_MENU_ITEMS,
-        categories: INITIAL_CATEGORIES,
-        orders: [],
-        cart: [],
-        selectedRestaurant: null,
-        user: null
-      })
-      if (typeof window !== 'undefined') {
-        window.location.href = '/'
-      }
-    },
-
-    updateRestaurant: (id, updates) => set((state) => ({
-      restaurants: state.restaurants.map(r => r.id === id ? { ...r, ...updates } : r)
-    })),
-
-    addOrder: (order) => set((state) => ({
-      orders: [order, ...state.orders]
-    })),
-
-    updateOrderStatus: (orderId, status) => set((state) => ({
-      orders: state.orders.map(o => o.id === orderId ? { ...o, status } : o)
-    })),
-
-    updateRestaurantStatus: (id, status) => set((state) => ({
-      restaurants: state.restaurants.map(r => r.id === id ? { ...r, status } : r)
-    })),
-
-    validateOrder: (orderId) => get().updateOrderStatus(orderId, 'CONFIRMED'),
-    rejectOrder: (orderId) => get().updateOrderStatus(orderId, 'CANCELLED'),
-
-    // Menu Actions Implementation
-    addMenuItem: (item) => set((state) => ({ menuItems: [...state.menuItems, item] })),
-    updateMenuItem: (id, updates) => set((state) => ({
-      menuItems: state.menuItems.map(i => i.id === id ? { ...i, ...updates } : i)
-    })),
-    deleteMenuItem: (id) => set((state) => ({
-      menuItems: state.menuItems.filter(i => i.id !== id)
-    })),
-
-    addCategory: (category) => set((state) => ({ categories: [...state.categories, category] })),
-    updateCategory: (id, updates) => set((state) => ({
-      categories: state.categories.map(c => c.id === id ? { ...c, ...updates } : c)
-    })),
-    deleteCategory: (id) => set((state) => ({
-      categories: state.categories.filter(c => c.id !== id)
-    })),
-
-    updateSubscriptionPlan: (id, updates) => set((state) => ({
-      subscriptionPlans: state.subscriptionPlans.map(p => p.id === id ? { ...p, ...updates } : p)
-    })),
-
-    setSubscriptionPlans: (plans) => set({ subscriptionPlans: plans }),
-
-    initSubscriptionPlans: () => set((state) => {
-      if (state.subscriptionPlans.length === 0) {
-        return { subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS }
-      }
-      return {}
+      clearAnnouncement: () => set((state) => ({
+        systemAnnouncements: state.systemAnnouncements.map(a => ({ ...a, isActive: false }))
+      })),
     }),
-
-    updateHelpdeskSettings: (settings) => set({ helpdeskSettings: settings }),
-
-    broadcastAnnouncement: (message) => set((state) => ({
-      systemAnnouncements: [
-        {
-          id: crypto.randomUUID(),
-          message,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        ...state.systemAnnouncements
-      ]
-    })),
-
-    clearAnnouncement: () => set((state) => ({
-      systemAnnouncements: state.systemAnnouncements.map(a => ({ ...a, isActive: false }))
-    })),
-  })
+    {
+      name: 'meenuin-storage',
+      partialize: (state) => ({
+        language: state.language,
+        cart: state.cart,
+        user: state.user,
+        selectedRestaurant: state.selectedRestaurant
+      }),
+    }
+  )
 )

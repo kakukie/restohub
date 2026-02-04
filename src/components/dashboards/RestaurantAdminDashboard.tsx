@@ -923,7 +923,7 @@ export default function RestaurantAdminDashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 pb-32 flex-1">
+      <main className="container max-w-7xl mx-auto w-full px-4 py-8 pb-32 flex-1">
 
         {/* System Announcements */}
         {/* System Announcements */}

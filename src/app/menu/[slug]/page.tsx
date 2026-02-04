@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Minus, Plus, ShoppingCart, ShoppingBag, Search, Info, Clock, MapPin, Phone, Star, User, Home, LayoutGrid, CheckCircle, CreditCard, ChevronDown, ChevronUp, Loader2, ArrowLeft, Trash2, QrCode, Download, Flame, ThumbsUp, Utensils } from 'lucide-react'
+import { Minus, Plus, ShoppingCart, ShoppingBag, Search, Info, Clock, MapPin, Phone, Star, User, Home, LayoutGrid, CheckCircle, CreditCard, ChevronDown, ChevronUp, Loader2, ArrowLeft, Trash2, QrCode, Download, Flame, ThumbsUp, Utensils, Coffee, Cake, Cookie } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 
@@ -407,20 +407,35 @@ export default function PublicMenuPage() {
             <div className="sticky top-[60px] z-30 bg-gray-100 pt-4 pb-2">
                 <ScrollArea className="w-full whitespace-nowrap px-4" ref={categoryScrollRef}>
                     <div className="flex gap-2 pb-2">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`
-                                     px-4 py-2 rounded-full text-sm font-semibold transition-all
-                                     ${selectedCategory === cat
-                                        ? `bg-gray-900 text-white shadow-md`
-                                        : 'bg-white text-gray-600 border hover:bg-gray-50'}
-                                 `}
-                            >
-                                {cat === 'all' ? 'All Categories' : cat}
-                            </button>
-                        ))}
+                        {categories.map(cat => {
+                            // Dynamic Icon Logic
+                            let Icon = Utensils;
+                            const lower = cat.toLowerCase();
+                            if (lower.includes('minum') || lower.includes('drink') || lower.includes('coffee') || lower.includes('kopi')) Icon = Coffee;
+                            else if (lower.includes('dessert') || lower.includes('cake') || lower.includes('manis')) Icon = Cake;
+                            else if (lower.includes('promo') || lower.includes('best')) Icon = Star;
+                            else if (lower.includes('snack') || lower.includes('cemilan')) Icon = Cookie;
+                            else if (lower === 'all') Icon = LayoutGrid;
+
+                            return (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`
+                                         px-4 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2
+                                         ${selectedCategory === cat
+                                            ? `bg-gray-900 text-white shadow-md`
+                                            : 'bg-white text-gray-600 border hover:bg-gray-50'}
+                                     `}
+                                >
+                                    <Icon className="h-4 w-4" />
+                                    {cat === 'all' ? 'All Categories' : cat}
+                                </button>
+                            )
+                        })}
+                    </div>
+                    <div className="flex sm:hidden overflow-x-auto gap-2 pb-2 px-4 no-scrollbar">
+                        {/* Mobile Backup if ScrollArea fails on some devices, using native overflow */}
                     </div>
                 </ScrollArea>
             </div>
