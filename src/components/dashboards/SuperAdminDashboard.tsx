@@ -217,7 +217,14 @@ export default function SuperAdminDashboard() {
       phone: restaurant.phone,
       package: restaurant.package as any,
       adminEmail: restaurant.adminEmail,
-      logo: restaurant.logo
+      logo: restaurant.logo,
+      maxMenuItems: restaurant.maxMenuItems,
+      maxAdmins: restaurant.maxAdmins,
+      maxStaff: restaurant.maxStaff,
+      allowBranches: restaurant.allowBranches,
+      maxCategories: restaurant.maxCategories,
+      allowMaps: restaurant.allowMaps,
+      enableAnalytics: restaurant.enableAnalytics
     })
     setRestaurantDialogOpen(true)
   }

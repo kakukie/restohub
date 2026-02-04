@@ -42,6 +42,7 @@ export interface Restaurant {
   subscriptionPlan?: SubscriptionPlan
   maxCategories?: number
   allowMaps?: boolean
+  enableAnalytics?: boolean
   printerSettings?: any
 }
 
