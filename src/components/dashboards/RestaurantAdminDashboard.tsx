@@ -1276,8 +1276,8 @@ export default function RestaurantAdminDashboard() {
                 <nav className="flex items-center text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">{t('lists')}</span>
                   <span className="mx-2 text-muted-foreground/50">/</span>
-                  <span className={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories ?? 10) && (currentRestaurant?.maxCategories !== 0) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
-                    {reportStats.totalCategories || 0} / {(currentRestaurant?.maxCategories ?? 10) === 0 ? 'Unlimited' : (currentRestaurant?.maxCategories ?? 10)} {t('used')}
+                  <span className={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories || 0) && (currentRestaurant?.maxCategories !== 0) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                    {reportStats.totalCategories || 0} / {(!currentRestaurant?.maxCategories || currentRestaurant?.maxCategories === 0) ? 'Unlimited' : currentRestaurant?.maxCategories} {t('used')}
                   </span>
                 </nav>
               </div>
@@ -1288,7 +1288,7 @@ export default function RestaurantAdminDashboard() {
                     setCategoryForm({})
                   }}
                     className="bg-green-600 hover:bg-green-700"
-                    disabled={(currentRestaurant?.maxCategories !== 0) && ((reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories ?? 10))}
+                    disabled={(!!currentRestaurant?.maxCategories && currentRestaurant?.maxCategories > 0) && ((reportStats.totalCategories || 0) >= currentRestaurant?.maxCategories)}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     {t('addCategory')}
@@ -2450,11 +2450,10 @@ export default function RestaurantAdminDashboard() {
       </div >
 
       {/* QR Code Dialog for Restaurant Menu */}
-      < QRCodeDialog
+      <QRCodeDialog
         open={qrCodeDialogOpen}
         onOpenChange={setQrCodeDialogOpen}
-        restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || restaurantId || ''
-        }
+        restaurantSlug={settingsForm.slug || currentRestaurant?.slug || currentRestaurant?.id || ''}
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
 
