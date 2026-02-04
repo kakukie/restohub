@@ -997,7 +997,8 @@ export default function RestaurantAdminDashboard() {
         {/* Tabs */}
         <Tabs defaultValue="menu" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex h-10 items-center justify-start md:justify-center rounded-md bg-muted p-1 text-muted-foreground w-auto min-w-full sm:w-auto sm:min-w-0">
+            {/* Mobile-Friendly TabsList: Removed justify-center on mobile, kept overflow-x-auto on parent */}
+            <TabsList className="inline-flex h-10 items-center justify-start md:justify-center rounded-md bg-muted p-1 text-muted-foreground w-auto whitespace-nowrap">
               <TabsTrigger value="menu">
                 <Package className="h-4 w-4 mr-2" />
                 {t('menu')}
@@ -1547,7 +1548,7 @@ export default function RestaurantAdminDashboard() {
 
           {/* Analytics Tab */}
           < TabsContent value="analytics" className="space-y-4" >
-            <h2 className="text-2xl font-bold">Analytics & Reports</h2>
+            <h2 className="text-2xl font-bold">{t('analyticsReport')}</h2>
             {/* Filter Controls */}
             <div className="flex items-center gap-4 mb-4">
               <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
@@ -1571,7 +1572,7 @@ export default function RestaurantAdminDashboard() {
                 </SelectContent>
               </Select>
               <Button variant="outline" onClick={() => fetchDashboardData()}>
-                <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+                <RefreshCw className="h-4 w-4 mr-2" /> {t('refresh')}
               </Button>
             </div>
 
@@ -1579,7 +1580,7 @@ export default function RestaurantAdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('totalRevenue')}</CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -1588,7 +1589,7 @@ export default function RestaurantAdminDashboard() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('totalOrders')}</CardTitle>
                   <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -1597,7 +1598,7 @@ export default function RestaurantAdminDashboard() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Menu Items</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('menuItems')}</CardTitle>
                   <Utensils className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -1606,7 +1607,7 @@ export default function RestaurantAdminDashboard() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('cancelled')}</CardTitle>
                   <XCircle className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
@@ -2265,7 +2266,7 @@ export default function RestaurantAdminDashboard() {
                 </div>
                 <Button variant="outline" onClick={handleDownloadReport}>
                   <Download className="h-4 w-4 mr-2" />
-                  Export
+                  {t('export')}
                 </Button>
               </div>
             </div>
@@ -2274,7 +2275,7 @@ export default function RestaurantAdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('totalOrders')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -2287,7 +2288,7 @@ export default function RestaurantAdminDashboard() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Gross Revenue</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('grossRevenue')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600">
@@ -2300,7 +2301,7 @@ export default function RestaurantAdminDashboard() {
               </Card>
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('avgOrderValue')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">

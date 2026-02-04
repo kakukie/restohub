@@ -29,12 +29,21 @@ export async function GET(
             },
             include: {
                 menuItems: {
-                    where: { isAvailable: true },
+                    where: {
+                        isAvailable: true,
+                        deletedAt: null // Fix: Exclude soft-deleted items
+                    },
                     include: { category: true }
                 },
-                categories: true,
+                categories: {
+                    where: {
+                        deletedAt: null // Fix: Exclude soft-deleted categories
+                    }
+                },
                 paymentMethods: {
-                    where: { isActive: true }
+                    where: {
+                        isActive: true
+                    }
                 },
                 _count: {
                     select: { orders: true, menuItems: true }
