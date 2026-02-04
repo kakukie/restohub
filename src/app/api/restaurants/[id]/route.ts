@@ -154,7 +154,9 @@ export async function PUT(
         const allowedFields = [
             'name', 'description', 'address', 'phone', 'email',
             'logo', 'banner', 'slug', 'theme', 'status', 'isActive',
-            'detailAddress', 'googleMapsUrl', 'latitude', 'longitude'
+            'detailAddress', 'googleMapsUrl', 'latitude', 'longitude',
+            // Limits & Configs
+            'maxCategories', 'maxMenuItems', 'maxStaff', 'maxAdmins', 'allowBranches', 'allowMaps', 'enableAnalytics', 'printerSettings'
         ]
 
         // Filter updates

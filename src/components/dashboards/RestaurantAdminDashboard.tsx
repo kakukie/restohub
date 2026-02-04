@@ -2195,14 +2195,14 @@ export default function RestaurantAdminDashboard() {
                       if (res.ok) {
                         const data = await res.json();
                         toast({ title: t('save'), description: "Settings saved successfully" });
-                        // Update local state if needed or fetch
+
+                        // Force refresh to ensure Slug is propagated to all components (QR, Links)
+                        await fetchDashboardData();
+
                         if (data.data && data.data.slug !== currentRestaurant?.slug) {
-                          // Update local state directly to avoid reload/redirect loop
-                          // The "View Store" button usually uses currentRestaurant.slug, so we just need to re-fetch
-                          fetchDashboardData();
-                          toast({ title: t('save'), description: "URL updated. Links will reflect the new slug." });
-                        } else {
-                          fetchDashboardData();
+                          // Ideally we should redirect, but for now just ensure state is sync
+                          // window.location.href = `/dashboard?slug=${data.data.slug}` // Optional
+                          toast({ title: t('save'), description: "URL updated. Please refresh if links look old." });
                         }
                       }
                     } catch (err) { toast({ title: "Error", description: "Failed to save", variant: "destructive" }); }
