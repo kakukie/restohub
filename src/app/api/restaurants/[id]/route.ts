@@ -31,13 +31,16 @@ export async function GET(
                 menuItems: {
                     where: {
                         isAvailable: true,
-                        deletedAt: null // Fix: Exclude soft-deleted items
+                        deletedAt: null,
+                        category: {
+                            deletedAt: null // Fix: Exclude items from soft-deleted categories
+                        }
                     },
                     include: { category: true }
                 },
                 categories: {
                     where: {
-                        deletedAt: null // Fix: Exclude soft-deleted categories
+                        deletedAt: null
                     }
                 },
                 paymentMethods: {
@@ -156,7 +159,8 @@ export async function PUT(
             'logo', 'banner', 'slug', 'theme', 'status', 'isActive',
             'detailAddress', 'googleMapsUrl', 'latitude', 'longitude',
             // Limits & Configs
-            'maxCategories', 'maxMenuItems', 'maxStaff', 'maxAdmins', 'allowBranches', 'allowMaps', 'enableAnalytics', 'printerSettings'
+            'maxCategories', 'maxMenuItems', 'maxStaff', 'maxAdmins', 'allowBranches', 'allowMaps', 'enableAnalytics', 'printerSettings',
+            'maxSlugChanges' // Allow Super Admin to set limit
         ]
 
         // Filter updates
@@ -175,13 +179,30 @@ export async function PUT(
                     { slug: idOrSlug }
                 ]
             },
-            select: { id: true, slug: true }
+            select: { id: true, slug: true, slugChangeCount: true, maxSlugChanges: true }
         })
 
         if (!restaurant) {
             console.log(`[PUT] Restaurant not found for: ${idOrSlug}`) // DEBUG LOG
             return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
         }
+
+        // Check Slug Limit
+        if (cleanUpdates.slug && cleanUpdates.slug !== restaurant.slug) {
+            const currentCount = restaurant.slugChangeCount || 0
+            const maxLimit = restaurant.maxSlugChanges ?? 3
+
+            if (currentCount >= maxLimit) {
+                return NextResponse.json({
+                    success: false,
+                    error: `Slug change limit reached (${currentCount}/${maxLimit}). Contact support.`
+                }, { status: 403 })
+            }
+
+            // Increment count
+            cleanUpdates.slugChangeCount = currentCount + 1
+        }
+
 
         console.log(`[PUT] Updating restaurant ${restaurant.id} with keys: ${Object.keys(cleanUpdates).join(', ')}`) // DEBUG LOG
 

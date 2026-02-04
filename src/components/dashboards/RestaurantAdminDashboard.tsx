@@ -253,9 +253,28 @@ export default function RestaurantAdminDashboard() {
       loadMenuData()
       loadOrderData()
       loadReportData()
+      loadReportData()
       loadAnnouncements()
     }
   }, [restaurantId, loadMenuData, loadOrderData, loadReportData, loadAnnouncements])
+
+  // Fix: Sync Settings Form when currentRestaurant loads
+  useEffect(() => {
+    if (currentRestaurant) {
+      setSettingsForm({
+        name: currentRestaurant.name,
+        description: currentRestaurant.description,
+        address: currentRestaurant.address,
+        phone: currentRestaurant.phone,
+        email: currentRestaurant.email,
+        slug: currentRestaurant.slug,
+        theme: currentRestaurant.theme,
+        detailAddress: currentRestaurant.detailAddress,
+        googleMapsUrl: currentRestaurant.googleMapsUrl,
+        printerSettings: currentRestaurant.printerSettings
+      })
+    }
+  }, [currentRestaurant])
 
   // Polling (Orders ONLY)
   useEffect(() => {
@@ -2005,6 +2024,7 @@ export default function RestaurantAdminDashboard() {
                         placeholder="my-resto"
                         value={settingsForm.slug || ''}
                         onChange={(e) => setSettingsForm({ ...settingsForm, slug: e.target.value })}
+                        disabled={(currentRestaurant?.slugChangeCount || 0) >= (currentRestaurant?.maxSlugChanges ?? 3) && currentRestaurant?.slug === settingsForm.slug}
                       />
                       <Button variant="outline" size="icon" asChild title="Preview Store">
                         <a href={`/menu/${settingsForm.slug || currentRestaurant?.slug || currentRestaurant?.id}`} target="_blank" rel="noopener noreferrer">
@@ -2012,9 +2032,14 @@ export default function RestaurantAdminDashboard() {
                         </a>
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-400">
-                      {t('storeUrlDesc')} - Preview: <span className="font-mono text-emerald-600">https://meenuin.biz.id/menu/{settingsForm.slug || currentRestaurant?.slug || '...'}</span>
-                    </p>
+                    <div className="flex justify-between items-start">
+                      <p className="text-xs text-gray-400 mt-1">
+                        {t('storeUrlDesc')} - Preview: <span className="font-mono text-emerald-600">https://meenuin.biz.id/menu/{settingsForm.slug || currentRestaurant?.slug || '...'}</span>
+                      </p>
+                      <p className={`text-xs mt-1 font-medium ${(currentRestaurant?.slugChangeCount || 0) >= (currentRestaurant?.maxSlugChanges ?? 3) ? 'text-red-500' : 'text-orange-500'}`}>
+                        Changes remaining: {Math.max(0, (currentRestaurant?.maxSlugChanges ?? 3) - (currentRestaurant?.slugChangeCount || 0))}
+                      </p>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>{t('address')}</Label>

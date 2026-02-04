@@ -224,7 +224,8 @@ export default function SuperAdminDashboard() {
       allowBranches: restaurant.allowBranches,
       maxCategories: restaurant.maxCategories,
       allowMaps: restaurant.allowMaps,
-      enableAnalytics: restaurant.enableAnalytics
+      enableAnalytics: restaurant.enableAnalytics,
+      maxSlugChanges: restaurant.maxSlugChanges
     })
     setRestaurantDialogOpen(true)
   }
@@ -739,9 +740,16 @@ export default function SuperAdminDashboard() {
                   <Label>Max Categories (0 = Unlimited)</Label>
                   <Input
                     type="number"
-                    value={restaurantForm.maxCategories || ''}
-                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxCategories: parseInt(e.target.value) || 0 })}
-                    placeholder="Unlimited"
+                    value={restaurantForm.maxCategories ?? 10}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxCategories: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Max Slug Changes</Label>
+                  <Input
+                    type="number"
+                    value={restaurantForm.maxSlugChanges ?? 3}
+                    onChange={(e) => setRestaurantForm({ ...restaurantForm, maxSlugChanges: parseInt(e.target.value) })}
                   />
                 </div>
                 <div className="space-y-2">

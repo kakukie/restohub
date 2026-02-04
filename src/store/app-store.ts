@@ -44,6 +44,8 @@ export interface Restaurant {
   allowMaps?: boolean
   enableAnalytics?: boolean
   printerSettings?: any
+  slugChangeCount?: number
+  maxSlugChanges?: number
 }
 
 export interface PaymentMethod {

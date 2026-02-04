@@ -63,7 +63,9 @@ export async function POST(request: NextRequest) {
 
     const count = await prisma.category.count({ where: { restaurantId: resolvedId, deletedAt: null } })
 
-    const limit = (restaurant?.maxCategories && restaurant.maxCategories > 5) ? restaurant.maxCategories : 15;
+    // Fix: Respect any limit set by admin, even if low (e.g. 3). 0 means Unlimited.
+    const maxCat = restaurant?.maxCategories ?? 15
+    const limit = maxCat === 0 ? Infinity : maxCat
 
     if (restaurant?.maxCategories !== null && count >= limit) {
       return NextResponse.json({

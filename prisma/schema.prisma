@@ -90,6 +90,8 @@ model Restaurant {
   allowMaps       Boolean @default(false)
   enableAnalytics Boolean @default(false)
   printerSettings Json? // { paperSize: "58mm" | "80mm", autoPrint: boolean, ... }
+  slugChangeCount Int @default(0)
+  maxSlugChanges  Int @default(3)
 
   // Relations
   adminId        String
