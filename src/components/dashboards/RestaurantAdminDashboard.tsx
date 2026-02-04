@@ -71,13 +71,24 @@ export default function RestaurantAdminDashboard() {
   const pendingOrdersCount = orders ? orders.filter(o => o.status === 'PENDING').length : 0
 
   const [prevPendingCount, setPrevPendingCount] = useState(0)
-  const [slugValue, setSlugValue] = useState('')
+
+  // Unified Settings Form State
+  const [settingsForm, setSettingsForm] = useState<Partial<Restaurant>>({})
 
   useEffect(() => {
-    if (currentRestaurant?.slug) {
-      setSlugValue(currentRestaurant.slug)
+    if (currentRestaurant) {
+      setSettingsForm({
+        name: currentRestaurant.name || '',
+        address: currentRestaurant.address || '',
+        phone: currentRestaurant.phone || '',
+        slug: currentRestaurant.slug || '',
+        googleMapsUrl: currentRestaurant.googleMapsUrl || '',
+        latitude: currentRestaurant.latitude || 0,
+        longitude: currentRestaurant.longitude || 0,
+        allowMaps: currentRestaurant.allowMaps || false,
+      })
     }
-  }, [currentRestaurant?.slug])
+  }, [currentRestaurant])
 
   // ... (sound effect code)
 
@@ -986,7 +997,7 @@ export default function RestaurantAdminDashboard() {
         {/* Tabs */}
         <Tabs defaultValue="menu" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-auto min-w-full sm:w-auto sm:min-w-0">
+            <TabsList className="inline-flex h-10 items-center justify-start md:justify-center rounded-md bg-muted p-1 text-muted-foreground w-auto min-w-full sm:w-auto sm:min-w-0">
               <TabsTrigger value="menu">
                 <Package className="h-4 w-4 mr-2" />
                 {t('menu')}
@@ -1025,7 +1036,7 @@ export default function RestaurantAdminDashboard() {
           <TabsContent value="menu" className="space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex flex-col gap-1 w-full sm:w-auto">
-                <h2 className="text-2xl font-bold tracking-tight">Menu Management</h2>
+                <h2 className="text-2xl font-bold tracking-tight">{t('menuManagement')}</h2>
                 <nav className="flex items-center text-sm text-muted-foreground">
                   <span className="hover:text-foreground transition-colors cursor-pointer">Dashboard</span>
                   <span className="mx-2 text-muted-foreground/50">/</span>
@@ -1063,7 +1074,7 @@ export default function RestaurantAdminDashboard() {
                       disabled={(reportStats.totalMenuItems || 0) >= (currentRestaurant?.maxMenuItems || 10)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Item
+                      {t('addItem')}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -1250,12 +1261,12 @@ export default function RestaurantAdminDashboard() {
           < TabsContent value="categories" className="space-y-4" >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex flex-col gap-1 w-full sm:w-auto">
-                <h2 className="text-2xl font-bold">Categories</h2>
+                <h2 className="text-2xl font-bold">{t('categories')}</h2>
                 <nav className="flex items-center text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Lists</span>
+                  <span className="font-medium text-foreground">{t('lists')}</span>
                   <span className="mx-2 text-muted-foreground/50">/</span>
                   <span className={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories || 10) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
-                    {reportStats.totalCategories || 0} / {currentRestaurant?.maxCategories || 10} Used
+                    {reportStats.totalCategories || 0} / {currentRestaurant?.maxCategories || 10} {t('used')}
                   </span>
                 </nav>
               </div>
@@ -1269,7 +1280,7 @@ export default function RestaurantAdminDashboard() {
                     disabled={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories || 10)}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Category
+                    {t('addCategory')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -1352,16 +1363,16 @@ export default function RestaurantAdminDashboard() {
           {/* Orders Tab */}
           < TabsContent value="orders" className="space-y-4" >
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Incoming Orders</h2>
+              <h2 className="text-2xl font-bold">{t('incomingOrders')}</h2>
             </div>
             <div className="flex flex-col space-y-4">
               <div className="flex flex-col md:flex-row items-base md:items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold">Orders Management</h2>
+                <h2 className="text-2xl font-bold">{t('ordersManagement')}</h2>
                 <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                   <div className="relative w-full sm:w-[200px]">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search IDs or Customer..."
+                      placeholder={t('searchPlaceholder')}
                       className="pl-8"
                       value={orderSearchQuery}
                       onChange={(e) => setOrderSearchQuery(e.target.value)}
@@ -1372,14 +1383,14 @@ export default function RestaurantAdminDashboard() {
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ALL">All Status</SelectItem>
-                      <SelectItem value="PENDING">Pending</SelectItem>
-                      <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                      <SelectItem value="PREPARING">Preparing</SelectItem>
-                      <SelectItem value="READY">Ready</SelectItem>
-                      <SelectItem value="COMPLETED">Completed</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                      <SelectItem value="REJECTED">Rejected</SelectItem>
+                      <SelectItem value="ALL">{t('allStatus')}</SelectItem>
+                      <SelectItem value="PENDING">{t('statusPending')}</SelectItem>
+                      <SelectItem value="CONFIRMED">{t('statusConfirmed')}</SelectItem>
+                      <SelectItem value="PREPARING">{t('statusPreparing')}</SelectItem>
+                      <SelectItem value="READY">{t('statusReady')}</SelectItem>
+                      <SelectItem value="COMPLETED">{t('statusCompleted')}</SelectItem>
+                      <SelectItem value="CANCELLED">{t('statusCancelled')}</SelectItem>
+                      <SelectItem value="REJECTED">{t('statusRejected')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <div className="flex items-center gap-2 border rounded-md px-2 bg-white w-full sm:w-auto" title="Filter Date">
@@ -1971,18 +1982,8 @@ export default function RestaurantAdminDashboard() {
                     <Label>{t('restaurantName')}</Label>
                     <Input
                       placeholder="My Restaurant"
-                      id="setting-name" // Added ID for save logic
-                      defaultValue={currentRestaurant?.name}
-                      onChange={(e) => {
-                        // Use state or ref if we want full form handling, for now simple patch
-                        // Optimally, we need a form state.
-                      }}
-                      onBlur={async (e) => {
-                        const val = e.target.value;
-                        if (val && val !== currentRestaurant?.name) {
-                          // Auto-save on blur? Or add Save Button. Save Button is safer.
-                        }
-                      }}
+                      value={settingsForm.name || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
                     />
                     <p className="text-xs text-gray-400">{t('restaurantNameDesc')}</p>
                   </div>
@@ -1990,24 +1991,23 @@ export default function RestaurantAdminDashboard() {
                     <Label>{t('storeUrl')}</Label>
                     <Input
                       placeholder="my-resto"
-                      id="setting-slug"
-                      value={slugValue}
-                      onChange={(e) => setSlugValue(e.target.value)}
+                      value={settingsForm.slug || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, slug: e.target.value })}
                     />
                     <p className="text-xs text-gray-400">{t('storeUrlDesc')}</p>
                   </div>
                   <div className="space-y-2">
                     <Label>{t('address')}</Label>
                     <Input
-                      defaultValue={currentRestaurant?.address}
-                      id="setting-address"
+                      value={settingsForm.address || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>{t('phone')}</Label>
                     <Input
-                      defaultValue={currentRestaurant?.phone}
-                      id="setting-phone"
+                      value={settingsForm.phone || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
                     />
                   </div>
                   {/* Map Settings */}
@@ -2017,30 +2017,17 @@ export default function RestaurantAdminDashboard() {
                       <div className="space-y-2">
                         <Label>{t('googleMapsUrl')}</Label>
                         <Input
-                          id="setting-googleMapsUrl"
                           placeholder="https://maps.google.com/..."
-                          defaultValue={currentRestaurant?.googleMapsUrl || ''}
+                          value={settingsForm.googleMapsUrl || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, googleMapsUrl: e.target.value })}
                         />
                       </div>
                       <div className="flex items-center gap-4 pt-8">
                         <div className="flex items-center space-x-2">
                           <Switch
                             id="setting-allowMaps"
-                            defaultChecked={currentRestaurant?.allowMaps}
-                            onCheckedChange={(checked) => {
-                              // We handle switch state via a hidden input or direct fetch? 
-                              // Simplified: use a temp state or save directly?
-                              // For simplicity in this mono-save button design, we might need a Ref or State.
-                              // Let's use a dataset attribute on the save button or just read this element if possible.
-                              // Actually, Radix Switch doesn't expose value easily to getElementById.
-                              // Better to autosave this specific toggle or use state.
-                              // Let's auto-save the toggle for better UX.
-                              fetch(`/api/restaurants/${restaurantId}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ allowMaps: checked })
-                              }).then(() => { toast({ title: "Updated", description: "Map visibility updated" }); fetchDashboardData(); });
-                            }}
+                            checked={settingsForm.allowMaps || false}
+                            onCheckedChange={(checked) => setSettingsForm({ ...settingsForm, allowMaps: checked })}
                           />
                           <Label htmlFor="setting-allowMaps">{t('showMap')}</Label>
                         </div>
@@ -2048,17 +2035,17 @@ export default function RestaurantAdminDashboard() {
                       <div className="space-y-2">
                         <Label>{t('latitude')}</Label>
                         <Input
-                          id="setting-latitude"
                           type="number" step="any"
-                          defaultValue={currentRestaurant?.latitude || ''}
+                          value={settingsForm.latitude || 0}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, latitude: parseFloat(e.target.value) })}
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>{t('longitude')}</Label>
                         <Input
-                          id="setting-longitude"
                           type="number" step="any"
-                          defaultValue={currentRestaurant?.longitude || ''}
+                          value={settingsForm.longitude || 0}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, longitude: parseFloat(e.target.value) })}
                         />
                       </div>
                     </div>
@@ -2179,23 +2166,11 @@ export default function RestaurantAdminDashboard() {
                 <Button
                   className="bg-emerald-600 hover:bg-emerald-700 mt-4"
                   onClick={async () => {
-                    const name = (document.getElementById('setting-name') as HTMLInputElement)?.value || currentRestaurant?.name;
-                    const address = (document.getElementById('setting-address') as HTMLInputElement)?.value;
-                    const phone = (document.getElementById('setting-phone') as HTMLInputElement)?.value;
-
                     try {
                       const res = await fetch(`/api/restaurants/${restaurantId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          name: name, // If we added ID to input
-                          address,
-                          phone,
-                          slug: slugValue,
-                          googleMapsUrl: (document.getElementById('setting-googleMapsUrl') as HTMLInputElement)?.value,
-                          latitude: parseFloat((document.getElementById('setting-latitude') as HTMLInputElement)?.value || '0'),
-                          longitude: parseFloat((document.getElementById('setting-longitude') as HTMLInputElement)?.value || '0'),
-                        })
+                        body: JSON.stringify(settingsForm)
                       });
                       if (res.ok) {
                         const data = await res.json();
