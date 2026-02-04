@@ -405,8 +405,8 @@ export default function PublicMenuPage() {
 
             {/* 4. Sticky Category Tabs */}
             <div className="sticky top-[60px] z-30 bg-gray-100 pt-4 pb-2">
-                <ScrollArea className="w-full whitespace-nowrap px-4" ref={categoryScrollRef}>
-                    <div className="flex gap-2 pb-2">
+                <div className="w-full overflow-x-auto whitespace-nowrap px-4 pb-2 no-scrollbar">
+                    <div className="flex gap-2">
                         {categories.map(cat => {
                             // Dynamic Icon Logic
                             let Icon = Utensils;
@@ -434,10 +434,7 @@ export default function PublicMenuPage() {
                             )
                         })}
                     </div>
-                    <div className="flex sm:hidden overflow-x-auto gap-2 pb-2 px-4 no-scrollbar">
-                        {/* Mobile Backup if ScrollArea fails on some devices, using native overflow */}
-                    </div>
-                </ScrollArea>
+                </div>
             </div>
 
             {/* 5. Menu Grid - Modern Cards */}

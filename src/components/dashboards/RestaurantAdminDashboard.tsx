@@ -2178,7 +2178,10 @@ export default function RestaurantAdminDashboard() {
                         toast({ title: t('save'), description: "Settings saved successfully" });
                         // Update local state if needed or fetch
                         if (data.data && data.data.slug !== currentRestaurant?.slug) {
-                          window.location.reload(); // Reload to reflect slug change across app
+                          // Update local state directly to avoid reload/redirect loop
+                          // The "View Store" button usually uses currentRestaurant.slug, so we just need to re-fetch
+                          fetchDashboardData();
+                          toast({ title: t('save'), description: "URL updated. Links will reflect the new slug." });
                         } else {
                           fetchDashboardData();
                         }
