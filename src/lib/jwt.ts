@@ -1,6 +1,9 @@
 import { SignJWT, jwtVerify } from 'jose'
 
-const SECRET_KEY = process.env.NEXTAUTH_SECRET || 'super-secret-key-change-this'
+const SECRET_KEY = process.env.NEXTAUTH_SECRET
+if (!SECRET_KEY) {
+    throw new Error('Missing NEXTAUTH_SECRET environment variable')
+}
 const KEY = new TextEncoder().encode(SECRET_KEY)
 
 export async function signAccessToken(payload: any) {
