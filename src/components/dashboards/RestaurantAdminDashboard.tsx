@@ -2196,16 +2196,24 @@ export default function RestaurantAdminDashboard() {
                         const data = await res.json();
                         toast({ title: t('save'), description: "Settings saved successfully" });
 
-                        // Force refresh to ensure Slug is propagated to all components (QR, Links)
-                        await fetchDashboardData();
+                        try {
+                          // Force refresh to ensure Slug is propagated
+                          await fetchDashboardData();
 
-                        if (data.data && data.data.slug !== currentRestaurant?.slug) {
-                          // Ideally we should redirect, but for now just ensure state is sync
-                          // window.location.href = `/dashboard?slug=${data.data.slug}` // Optional
-                          toast({ title: t('save'), description: "URL updated. Please refresh if links look old." });
+                          if (data.data && data.data.slug !== currentRestaurant?.slug) {
+                            toast({ title: t('save'), description: "URL updated. Please refresh if links look old." });
+                            // Optional: window.location.reload()
+                          }
+                        } catch (refreshErr) {
+                          console.error("Refresh failed", refreshErr)
                         }
+                      } else {
+                        throw new Error('API Error')
                       }
-                    } catch (err) { toast({ title: "Error", description: "Failed to save", variant: "destructive" }); }
+                    } catch (err) {
+                      console.error(err)
+                      toast({ title: "Error", description: "Failed to save", variant: "destructive" });
+                    }
                   }}
                 >
                   {t('save')}
