@@ -570,6 +570,12 @@ export default function RestaurantAdminDashboard() {
 
   const handleDeleteCategory = async (id: string) => {
     if (!confirm(t('deleteConfirm'))) return;
+
+    // Optimistic Update
+    const prevCategories = [...categories]
+    setCategories(prev => prev.filter(c => c.id !== id))
+    setReportStats(prev => ({ ...prev, totalCategories: Math.max(0, (prev.totalCategories || 0) - 1) }))
+
     try {
       const res = await fetch(`/api/categories?id=${id}`, {
         method: 'DELETE'
@@ -577,11 +583,14 @@ export default function RestaurantAdminDashboard() {
       const data = await res.json()
       if (data.success) {
         toast({ title: 'Deleted', description: 'Category removed' })
-        await fetchDashboardData() // Refresh data
+        loadMenuData() // Background sync
       } else {
         throw new Error(data.error)
       }
     } catch (error) {
+      // Revert if failed
+      setCategories(prevCategories)
+      loadReportData()
       toast({
         title: 'Error',
         variant: 'destructive',
@@ -1267,8 +1276,8 @@ export default function RestaurantAdminDashboard() {
                 <nav className="flex items-center text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">{t('lists')}</span>
                   <span className="mx-2 text-muted-foreground/50">/</span>
-                  <span className={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories || 10) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
-                    {reportStats.totalCategories || 0} / {currentRestaurant?.maxCategories || 10} {t('used')}
+                  <span className={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories ?? 10) && (currentRestaurant?.maxCategories !== 0) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                    {reportStats.totalCategories || 0} / {(currentRestaurant?.maxCategories ?? 10) === 0 ? 'Unlimited' : (currentRestaurant?.maxCategories ?? 10)} {t('used')}
                   </span>
                 </nav>
               </div>
@@ -1279,7 +1288,7 @@ export default function RestaurantAdminDashboard() {
                     setCategoryForm({})
                   }}
                     className="bg-green-600 hover:bg-green-700"
-                    disabled={(reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories || 10)}
+                    disabled={(currentRestaurant?.maxCategories !== 0) && ((reportStats.totalCategories || 0) >= (currentRestaurant?.maxCategories ?? 10))}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     {t('addCategory')}
@@ -1991,12 +2000,21 @@ export default function RestaurantAdminDashboard() {
                   </div>
                   <div className="space-y-2">
                     <Label>{t('storeUrl')}</Label>
-                    <Input
-                      placeholder="my-resto"
-                      value={settingsForm.slug || ''}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, slug: e.target.value })}
-                    />
-                    <p className="text-xs text-gray-400">{t('storeUrlDesc')}</p>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="my-resto"
+                        value={settingsForm.slug || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, slug: e.target.value })}
+                      />
+                      <Button variant="outline" size="icon" asChild title="Preview Store">
+                        <a href={`/menu/${settingsForm.slug || currentRestaurant?.slug || currentRestaurant?.id}`} target="_blank" rel="noopener noreferrer">
+                          <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {t('storeUrlDesc')} - Preview: <span className="font-mono text-emerald-600">https://meenuin.biz.id/menu/{settingsForm.slug || currentRestaurant?.slug || '...'}</span>
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label>{t('address')}</Label>
