@@ -290,6 +290,17 @@ export async function PUT(request: NextRequest) {
       data: validUpdates
     })
 
+    // Fix: Invalidate Cache so Resto Admin sees changes immediately
+    const { invalidateCache } = await import('@/lib/redis')
+    await invalidateCache(`dashboard:${id}`)
+    await invalidateCache(`dashboard:${updatedRestaurant.slug}`)
+
+    try {
+      const { revalidatePath } = await import('next/cache')
+      revalidatePath(`/menu/${updatedRestaurant.slug}`)
+      revalidatePath('/dashboard')
+    } catch (e) { console.error('Revalidate failed', e) }
+
     return NextResponse.json({
       success: true,
       data: updatedRestaurant,
