@@ -2165,15 +2165,15 @@ export default function RestaurantAdminDashboard() {
                         disabled={true} // Disabled as requested
                         className="bg-gray-100 text-gray-500 cursor-not-allowed"
                       />
-                      {/* Preview Button works with ID now if slug is disabled/ignored, but we keep slug in URL for now or ID? User asked for rollback to random URL (ID). */}
+                      {/* Preview Button works with Slug or ID */}
                       <Button variant="outline" size="icon" asChild title="Preview Store">
-                        <a href={`/menu/${currentRestaurant?.id}`} target="_blank" rel="noopener noreferrer">
+                        <a href={`/menu/${currentRestaurant?.slug || currentRestaurant?.id}`} target="_blank" rel="noopener noreferrer">
                           <ArrowUpRight className="h-4 w-4" />
                         </a>
                       </Button>
                     </div>
                     <p className="text-xs text-gray-400 mt-1">
-                      {t('storeUrlDesc')} - Permanent URL: <span className="font-mono text-emerald-600">.../menu/{currentRestaurant?.id}</span>
+                      {t('storeUrlDesc')} - Permanent URL: <span className="font-mono text-emerald-600">.../menu/{currentRestaurant?.slug || currentRestaurant?.id}</span>
                     </p>
                   </div>
 
@@ -2722,7 +2722,7 @@ export default function RestaurantAdminDashboard() {
       <QRCodeDialog
         open={qrCodeDialogOpen}
         onOpenChange={setQrCodeDialogOpen}
-        restaurantSlug={currentRestaurant?.id || user?.restaurantId || ''}
+        restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || user?.restaurantId || ''}
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
 
