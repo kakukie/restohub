@@ -556,6 +556,14 @@ export default function RestaurantAdminDashboard() {
 
     try {
       let res
+      const payload = {
+        type: paymentMethodForm.type,
+        merchantId: paymentMethodForm.merchantId,
+        qrCode: paymentMethodForm.qrCode,
+        isActive: paymentMethodForm.isActive,
+        restaurantId: restaurantId
+      }
+
       if (paymentMethodForm.id) {
         // Edit
         res = await fetch(`/api/restaurants/${restaurantId}/payment-methods`, {
@@ -563,7 +571,7 @@ export default function RestaurantAdminDashboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             paymentId: paymentMethodForm.id,
-            ...paymentMethodForm
+            ...payload
           })
         })
       } else {
@@ -571,24 +579,32 @@ export default function RestaurantAdminDashboard() {
         res = await fetch(`/api/restaurants/${restaurantId}/payment-methods`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...paymentMethodForm,
-            restaurantId: restaurantId
-          })
+          body: JSON.stringify(payload)
         })
       }
 
       const data = await res.json()
-      if (data.success) {
+      if (data.success && data.data) {
         setPaymentMethodDialogOpen(false)
         setPaymentMethodForm({})
-        await fetchDashboardData()
+
+        // Direct State Update (No refresh needed)
+        if (paymentMethodForm.id) {
+          setPaymentMethods(prev => prev.map(p => p.id === paymentMethodForm.id ? data.data : p))
+        } else {
+          setPaymentMethods(prev => [...prev, data.data])
+        }
+
         toast({ title: 'Success', description: 'Payment method saved' })
+
+        // Background sync
+        fetchDashboardData()
       } else {
-        throw new Error(data.error)
+        throw new Error(data.error || 'Unknown error occurred')
       }
-    } catch (error) {
-      toast({ title: 'Error', variant: 'destructive', description: 'Failed to save payment method' })
+    } catch (error: any) {
+      console.error("Payment Save Error:", error)
+      toast({ title: 'Error', variant: 'destructive', description: error.message || 'Failed to save payment method' })
     }
   }
 
