@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useTheme } from 'next-themes'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -48,7 +48,8 @@ export default function RestaurantAdminDashboard() {
     systemAnnouncements,
     language, // Get language from store
     setLanguage, // Get setter if needed for toggle
-    updateRestaurant
+    updateRestaurant,
+    addRestaurant
   } = useAppStore()
 
   // i18n Helper - Fix: Use the hook to get the function, not the object
@@ -219,6 +220,7 @@ export default function RestaurantAdminDashboard() {
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [myBranches, setMyBranches] = useState<Restaurant[]>([])
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [activeTab, setActiveTab] = useState('menu')
   const [searchQuery, setSearchQuery] = useState('')
@@ -346,11 +348,33 @@ export default function RestaurantAdminDashboard() {
       const res = await fetch(`/api/restaurants/${restaurantId}?_t=${new Date().getTime()}`);
       const data = await res.json();
       if (data.success && data.data) {
-        // Update store using updateRestaurant action
-        updateRestaurant(restaurantId, data.data);
+        // Fix: Check if exists in store, else add to ensure UI updates
+        const exists = restaurants.find(r => r.id === restaurantId)
+        if (exists) {
+          updateRestaurant(restaurantId, data.data);
+        } else {
+          addRestaurant(data.data);
+        }
       }
     } catch (e) { console.error("Resto Detail Error", e); }
-  }, [restaurantId, updateRestaurant]);
+  }, [restaurantId, updateRestaurant, restaurants, addRestaurant]);
+
+  const loadBranches = useCallback(async () => {
+    if (!user?.id) return
+    try {
+      const res = await fetch(`/api/restaurants?adminId=${user.id}&_t=${new Date().getTime()}`)
+      const data = await res.json()
+      if (data.success && Array.isArray(data.data)) {
+        // Filter only branches of THIS restaurant
+        // OR if this is a branch, maybe show nothing or siblings?
+        // Requirement: "tambah cabang dari super admin" -> Parent creates branches.
+        if (currentRestaurant) {
+          const branches = data.data.filter((r: Restaurant) => r.parentId === currentRestaurant.id)
+          setMyBranches(branches)
+        }
+      }
+    } catch (e) { }
+  }, [user?.id, currentRestaurant])
 
   // Monolith wrapper for Manual Refresh
   const fetchDashboardData = useCallback(async () => {
@@ -361,10 +385,11 @@ export default function RestaurantAdminDashboard() {
       loadOrderData(),
       loadReportData(),
       loadAnnouncements(),
-      loadRestaurantDetails()
+      loadRestaurantDetails(),
+      loadBranches()
     ])
     setIsLoading(false)
-  }, [loadMenuData, loadOrderData, loadReportData, loadAnnouncements, loadRestaurantDetails])
+  }, [loadMenuData, loadOrderData, loadReportData, loadAnnouncements, loadRestaurantDetails, loadBranches])
 
   // Initial Load (Parallel)
   useEffect(() => {
@@ -376,8 +401,9 @@ export default function RestaurantAdminDashboard() {
       loadReportData()
       loadReportData()
       loadAnnouncements()
+      loadBranches()
     }
-  }, [restaurantId, loadMenuData, loadOrderData, loadReportData, loadAnnouncements])
+  }, [restaurantId, loadMenuData, loadOrderData, loadReportData, loadAnnouncements, loadBranches])
 
   // Fix: Sync Settings Form when currentRestaurant loads
   useEffect(() => {
@@ -1178,6 +1204,12 @@ export default function RestaurantAdminDashboard() {
                 <FileText className="h-4 w-4 mr-2" />
                 {t('reports')}
               </TabsTrigger>
+              {currentRestaurant?.allowBranches && (
+                <TabsTrigger value="branches">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  {t('branches')}
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
@@ -2550,6 +2582,62 @@ export default function RestaurantAdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="branches" className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">{t('branches')}</h2>
+                <p className="text-muted-foreground text-sm">Manage your restaurant branches</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                {(currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches) && (
+                  <span className="text-xs text-red-500 font-medium bg-red-50 px-2 py-1 rounded">Limit Reached ({myBranches.length}/{currentRestaurant.maxBranches})</span>
+                )}
+                <Button onClick={() => {
+                  setBranchForm({ createAdmin: true, enableSync: true })
+                  setBranchDialogOpen(true)
+                }}
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={!!(currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Branch
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {myBranches.map((branch: any) => (
+                <Card key={branch.id}>
+                  <CardHeader>
+                    <CardTitle>{branch.name}</CardTitle>
+                    <CardDescription>{branch.address}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Phone:</span>
+                        <span>{branch.phone}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Stats:</span>
+                        <span>{branch.totalOrders || 0} orders</span>
+                      </div>
+                      <div className="mt-2">
+                        <Badge variant={branch.isActive ? 'default' : 'secondary'}>{branch.isActive ? 'Active' : 'Inactive'}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                      <a href={`/menu/${branch.slug || branch.id}`} target="_blank">View Menu</a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+              {myBranches.length === 0 && <div className="col-span-full text-center text-gray-500 py-12 border-2 border-dashed rounded-lg">No branches found.</div>}
+            </div>
           </TabsContent>
         </Tabs >
       </main >
