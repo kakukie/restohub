@@ -382,7 +382,7 @@ export default function RestaurantAdminDashboard() {
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true)
     await Promise.all([
-      fetchRestaurantDetails(), // Sync details
+      // fetchRestaurantDetails(), // Redundant, loadRestaurantDetails does this
       loadMenuData(),
       loadOrderData(),
       loadReportData(),
@@ -2585,19 +2585,21 @@ export default function RestaurantAdminDashboard() {
                 <p className="text-muted-foreground text-sm">Manage your restaurant branches</p>
               </div>
               <div className="flex flex-col items-end gap-1">
-                {(currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches) && (
+                {currentRestaurant?.allowBranches && currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches && (
                   <span className="text-xs text-red-500 font-medium bg-red-50 px-2 py-1 rounded">Limit Reached ({myBranches.length}/{currentRestaurant.maxBranches})</span>
                 )}
-                <Button onClick={() => {
-                  setBranchForm({ createAdmin: true, enableSync: true })
-                  setBranchDialogOpen(true)
-                }}
-                  className="bg-green-600 hover:bg-green-700"
-                  disabled={!!(currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Branch
-                </Button>
+                {currentRestaurant?.allowBranches && (
+                  <Button onClick={() => {
+                    setBranchForm({ createAdmin: true, enableSync: true })
+                    setBranchDialogOpen(true)
+                  }}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={!!(currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Branch
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -2627,22 +2629,24 @@ export default function RestaurantAdminDashboard() {
                     <Button variant="outline" size="sm" className="flex-1" asChild>
                       <a href={`/menu/${branch.slug || branch.id}`} target="_blank">View Menu</a>
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => {
-                      if (confirm('Delete this branch?')) {
-                        fetch(`/api/restaurants/${branch.id}`, { method: 'DELETE' })
-                          .then(res => res.json())
-                          .then(data => {
-                            if (data.success) {
-                              toast({ title: 'Deleted', description: 'Branch deleted' })
-                              fetchDashboardData()
-                            } else {
-                              toast({ title: 'Error', variant: 'destructive', description: data.error })
-                            }
-                          })
-                      }
-                    }}>
-                      <Trash className="h-4 w-4" />
-                    </Button>
+                    {currentRestaurant?.allowBranches && (
+                      <Button variant="destructive" size="sm" onClick={() => {
+                        if (confirm('Delete this branch?')) {
+                          fetch(`/api/restaurants/${branch.id}`, { method: 'DELETE' })
+                            .then(res => res.json())
+                            .then(data => {
+                              if (data.success) {
+                                toast({ title: 'Deleted', description: 'Branch deleted' })
+                                fetchDashboardData()
+                              } else {
+                                toast({ title: 'Error', variant: 'destructive', description: data.error })
+                              }
+                            })
+                        }
+                      }}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               ))}

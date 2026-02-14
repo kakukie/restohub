@@ -430,8 +430,13 @@ export default function SuperAdminDashboard() {
     if (!editingSubscription) return
 
     try {
-      // Find plan details
-      const plan = subscriptionPlans.find(p => p.name.toUpperCase() === newSubscriptionType)
+      // Find plan details with robust matching
+      const plan = subscriptionPlans.find(p =>
+        p.name === newSubscriptionType ||
+        p.id === newSubscriptionType ||
+        p.name.toUpperCase() === newSubscriptionType.toUpperCase() ||
+        (newSubscriptionType.includes('Free') && p.name.includes('Free')) // Fallback for Free Trial
+      )
       const updates: any = { package: newSubscriptionType }
 
       if (plan) {
@@ -439,7 +444,6 @@ export default function SuperAdminDashboard() {
         updates.maxMenuItems = plan.menuLimit
         updates.allowMaps = plan.allowMaps
         updates.enableAnalytics = plan.enableAnalytics
-        // Add other limits if available in plan or use defaults
       }
 
       const res = await fetch(`/api/restaurants/${editingSubscription.id}`, {
@@ -1285,22 +1289,7 @@ export default function SuperAdminDashboard() {
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => {
-                                  console.log('Attempting to delete restaurant:', restaurant.id);
-                                  if (confirm(`Are you sure you want to PERMANENTLY delete ${restaurant.name}?`)) {
-                                    fetch(`/api/restaurants/${restaurant.id}`, { method: 'DELETE' })
-                                      .then(res => res.json())
-                                      .then(data => {
-                                        if (data.success) {
-                                          toast({ title: 'Success', description: 'Restaurant deleted' })
-                                          fetchDashboardData()
-                                        } else {
-                                          toast({ title: 'Error', variant: 'destructive', description: data.error })
-                                        }
-                                      })
-                                      .catch(err => toast({ title: 'Error', variant: 'destructive', description: 'Failed to delete' }))
-                                  }
-                                }}
+                                onClick={() => handleDeleteRestaurant(restaurant.id)}
                               >
                                 <Trash2 className="h-4 w-4 mr-1" />
                                 Delete
