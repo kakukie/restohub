@@ -52,6 +52,7 @@ export async function POST(
         const restaurantId = await getRestaurantId(params.id)
         if (!restaurantId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
 
+        const body = await request.json()
         const { type, merchantId, qrCode, isActive } = body
 
         if (!type) {
