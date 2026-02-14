@@ -89,6 +89,9 @@ export async function PUT(
         if (!paymentId) return NextResponse.json({ success: false, error: 'Payment ID missing' }, { status: 400 })
 
         // Sanitize updates
+        delete (updates as any).paymentId
+        delete (updates as any).id // Critical: Don't update PK
+        delete (updates as any).restaurantId // Critical: Don't update FK
         delete (updates as any).restaurant
         delete (updates as any).createdAt
         delete (updates as any).updatedAt
@@ -100,6 +103,7 @@ export async function PUT(
 
         return NextResponse.json({ success: true, data: updated })
     } catch (error) {
+        console.error("Payment Update Error:", error)
         return NextResponse.json({ success: false, error: 'Failed update' }, { status: 500 })
     }
 }
