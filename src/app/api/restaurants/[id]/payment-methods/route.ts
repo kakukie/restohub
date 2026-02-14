@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 async function getRestaurantId(idOrSlug: string) {
     if (!idOrSlug) return null
 
@@ -58,6 +60,18 @@ export async function POST(
 
         if (!type) {
             return NextResponse.json({ success: false, error: 'Payment type is required' }, { status: 400 })
+        }
+
+        // Check for duplicates
+        const existing = await prisma.paymentMethod.findFirst({
+            where: {
+                restaurantId: restaurantId,
+                type: type
+            }
+        })
+
+        if (existing) {
+            return NextResponse.json({ success: false, error: `Payment method ${type} already exists` }, { status: 400 })
         }
 
         const newMethod = await prisma.paymentMethod.create({
