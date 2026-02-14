@@ -288,7 +288,6 @@ export default function SuperAdminDashboard() {
             maxMenuItems: restaurantForm.maxMenuItems,
             maxAdmins: restaurantForm.maxAdmins,
             maxStaff: restaurantForm.maxStaff,
-            maxStaff: restaurantForm.maxStaff,
             allowBranches: restaurantForm.allowBranches,
             maxCategories: restaurantForm.maxCategories,
             allowMaps: restaurantForm.allowMaps,
@@ -317,7 +316,6 @@ export default function SuperAdminDashboard() {
             email: restaurantForm.adminEmail,
             maxMenuItems: restaurantForm.maxMenuItems,
             maxAdmins: restaurantForm.maxAdmins,
-            maxStaff: restaurantForm.maxStaff,
             maxStaff: restaurantForm.maxStaff,
             allowBranches: restaurantForm.allowBranches,
             maxCategories: restaurantForm.maxCategories,
@@ -662,6 +660,15 @@ export default function SuperAdminDashboard() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label>Slug (Auto-generated)</Label>
+                  <Input
+                    value={restaurantForm.slug || ''}
+                    disabled={true}
+                    className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                    placeholder="Auto-generated"
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label>Address</Label>
                   <Input
                     value={restaurantForm.address || ''}
@@ -716,6 +723,17 @@ export default function SuperAdminDashboard() {
                   />
                   <Label htmlFor="allowBranches" className="cursor-pointer">Allow Multi-Branch?</Label>
                 </div>
+                {restaurantForm.allowBranches && (
+                  <div className="space-y-2 ml-6">
+                    <Label>Max Branches (0 = Unlimited)</Label>
+                    <Input
+                      type="number"
+                      value={restaurantForm.maxBranches || 0}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, maxBranches: parseInt(e.target.value) || 0 })}
+                      placeholder="Unlimited"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center space-x-2 py-2">
                   <input
                     type="checkbox"

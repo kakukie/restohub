@@ -112,6 +112,8 @@ export interface MenuItem {
   restaurantId: string // Link to restaurant
   isRecommended?: boolean
   isBestSeller?: boolean
+  maxSlugChanges?: number
+  maxBranches?: number
 }
 
 export interface SubscriptionPlan {
@@ -120,7 +122,10 @@ export interface SubscriptionPlan {
   description: string
   price: number
   menuLimit: number
-  features: string[]
+  features: string[] // Array of strings
+  maxCategories?: number
+  allowMaps?: boolean
+  enableAnalytics?: boolean
   isActive: boolean
 }
 

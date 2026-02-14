@@ -85,6 +85,7 @@ model Restaurant {
   maxMenuItems    Int?    @default(15) // Default for Free
   maxAdmins       Int? // Subscription Limits
   allowBranches   Boolean @default(false)
+  maxBranches     Int?    @default(0) // 0 = Unlimited, or specific count
   maxStaff        Int?    @default(0)
   maxCategories   Int?    @default(5)
   allowMaps       Boolean @default(false)

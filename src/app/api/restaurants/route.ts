@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description, address, phone, email, parentId, adminId } = body
+    const { name, description, address, phone, email, adminEmail, parentId, adminId, maxBranches, maxCategories, maxMenuItems, maxAdmins, maxStaff, allowBranches, allowMaps, enableAnalytics } = body
 
     if (!name) {
       return NextResponse.json({
@@ -88,13 +88,20 @@ export async function POST(request: NextRequest) {
 
     let resolvedAdminId = adminId
 
+    // Try to resolve adminId from adminEmail if not provided
+    if (!resolvedAdminId && body.adminEmail) {
+      const adminUser = await prisma.user.findUnique({ where: { email: body.adminEmail } })
+      if (adminUser) resolvedAdminId = adminUser.id
+    }
+
     // If creating a branch
     if (parentId) {
       // Validate parent
       // Validate parent
       const parent = await prisma.restaurant.findUnique({
         where: { id: parentId },
-        select: { id: true, adminId: true, maxAdmins: true, allowBranches: true } // Fetch required fields
+        where: { id: parentId },
+        select: { id: true, adminId: true, maxAdmins: true, allowBranches: true, maxBranches: true } // Fetch required fields
       })
 
       if (!parent) {
@@ -103,6 +110,17 @@ export async function POST(request: NextRequest) {
 
       if (parent.allowBranches === false) {
         return NextResponse.json({ success: false, error: 'This restaurant plan does not support multiple branches.' }, { status: 403 })
+      }
+
+      // 0. Check Max Branches Limit
+      if (parent.maxBranches !== null && parent.maxBranches !== undefined && parent.maxBranches > 0) {
+        const currentBranchCount = await prisma.restaurant.count({
+          where: { parentId: parent.id }
+        })
+
+        if (currentBranchCount >= parent.maxBranches) {
+          return NextResponse.json({ success: false, error: `Branch limit reached (${parent.maxBranches} max). Upgrade plan.` }, { status: 403 })
+        }
       }
 
       // 0. Check Max Admins Limit if creating new admin
@@ -165,7 +183,15 @@ export async function POST(request: NextRequest) {
           status: 'ACTIVE',
           package: 'BASIC',
           adminId: resolvedAdminId || '', // Fallback or assume provided
-          parentId: parentId || null
+          parentId: parentId || null,
+          maxBranches: maxBranches || 0,
+          maxCategories: maxCategories || 5, // Default 5
+          maxMenuItems: maxMenuItems || 15,
+          maxAdmins: maxAdmins || 0,
+          maxStaff: maxStaff || 0,
+          allowBranches: allowBranches || false,
+          allowMaps: allowMaps || false,
+          enableAnalytics: enableAnalytics || false
         }
       })
 

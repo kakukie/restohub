@@ -68,6 +68,7 @@ export async function GET(
             maxCategories: restaurant.maxCategories,
             slugChangeCount: restaurant.slugChangeCount,
             maxSlugChanges: restaurant.maxSlugChanges,
+            maxBranches: restaurant.maxBranches,
             menuItems: restaurant.menuItems.map(item => ({
                 ...item,
                 categoryName: item.category?.name || 'Other'
@@ -162,9 +163,9 @@ export async function PUT(
             'name', 'description', 'address', 'phone', 'email',
             'logo', 'banner', 'slug', 'theme', 'status', 'isActive',
             'detailAddress', 'googleMapsUrl', 'latitude', 'longitude',
-            // Limits & Configs
-            'maxCategories', 'maxMenuItems', 'maxStaff', 'maxAdmins', 'allowBranches', 'allowMaps', 'enableAnalytics', 'printerSettings',
-            'maxSlugChanges' // Allow Super Admin to set limit
+            // Configs (Limits should NOT be editable here by Resto Admin, only Super Admin via /api/restaurants)
+            'allowMaps', 'enableAnalytics', 'printerSettings'
+            // Removed: 'maxCategories', 'maxMenuItems', 'maxStaff', 'maxAdmins', 'allowBranches', 'maxSlugChanges'
         ]
 
         // Filter updates

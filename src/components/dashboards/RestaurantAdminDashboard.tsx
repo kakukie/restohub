@@ -646,6 +646,14 @@ export default function RestaurantAdminDashboard() {
   const handleCreateBranch = async () => {
     if (!branchForm.name) return
 
+    // Check Limits
+    if (currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0) {
+      if (myBranches.length >= currentRestaurant.maxBranches) {
+        toast({ title: "Limit Reached", description: `You have reached the maximum of ${currentRestaurant.maxBranches} branches.`, variant: "destructive" })
+        return
+      }
+    }
+
     try {
       const parentId = currentRestaurant?.parentId || restaurantId
 
