@@ -68,7 +68,7 @@ export default function RestaurantAdminDashboard() {
   // Derived state
   const restaurantId = user?.restaurantId
   const currentRestaurant = restaurants.find(r => r.id === restaurantId)
-  const pendingOrdersCount = orders ? orders.filter(o => o.status === 'PENDING').length : 0
+  const pendingOrdersCount = Array.isArray(orders) ? orders.filter(o => o.status === 'PENDING').length : 0
 
   const [prevPendingCount, setPrevPendingCount] = useState(0)
 
@@ -288,7 +288,11 @@ export default function RestaurantAdminDashboard() {
       ])
       const [dataOrder, dataOrderItems] = await Promise.all([resOrder.json(), resOrderItems.json()])
 
-      if (dataOrder.success) setOrders(dataOrder.data || [])
+      if (dataOrder.success && Array.isArray(dataOrder.data)) {
+        setOrders(dataOrder.data)
+      } else {
+        setOrders([])
+      }
       // resOrderItems not used currently but fetched for cache/potential usage
     } catch (e) {
       console.error("Order Load Error", e)
@@ -1531,7 +1535,7 @@ export default function RestaurantAdminDashboard() {
                     <div className="divide-y">
 
                       {
-                        orders.filter(o => {
+                        (Array.isArray(orders) ? orders : []).filter(o => {
                           // Status Filter
                           const matchStatus = orderFilterStatus === 'ALL' || o.status === orderFilterStatus;
 
