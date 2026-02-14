@@ -434,9 +434,42 @@ export default function RestaurantAdminDashboard() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
     const file = e.target.files?.[0]
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: 'Error', description: 'File size too large (Max 5MB)', variant: 'destructive' })
+        return
+      }
+
       const reader = new FileReader()
-      reader.onloadend = () => {
-        callback(reader.result as string)
+      reader.onload = (event) => {
+        const img = document.createElement('img')
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+          const MAX_SIZE = 800
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width
+              width = MAX_SIZE
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height
+              height = MAX_SIZE
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+
+          // Compress to JPEG 0.7
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+          callback(dataUrl)
+        }
+        img.src = event.target?.result as string
       }
       reader.readAsDataURL(file)
     }
