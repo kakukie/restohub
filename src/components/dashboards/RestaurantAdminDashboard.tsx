@@ -221,6 +221,8 @@ export default function RestaurantAdminDashboard() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [myBranches, setMyBranches] = useState<Restaurant[]>([])
+  const [branchDialogOpen, setBranchDialogOpen] = useState(false)
+  const [branchForm, setBranchForm] = useState<any>({})
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [activeTab, setActiveTab] = useState('menu')
   const [searchQuery, setSearchQuery] = useState('')
@@ -651,23 +653,7 @@ export default function RestaurantAdminDashboard() {
     }
   }
 
-  // --- Multi-Branch Logic ---
-  const [myBranches, setMyBranches] = useState<any[]>([])
-  const [branchDialogOpen, setBranchDialogOpen] = useState(false)
-  const [branchForm, setBranchForm] = useState<any>({})
-
-  useEffect(() => {
-    if (user?.id) {
-      fetch(`/api/restaurants?adminId=${user.id}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setMyBranches(data.data)
-          }
-        })
-        .catch(console.error)
-    }
-  }, [user?.id, restaurantId])
+  // --- Multi-Branch Logic (State declared above, loadBranches used instead) ---
 
   const handleCreateBranch = async () => {
     if (!branchForm.name) return
