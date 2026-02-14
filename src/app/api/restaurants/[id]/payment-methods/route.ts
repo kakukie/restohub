@@ -52,7 +52,6 @@ export async function POST(
         const restaurantId = await getRestaurantId(params.id)
         if (!restaurantId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
 
-        const body = await request.json()
         const { type, merchantId, qrCode, isActive } = body
 
         if (!type) {
@@ -64,15 +63,15 @@ export async function POST(
                 restaurantId: restaurantId,
                 type,
                 merchantId: merchantId || null,
-                qrCode: qrCode || null,
+                qrCode: qrCode || null, // Allow explicit null
                 isActive: isActive ?? true
             }
         })
 
         return NextResponse.json({ success: true, data: newMethod })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Add Payment Method Error:', error)
-        return NextResponse.json({ success: false, error: 'Failed to add' }, { status: 500 })
+        return NextResponse.json({ success: false, error: error.message || 'Failed to add' }, { status: 500 })
     }
 }
 
@@ -84,27 +83,25 @@ export async function PUT(
     const params = await props.params;
     try {
         const body = await request.json()
-        const { paymentId, ...updates } = body // Frontend must send paymentId in body
+        const { paymentId, type, merchantId, qrCode, isActive } = body
 
         if (!paymentId) return NextResponse.json({ success: false, error: 'Payment ID missing' }, { status: 400 })
 
-        // Sanitize updates
-        delete (updates as any).paymentId
-        delete (updates as any).id // Critical: Don't update PK
-        delete (updates as any).restaurantId // Critical: Don't update FK
-        delete (updates as any).restaurant
-        delete (updates as any).createdAt
-        delete (updates as any).updatedAt
+        const updateData: any = {}
+        if (type !== undefined) updateData.type = type
+        if (merchantId !== undefined) updateData.merchantId = merchantId
+        if (qrCode !== undefined) updateData.qrCode = qrCode
+        if (isActive !== undefined) updateData.isActive = isActive
 
         const updated = await prisma.paymentMethod.update({
             where: { id: paymentId },
-            data: updates
+            data: updateData
         })
 
         return NextResponse.json({ success: true, data: updated })
-    } catch (error) {
+    } catch (error: any) {
         console.error("Payment Update Error:", error)
-        return NextResponse.json({ success: false, error: 'Failed update' }, { status: 500 })
+        return NextResponse.json({ success: false, error: error.message || 'Failed update' }, { status: 500 })
     }
 }
 
