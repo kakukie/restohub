@@ -2036,676 +2036,672 @@ export default function RestaurantAdminDashboard() {
             </div>
             <RestaurantSettingsForm restaurantId={restaurantId} />
           </TabsContent>
-        </Dialog>
-                )}
-    </div>
-            </div >
 
-  {
-    myBranches.length > 0 && (
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>{t('myBranches')}</CardTitle>
-          <CardDescription>{t('switchBranches')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {myBranches.map(branch => (
-              <Button
-                key={branch.id}
-                variant={branch.id === restaurantId ? "default" : "outline"}
-                className="justify-start h-auto py-3 px-4"
-                onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
-              >
-                <div className="text-left">
-                  <div className="font-semibold">{branch.name}</div>
-                  <div className="text-xs opacity-70">{branch.address}</div>
-                </div>
-                {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  {/* General Settings */ }
-  <Card>
-    <CardHeader>
-      <CardTitle>{t('generalInfo')}</CardTitle>
-      <CardDescription>{t('generalInfoDesc')}</CardDescription>
-    </CardHeader>
-    <CardContent className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>{t('restaurantName')}</Label>
-          <Input
-            placeholder="My Restaurant"
-            value={settingsForm.name || ''}
-            onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
-          />
-          <p className="text-xs text-gray-400">{t('restaurantNameDesc')}</p>
-        </div>
-        <div className="space-y-2">
-          <Label>{t('storeUrl')}</Label>
-          <div className="flex gap-2">
-            <Input
-              placeholder="my-resto"
-              value={settingsForm.slug || ''}
-              onChange={(e) => setSettingsForm({ ...settingsForm, slug: e.target.value })}
-              disabled={true} // Disabled as requested
-              className="bg-gray-100 text-gray-500 cursor-not-allowed"
-            />
-            {/* Preview Button works with ID now if slug is disabled/ignored, but we keep slug in URL for now or ID? User asked for rollback to random URL (ID). */}
-            <Button variant="outline" size="icon" asChild title="Preview Store">
-              <a href={`/menu/${currentRestaurant?.id}`} target="_blank" rel="noopener noreferrer">
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-            </Button>
-          </div>
-          <p className="text-xs text-gray-400 mt-1">
-            {t('storeUrlDesc')} - Permanent URL: <span className="font-mono text-emerald-600">.../menu/{currentRestaurant?.id}</span>
-          </p>
-        </div>
-
-        {/* Printer Settings */}
-        <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
-          <h3 className="font-medium mb-2">Printer Settings (Bluetooth Thermal)</h3>
-          <div className="flex items-center justify-between bg-white p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Printer className="h-5 w-5 text-gray-500" />
-              <div>
-                <div className="font-medium">Thermal Printer</div>
-                <div className="text-xs text-gray-500">{isPrinterConnected ? "Connected" : "Disconnected"}</div>
-              </div>
-            </div>
-            <Button
-              variant={isPrinterConnected ? "outline" : "default"}
-              className={isPrinterConnected ? "text-green-600 border-green-200 bg-green-50" : ""}
-              onClick={handleConnectPrinter}
-            >
-              {isPrinterConnected ? <CheckCircle className="h-4 w-4 mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
-              {isPrinterConnected ? "Connected" : "Connect"}
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>{t('address')}</Label>
-          <Input
-            value={settingsForm.address || ''}
-            onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>{t('phone')}</Label>
-          <Input
-            value={settingsForm.phone || ''}
-            onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
-          />
-        </div>
-        {/* Map Settings */}
-        <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
-          <h3 className="font-medium mb-2">{t('locationMaps')}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>{t('googleMapsUrl')}</Label>
-              <Input
-                placeholder="https://maps.google.com/..."
-                value={settingsForm.googleMapsUrl || ''}
-                onChange={(e) => setSettingsForm({ ...settingsForm, googleMapsUrl: e.target.value })}
-              />
-            </div>
-            <div className="flex items-center gap-4 pt-8">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="setting-allowMaps"
-                  checked={settingsForm.allowMaps || false}
-                  onCheckedChange={(checked) => setSettingsForm({ ...settingsForm, allowMaps: checked })}
-                />
-                <Label htmlFor="setting-allowMaps">{t('showMap')}</Label>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('latitude')}</Label>
-              <Input
-                type="number" step="any"
-                value={settingsForm.latitude || 0}
-                onChange={(e) => setSettingsForm({ ...settingsForm, latitude: parseFloat(e.target.value) })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('longitude')}</Label>
-              <Input
-                type="number" step="any"
-                value={settingsForm.longitude || 0}
-                onChange={(e) => setSettingsForm({ ...settingsForm, longitude: parseFloat(e.target.value) })}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Printer Settings */}
-      <div className="border rounded-lg p-4 space-y-4 mt-6">
-        <div className="flex items-center justify-between">
-          <h3 className="font-medium flex items-center gap-2">
-            <Printer className="h-4 w-4" />
-            {t('printerSettings')}
-          </h3>
-          <Badge variant={currentRestaurant?.printerSettings?.paperSize ? "secondary" : "outline"} className={currentRestaurant?.printerSettings?.paperSize ? "bg-green-100 text-green-700" : ""}>
-            {currentRestaurant?.printerSettings?.paperSize ? t('connected') : t('disconnected')}
-          </Badge>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>{t('paperSize')}</Label>
-            <Select
-              value={currentRestaurant?.printerSettings?.paperSize || '58mm'}
-              onValueChange={(val) => {
-                const newSettings = { ...(currentRestaurant?.printerSettings || {}), paperSize: val };
-                fetch(`/api/restaurants/${restaurantId}`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ printerSettings: newSettings })
-                }).then(() => { toast({ title: "Saved", description: "Printer size updated" }); loadRestaurantDetails(); });
-              }}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="58mm">58mm (Standard)</SelectItem>
-                <SelectItem value="80mm">80mm (Wide)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-end gap-2">
-            <Button variant="outline" className="flex-1" onClick={() => handlePrintOrder({
-              ...orders[0],
-              items: orders[0]?.items || [],
-              totalAmount: 0,
-              orderNumber: 'TEST-PRINT'
-            } as any)}>
-              {t('testPrint')}
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => toast({ title: t('printerStatus'), description: t('printerReady') })}>
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Logo and Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div className="space-y-2">
-          <Label>Logo</Label>
-          <div className="flex items-center gap-4">
-            {currentRestaurant?.logo ? (
-              <div className="relative h-16 w-16 rounded-full overflow-hidden border">
-                <Image src={currentRestaurant.logo} alt="Logo" fill className="object-cover" />
-              </div>
-            ) : (
-              <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-dashed">
-                <Utensils className="h-6 w-6" />
-              </div>
-            )}
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, async (base64) => {
-                try {
-                  const res = await fetch(`/api/restaurants/${restaurantId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ logo: base64 })
-                  });
-                  if (res.ok) {
-                    toast({ title: "Updated", description: "Logo updated successfully" });
-                    fetchDashboardData();
-                  }
-                } catch (err) { toast({ title: "Error", description: "Failed to upload logo", variant: "destructive" }); }
-              })}
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Banner Image</Label>
-          <div className="space-y-2">
-            {currentRestaurant?.banner && (
-              <div className="relative h-24 w-full rounded overflow-hidden border">
-                <Image src={currentRestaurant.banner} alt="Banner" fill className="object-cover" />
-              </div>
-            )}
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, async (base64) => {
-                try {
-                  const res = await fetch(`/api/restaurants/${restaurantId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ banner: base64 })
-                  });
-                  if (res.ok) {
-                    toast({ title: "Updated", description: "Banner updated successfully" });
-                    fetchDashboardData();
-                  }
-                } catch (err) { toast({ title: "Error", description: "Failed to upload banner", variant: "destructive" }); }
-              })}
-            />
-          </div>
-        </div>
-      </div>
-
-      <Button
-        className="bg-emerald-600 hover:bg-emerald-700 mt-4"
-        onClick={async () => {
-          try {
-            const res = await fetch(`/api/restaurants/${restaurantId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(settingsForm)
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-              toast({ title: t('save'), description: "Settings saved successfully" });
-
-              try {
-                // Force refresh to ensure Slug is propagated
-                await fetchDashboardData();
-
-                if (data.data && data.data.slug !== currentRestaurant?.slug) {
-                  toast({ title: t('save'), description: "URL updated. Please refresh if links look old." });
-                  // Optional: window.location.reload()
-                }
-              } catch (refreshErr) {
-                console.error("Refresh failed", refreshErr)
-              }
-            } else {
-              throw new Error(data.error || 'Failed to save settings')
-            }
-          } catch (err: any) {
-            console.error(err)
-            toast({ title: "Error", description: err.message, variant: "destructive" });
+          {
+            myBranches.length > 0 && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>{t('myBranches')}</CardTitle>
+                  <CardDescription>{t('switchBranches')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {myBranches.map(branch => (
+                      <Button
+                        key={branch.id}
+                        variant={branch.id === restaurantId ? "default" : "outline"}
+                        className="justify-start h-auto py-3 px-4"
+                        onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">{branch.name}</div>
+                          <div className="text-xs opacity-70">{branch.address}</div>
+                        </div>
+                        {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )
           }
-        }}
-      >
-        {t('save')}
-      </Button>
-    </CardContent>
-  </Card>
-          </TabsContent >
 
-    {/* Reports Tab */ }
-    < TabsContent value = "reports" className = "space-y-4" >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">Sales Reports</h2>
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col sm:flex-row items-base sm:items-center gap-2">
-            <Select value={reportFilterType} onValueChange={(v: any) => setReportFilterType(v)}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Status Filter */}
-            <Select value={reportStatusFilter} onValueChange={setReportStatusFilter}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                <SelectItem value="ALL">All Status</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {reportFilterType === 'monthly' ? (
-              <>
-                <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Select Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                      <SelectItem key={m} value={m.toString()}>
-                        {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(parseInt(v))}>
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[2024, 2025, 2026].map(y => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  className="border rounded px-2 py-2 text-sm"
-                  value={reportDateRange.start}
-                  onChange={(e) => setReportDateRange(prev => ({ ...prev, start: e.target.value }))}
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="date"
-                  className="border rounded px-2 py-2 text-sm"
-                  value={reportDateRange.end}
-                  onChange={(e) => setReportDateRange(prev => ({ ...prev, end: e.target.value }))}
-                />
-                <Button size="sm" onClick={() => fetchDashboardData()}>Refresh</Button>
-              </div>
-            )}
-          </div>
-          <Button variant="outline" onClick={handleDownloadReport}>
-            <Download className="h-4 w-4 mr-2" />
-            {t('export')}
-          </Button>
-        </div>
-      </div>
-
-  {/* Monthly Summary Cards */ }
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">{t('totalOrders')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">
-          {orders.filter(o => {
-            const d = new Date(o.createdAt);
-            return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
-          }).length}
-        </div>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">{t('grossRevenue')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-green-600">
-          Rp {orders.filter(o => {
-            const d = new Date(o.createdAt);
-            return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
-          }).reduce((acc, o) => acc + o.totalAmount, 0).toLocaleString('id-ID')}
-        </div>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">{t('avgOrderValue')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">
-          Rp {(() => {
-            const filtered = orders.filter(o => {
-              const d = new Date(o.createdAt);
-              return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
-            });
-            return filtered.length ? (filtered.reduce((acc, o) => acc + o.totalAmount, 0) / filtered.length).toLocaleString('id-ID', { maximumFractionDigits: 0 }) : '0';
-          })()}
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-
-  {/* Daily Breakdown Table */ }
-  <Card>
-    <CardHeader>
-      <CardTitle>Daily Breakdown</CardTitle>
-      <CardDescription>
-        Sales performance for {new Date(0, reportMonth - 1).toLocaleString('default', { month: 'long' })} {reportYear}
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <div className="border rounded-md">
-        <div className="grid grid-cols-4 bg-gray-50 p-3 font-medium text-sm border-b">
-          <div>Date</div>
-          <div>Orders</div>
-          <div>Items Sold</div>
-          <div className="text-right">Revenue</div>
-        </div>
-        <ScrollArea className="h-[300px]">
-          {Object.entries(reportDailyData || {}).map(([date, data]: [string, any]) => (
-            <div key={date} className="grid grid-cols-4 p-3 text-sm border-b last:border-0 hover:bg-gray-50">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-400" />
-                {date}
-              </div>
-              <div>{data.count}</div>
-              <div>{data.itemsSold || 0}</div>
-              <div className="text-right font-medium">Rp {data.revenue.toLocaleString('id-ID')}</div>
-            </div>
-          ))}
-          {Object.keys(reportDailyData || {}).length === 0 && (
-            <div className="p-8 text-center text-gray-500">No sales data for this period</div>
-          )}
-
-
-        </ScrollArea>
-      </div>
-    </CardContent>
-  </Card>
-          </TabsContent >
-
-    <TabsContent value="branches" className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">{t('branches')}</h2>
-          <p className="text-muted-foreground text-sm">Manage your restaurant branches</p>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          {currentRestaurant?.allowBranches && currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches && (
-            <span className="text-xs text-red-500 font-medium bg-red-50 px-2 py-1 rounded">Limit Reached ({myBranches.length}/{currentRestaurant.maxBranches})</span>
-          )}
-          {currentRestaurant?.allowBranches && (
-            <Button onClick={() => {
-              setBranchForm({ createAdmin: true, enableSync: true })
-              setBranchDialogOpen(true)
-            }}
-              className="bg-green-600 hover:bg-green-700"
-              disabled={!!(currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Branch
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {myBranches.map((branch: any) => (
-          <Card key={branch.id}>
+          {/* General Settings */}
+          <Card>
             <CardHeader>
-              <CardTitle>{branch.name}</CardTitle>
-              <CardDescription>{branch.address}</CardDescription>
+              <CardTitle>{t('generalInfo')}</CardTitle>
+              <CardDescription>{t('generalInfoDesc')}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-sm space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Phone:</span>
-                  <span>{branch.phone}</span>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>{t('restaurantName')}</Label>
+                  <Input
+                    placeholder="My Restaurant"
+                    value={settingsForm.name || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-400">{t('restaurantNameDesc')}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Stats:</span>
-                  <span>{branch.totalOrders || 0} orders</span>
+                <div className="space-y-2">
+                  <Label>{t('storeUrl')}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="my-resto"
+                      value={settingsForm.slug || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, slug: e.target.value })}
+                      disabled={true} // Disabled as requested
+                      className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                    />
+                    {/* Preview Button works with ID now if slug is disabled/ignored, but we keep slug in URL for now or ID? User asked for rollback to random URL (ID). */}
+                    <Button variant="outline" size="icon" asChild title="Preview Store">
+                      <a href={`/menu/${currentRestaurant?.id}`} target="_blank" rel="noopener noreferrer">
+                        <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {t('storeUrlDesc')} - Permanent URL: <span className="font-mono text-emerald-600">.../menu/{currentRestaurant?.id}</span>
+                  </p>
                 </div>
-                <div className="mt-2">
-                  <Badge variant={branch.isActive ? 'default' : 'secondary'}>{branch.isActive ? 'Active' : 'Inactive'}</Badge>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1" asChild>
-                <a href={`/menu/${branch.slug || branch.id}`} target="_blank">View Menu</a>
-              </Button>
-              {currentRestaurant?.allowBranches && (
-                <Button variant="destructive" size="sm" onClick={() => {
-                  if (confirm('Delete this branch?')) {
-                    fetch(`/api/restaurants/${branch.id}`, { method: 'DELETE' })
-                      .then(res => res.json())
-                      .then(data => {
-                        if (data.success) {
-                          toast({ title: 'Deleted', description: 'Branch deleted' })
-                          fetchDashboardData()
-                        } else {
-                          toast({ title: 'Error', variant: 'destructive', description: data.error })
-                        }
-                      })
-                  }
-                }}>
-                  <Trash className="h-4 w-4" />
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
-        ))}
-        {myBranches.length === 0 && <div className="col-span-full text-center text-gray-500 py-12 border-2 border-dashed rounded-lg">No branches found.</div>}
-      </div>
-    </TabsContent>
-        </Tabs >
-      </main >
 
-    {/* Mobile Bottom Nav */ }
-    < div className = "md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex justify-around py-2 safe-area-pb" >
-        <button
-          onClick={() => setActiveTab('menu')}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'menu' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
-        >
-          <Package className="h-5 w-5" />
-          <span className="text-[10px] font-medium mt-1">Menu</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('categories')}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'categories' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
-        >
-          <LayoutGrid className="h-5 w-5" />
-          <span className="text-[10px] font-medium mt-1">Category</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('orders')}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg relative ${activeTab === 'orders' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
-        >
-          <div className="relative">
-            <ShoppingBag className="h-5 w-5" />
-            {pendingOrdersCount > 0 && (
-              <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white shadow-sm border border-white animate-pulse">
-                {pendingOrdersCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-medium mt-1">Orders</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${activeTab === 'analytics' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
-        >
-          <TrendingUp className="h-5 w-5" />
-          <span className="text-[10px] font-medium mt-1">Analytics</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'settings' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
-        >
-          <Settings className="h-5 w-5" />
-          <span className="text-[10px] font-medium mt-1">Settings</span>
-        </button>
-      </div >
-
-    {/* Footer */ }
-    < footer className = "border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0" >
-      <div className="container mx-auto px-4 text-center">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          © 2026 Meenuin. Digital Restaurant Platform
-        </p>
-      </div>
-      </footer >
-
-    {/* Helpdesk Floating Button - Visible on all devices */ }
-    < div className = "fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex flex-col items-end gap-2 group" >
-        <div className="bg-black/75 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          Chat Helpdesk
-        </div>
-        <Button
-          className="rounded-full shadow-lg bg-[#25D366] hover:bg-[#128C7E] text-white p-0 w-14 h-14 flex items-center justify-center transition-transform hover:scale-110"
-          onClick={() => window.open(`https://wa.me/${helpdeskSettings?.whatsapp || '6281234567890'}`, '_blank')}
-        >
-          <MessageCircle className="h-7 w-7" />
-        </Button>
-      </div >
-
-    {/* QR Code Dialog for Restaurant Menu */ }
-    < QRCodeDialog
-  open = { qrCodeDialogOpen }
-  onOpenChange = { setQrCodeDialogOpen }
-  restaurantSlug = { currentRestaurant?.id || user?.restaurantId || ''
-}
-restaurantName = { currentRestaurant?.name || 'Restaurant'}
-      />
-
-{/* ... View Order Dialog ... */ }
-<Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
-  <DialogContent className="max-w-md">
-    <DialogHeader>
-      <DialogTitle>Order Details #{viewOrder?.orderNumber}</DialogTitle>
-      <DialogDescription>{new Date(viewOrder?.createdAt || '').toLocaleString()}</DialogDescription>
-    </DialogHeader>
-    {viewOrder && (
-      <ScrollArea className="max-h-[60vh]">
-        <div className="space-y-4 p-1">
-          <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
-            <div className="flex justify-between"><span>Customer:</span><span className="font-medium">{viewOrder.customerName}</span></div>
-            <div className="flex justify-between"><span>Table:</span><span className="font-medium">{viewOrder.tableNumber || 'Takeaway'}</span></div>
-            <div className="flex justify-between"><span>Status:</span><Badge variant="outline">{viewOrder.status}</Badge></div>
-            <div className="flex justify-between"><span>Payment:</span><span>{viewOrder.paymentMethod} ({viewOrder.paymentStatus})</span></div>
-            {viewOrder.notes && <div className="mt-2 text-xs italic">Note: {viewOrder.notes}</div>}
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm border-b pb-1">Items</h4>
-            {viewOrder.items.map((item, i) => (
-              <div key={i} className="flex justify-between text-sm">
-                <div className="flex gap-2">
-                  <span className="font-bold">{item.quantity}x</span>
-                  <div>
-                    <div>{item.menuItemName}</div>
-                    {item.notes && <div className="text-xs text-gray-400">{item.notes}</div>}
+                {/* Printer Settings */}
+                <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
+                  <h3 className="font-medium mb-2">Printer Settings (Bluetooth Thermal)</h3>
+                  <div className="flex items-center justify-between bg-white p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Printer className="h-5 w-5 text-gray-500" />
+                      <div>
+                        <div className="font-medium">Thermal Printer</div>
+                        <div className="text-xs text-gray-500">{isPrinterConnected ? "Connected" : "Disconnected"}</div>
+                      </div>
+                    </div>
+                    <Button
+                      variant={isPrinterConnected ? "outline" : "default"}
+                      className={isPrinterConnected ? "text-green-600 border-green-200 bg-green-50" : ""}
+                      onClick={handleConnectPrinter}
+                    >
+                      {isPrinterConnected ? <CheckCircle className="h-4 w-4 mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
+                      {isPrinterConnected ? "Connected" : "Connect"}
+                    </Button>
                   </div>
                 </div>
-                <div>{item.price.toLocaleString()}</div>
+
+                <div className="space-y-2">
+                  <Label>{t('address')}</Label>
+                  <Input
+                    value={settingsForm.address || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('phone')}</Label>
+                  <Input
+                    value={settingsForm.phone || ''}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                  />
+                </div>
+                {/* Map Settings */}
+                <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
+                  <h3 className="font-medium mb-2">{t('locationMaps')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>{t('googleMapsUrl')}</Label>
+                      <Input
+                        placeholder="https://maps.google.com/..."
+                        value={settingsForm.googleMapsUrl || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, googleMapsUrl: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex items-center gap-4 pt-8">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="setting-allowMaps"
+                          checked={settingsForm.allowMaps || false}
+                          onCheckedChange={(checked) => setSettingsForm({ ...settingsForm, allowMaps: checked })}
+                        />
+                        <Label htmlFor="setting-allowMaps">{t('showMap')}</Label>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t('latitude')}</Label>
+                      <Input
+                        type="number" step="any"
+                        value={settingsForm.latitude || 0}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, latitude: parseFloat(e.target.value) })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t('longitude')}</Label>
+                      <Input
+                        type="number" step="any"
+                        value={settingsForm.longitude || 0}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, longitude: parseFloat(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
+
+              {/* Printer Settings */}
+              <div className="border rounded-lg p-4 space-y-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium flex items-center gap-2">
+                    <Printer className="h-4 w-4" />
+                    {t('printerSettings')}
+                  </h3>
+                  <Badge variant={currentRestaurant?.printerSettings?.paperSize ? "secondary" : "outline"} className={currentRestaurant?.printerSettings?.paperSize ? "bg-green-100 text-green-700" : ""}>
+                    {currentRestaurant?.printerSettings?.paperSize ? t('connected') : t('disconnected')}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{t('paperSize')}</Label>
+                    <Select
+                      value={currentRestaurant?.printerSettings?.paperSize || '58mm'}
+                      onValueChange={(val) => {
+                        const newSettings = { ...(currentRestaurant?.printerSettings || {}), paperSize: val };
+                        fetch(`/api/restaurants/${restaurantId}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ printerSettings: newSettings })
+                        }).then(() => { toast({ title: "Saved", description: "Printer size updated" }); loadRestaurantDetails(); });
+                      }}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="58mm">58mm (Standard)</SelectItem>
+                        <SelectItem value="80mm">80mm (Wide)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <Button variant="outline" className="flex-1" onClick={() => handlePrintOrder({
+                      ...orders[0],
+                      items: orders[0]?.items || [],
+                      totalAmount: 0,
+                      orderNumber: 'TEST-PRINT'
+                    } as any)}>
+                      {t('testPrint')}
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => toast({ title: t('printerStatus'), description: t('printerReady') })}>
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Logo and Banner */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label>Logo</Label>
+                  <div className="flex items-center gap-4">
+                    {currentRestaurant?.logo ? (
+                      <div className="relative h-16 w-16 rounded-full overflow-hidden border">
+                        <Image src={currentRestaurant.logo} alt="Logo" fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-dashed">
+                        <Utensils className="h-6 w-6" />
+                      </div>
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, async (base64) => {
+                        try {
+                          const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ logo: base64 })
+                          });
+                          if (res.ok) {
+                            toast({ title: "Updated", description: "Logo updated successfully" });
+                            fetchDashboardData();
+                          }
+                        } catch (err) { toast({ title: "Error", description: "Failed to upload logo", variant: "destructive" }); }
+                      })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Banner Image</Label>
+                  <div className="space-y-2">
+                    {currentRestaurant?.banner && (
+                      <div className="relative h-24 w-full rounded overflow-hidden border">
+                        <Image src={currentRestaurant.banner} alt="Banner" fill className="object-cover" />
+                      </div>
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, async (base64) => {
+                        try {
+                          const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ banner: base64 })
+                          });
+                          if (res.ok) {
+                            toast({ title: "Updated", description: "Banner updated successfully" });
+                            fetchDashboardData();
+                          }
+                        } catch (err) { toast({ title: "Error", description: "Failed to upload banner", variant: "destructive" }); }
+                      })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                className="bg-emerald-600 hover:bg-emerald-700 mt-4"
+                onClick={async () => {
+                  try {
+                    const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(settingsForm)
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                      toast({ title: t('save'), description: "Settings saved successfully" });
+
+                      try {
+                        // Force refresh to ensure Slug is propagated
+                        await fetchDashboardData();
+
+                        if (data.data && data.data.slug !== currentRestaurant?.slug) {
+                          toast({ title: t('save'), description: "URL updated. Please refresh if links look old." });
+                          // Optional: window.location.reload()
+                        }
+                      } catch (refreshErr) {
+                        console.error("Refresh failed", refreshErr)
+                      }
+                    } else {
+                      throw new Error(data.error || 'Failed to save settings')
+                    }
+                  } catch (err: any) {
+                    console.error(err)
+                    toast({ title: "Error", description: err.message, variant: "destructive" });
+                  }
+                }}
+              >
+                {t('save')}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent >
+
+        {/* Reports Tab */}
+        < TabsContent value="reports" className="space-y-4" >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h2 className="text-2xl font-bold">Sales Reports</h2>
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-base sm:items-center gap-2">
+                <Select value={reportFilterType} onValueChange={(v: any) => setReportFilterType(v)}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="custom">Custom Range</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Status Filter */}
+                <Select value={reportStatusFilter} onValueChange={setReportStatusFilter}>
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    <SelectItem value="ALL">All Status</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {reportFilterType === 'monthly' ? (
+                  <>
+                    <Select value={reportMonth.toString()} onValueChange={(v) => setReportMonth(parseInt(v))}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Select Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                          <SelectItem key={m} value={m.toString()}>
+                            {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={reportYear.toString()} onValueChange={(v) => setReportYear(parseInt(v))}>
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[2024, 2025, 2026].map(y => (
+                          <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      className="border rounded px-2 py-2 text-sm"
+                      value={reportDateRange.start}
+                      onChange={(e) => setReportDateRange(prev => ({ ...prev, start: e.target.value }))}
+                    />
+                    <span className="text-gray-400">-</span>
+                    <input
+                      type="date"
+                      className="border rounded px-2 py-2 text-sm"
+                      value={reportDateRange.end}
+                      onChange={(e) => setReportDateRange(prev => ({ ...prev, end: e.target.value }))}
+                    />
+                    <Button size="sm" onClick={() => fetchDashboardData()}>Refresh</Button>
+                  </div>
+                )}
+              </div>
+              <Button variant="outline" onClick={handleDownloadReport}>
+                <Download className="h-4 w-4 mr-2" />
+                {t('export')}
+              </Button>
+            </div>
           </div>
 
-          <div className="flex justify-between items-center border-t pt-3 font-bold">
-            <span>Total Amount</span>
-            <span className="text-lg text-emerald-600">Rp {viewOrder.totalAmount.toLocaleString()}</span>
+          {/* Monthly Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">{t('totalOrders')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {orders.filter(o => {
+                    const d = new Date(o.createdAt);
+                    return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+                  }).length}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">{t('grossRevenue')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  Rp {orders.filter(o => {
+                    const d = new Date(o.createdAt);
+                    return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+                  }).reduce((acc, o) => acc + o.totalAmount, 0).toLocaleString('id-ID')}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">{t('avgOrderValue')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  Rp {(() => {
+                    const filtered = orders.filter(o => {
+                      const d = new Date(o.createdAt);
+                      return d.getMonth() + 1 === reportMonth && d.getFullYear() === reportYear;
+                    });
+                    return filtered.length ? (filtered.reduce((acc, o) => acc + o.totalAmount, 0) / filtered.length).toLocaleString('id-ID', { maximumFractionDigits: 0 }) : '0';
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
-      </ScrollArea>
-    )}
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setViewOrder(null)}>Close</Button>
-      <Button onClick={() => viewOrder && handlePrintOrder(viewOrder)}>Print</Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+
+          {/* Daily Breakdown Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Daily Breakdown</CardTitle>
+              <CardDescription>
+                Sales performance for {new Date(0, reportMonth - 1).toLocaleString('default', { month: 'long' })} {reportYear}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-md">
+                <div className="grid grid-cols-4 bg-gray-50 p-3 font-medium text-sm border-b">
+                  <div>Date</div>
+                  <div>Orders</div>
+                  <div>Items Sold</div>
+                  <div className="text-right">Revenue</div>
+                </div>
+                <ScrollArea className="h-[300px]">
+                  {Object.entries(reportDailyData || {}).map(([date, data]: [string, any]) => (
+                    <div key={date} className="grid grid-cols-4 p-3 text-sm border-b last:border-0 hover:bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        {date}
+                      </div>
+                      <div>{data.count}</div>
+                      <div>{data.itemsSold || 0}</div>
+                      <div className="text-right font-medium">Rp {data.revenue.toLocaleString('id-ID')}</div>
+                    </div>
+                  ))}
+                  {Object.keys(reportDailyData || {}).length === 0 && (
+                    <div className="p-8 text-center text-gray-500">No sales data for this period</div>
+                  )}
+
+
+                </ScrollArea>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent >
+
+        <TabsContent value="branches" className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold">{t('branches')}</h2>
+              <p className="text-muted-foreground text-sm">Manage your restaurant branches</p>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              {currentRestaurant?.allowBranches && currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches && (
+                <span className="text-xs text-red-500 font-medium bg-red-50 px-2 py-1 rounded">Limit Reached ({myBranches.length}/{currentRestaurant.maxBranches})</span>
+              )}
+              {currentRestaurant?.allowBranches && (
+                <Button onClick={() => {
+                  setBranchForm({ createAdmin: true, enableSync: true })
+                  setBranchDialogOpen(true)
+                }}
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={!!(currentRestaurant?.maxBranches && currentRestaurant.maxBranches > 0 && myBranches.length >= currentRestaurant.maxBranches)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Branch
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {myBranches.map((branch: any) => (
+              <Card key={branch.id}>
+                <CardHeader>
+                  <CardTitle>{branch.name}</CardTitle>
+                  <CardDescription>{branch.address}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Phone:</span>
+                      <span>{branch.phone}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Stats:</span>
+                      <span>{branch.totalOrders || 0} orders</span>
+                    </div>
+                    <div className="mt-2">
+                      <Badge variant={branch.isActive ? 'default' : 'secondary'}>{branch.isActive ? 'Active' : 'Inactive'}</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex gap-2">
+                  <Button variant="outline" size="sm" className="flex-1" asChild>
+                    <a href={`/menu/${branch.slug || branch.id}`} target="_blank">View Menu</a>
+                  </Button>
+                  {currentRestaurant?.allowBranches && (
+                    <Button variant="destructive" size="sm" onClick={() => {
+                      if (confirm('Delete this branch?')) {
+                        fetch(`/api/restaurants/${branch.id}`, { method: 'DELETE' })
+                          .then(res => res.json())
+                          .then(data => {
+                            if (data.success) {
+                              toast({ title: 'Deleted', description: 'Branch deleted' })
+                              fetchDashboardData()
+                            } else {
+                              toast({ title: 'Error', variant: 'destructive', description: data.error })
+                            }
+                          })
+                      }
+                    }}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+            ))}
+            {myBranches.length === 0 && <div className="col-span-full text-center text-gray-500 py-12 border-2 border-dashed rounded-lg">No branches found.</div>}
+          </div>
+        </TabsContent>
+      </Tabs >
+    </main >
+
+    {/* Mobile Bottom Nav */ }
+  < div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 flex justify-around py-2 safe-area-pb" >
+    <button
+      onClick={() => setActiveTab('menu')}
+      className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'menu' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
+    >
+      <Package className="h-5 w-5" />
+      <span className="text-[10px] font-medium mt-1">Menu</span>
+    </button>
+    <button
+      onClick={() => setActiveTab('categories')}
+      className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'categories' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
+    >
+      <LayoutGrid className="h-5 w-5" />
+      <span className="text-[10px] font-medium mt-1">Category</span>
+    </button>
+    <button
+      onClick={() => setActiveTab('orders')}
+      className={`flex flex-col items-center justify-center p-2 rounded-lg relative ${activeTab === 'orders' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
+    >
+      <div className="relative">
+        <ShoppingBag className="h-5 w-5" />
+        {pendingOrdersCount > 0 && (
+          <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white shadow-sm border border-white animate-pulse">
+            {pendingOrdersCount}
+          </span>
+        )}
+      </div>
+      <span className="text-[10px] font-medium mt-1">Orders</span>
+    </button>
+
+    <button
+      onClick={() => setActiveTab('analytics')}
+      className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${activeTab === 'analytics' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
+    >
+      <TrendingUp className="h-5 w-5" />
+      <span className="text-[10px] font-medium mt-1">Analytics</span>
+    </button>
+    <button
+      onClick={() => setActiveTab('settings')}
+      className={`flex flex-col items-center justify-center p-2 rounded-lg ${activeTab === 'settings' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500'}`}
+    >
+      <Settings className="h-5 w-5" />
+      <span className="text-[10px] font-medium mt-1">Settings</span>
+    </button>
+  </div >
+
+  {/* Footer */ }
+  < footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm w-full py-6 mt-12 mb-20 md:mb-0" >
+    <div className="container mx-auto px-4 text-center">
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        © 2026 Meenuin. Digital Restaurant Platform
+      </p>
+    </div>
+  </footer >
+
+  {/* Helpdesk Floating Button - Visible on all devices */ }
+  < div className="fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8 flex flex-col items-end gap-2 group" >
+    <div className="bg-black/75 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+      Chat Helpdesk
+    </div>
+    <Button
+      className="rounded-full shadow-lg bg-[#25D366] hover:bg-[#128C7E] text-white p-0 w-14 h-14 flex items-center justify-center transition-transform hover:scale-110"
+      onClick={() => window.open(`https://wa.me/${helpdeskSettings?.whatsapp || '6281234567890'}`, '_blank')}
+    >
+      <MessageCircle className="h-7 w-7" />
+    </Button>
+  </div >
+
+  {/* QR Code Dialog for Restaurant Menu */ }
+  < QRCodeDialog
+    open={qrCodeDialogOpen}
+    onOpenChange={setQrCodeDialogOpen}
+    restaurantSlug={currentRestaurant?.id || user?.restaurantId || ''
+    }
+    restaurantName={currentRestaurant?.name || 'Restaurant'}
+  />
+
+  {/* ... View Order Dialog ... */ }
+  <Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
+    <DialogContent className="max-w-md">
+      <DialogHeader>
+        <DialogTitle>Order Details #{viewOrder?.orderNumber}</DialogTitle>
+        <DialogDescription>{new Date(viewOrder?.createdAt || '').toLocaleString()}</DialogDescription>
+      </DialogHeader>
+      {viewOrder && (
+        <ScrollArea className="max-h-[60vh]">
+          <div className="space-y-4 p-1">
+            <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+              <div className="flex justify-between"><span>Customer:</span><span className="font-medium">{viewOrder.customerName}</span></div>
+              <div className="flex justify-between"><span>Table:</span><span className="font-medium">{viewOrder.tableNumber || 'Takeaway'}</span></div>
+              <div className="flex justify-between"><span>Status:</span><Badge variant="outline">{viewOrder.status}</Badge></div>
+              <div className="flex justify-between"><span>Payment:</span><span>{viewOrder.paymentMethod} ({viewOrder.paymentStatus})</span></div>
+              {viewOrder.notes && <div className="mt-2 text-xs italic">Note: {viewOrder.notes}</div>}
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm border-b pb-1">Items</h4>
+              {viewOrder.items.map((item, i) => (
+                <div key={i} className="flex justify-between text-sm">
+                  <div className="flex gap-2">
+                    <span className="font-bold">{item.quantity}x</span>
+                    <div>
+                      <div>{item.menuItemName}</div>
+                      {item.notes && <div className="text-xs text-gray-400">{item.notes}</div>}
+                    </div>
+                  </div>
+                  <div>{item.price.toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-between items-center border-t pt-3 font-bold">
+              <span>Total Amount</span>
+              <span className="text-lg text-emerald-600">Rp {viewOrder.totalAmount.toLocaleString()}</span>
+            </div>
+          </div>
+        </ScrollArea>
+      )}
+      <DialogFooter>
+        <Button variant="outline" onClick={() => setViewOrder(null)}>Close</Button>
+        <Button onClick={() => viewOrder && handlePrintOrder(viewOrder)}>Print</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
     </div >
   )
 }
