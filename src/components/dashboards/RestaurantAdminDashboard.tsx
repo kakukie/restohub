@@ -734,6 +734,14 @@ export default function RestaurantAdminDashboard() {
 
   const handleValidateOrder = async () => {
     if (!validateOrderId) return
+
+    // Optimistic Update
+    const prevOrders = [...orders]
+    setOrders(prev => prev.map(o => o.id === validateOrderId ? { ...o, status: 'CONFIRMED' } : o))
+    setValidateOrderId(null)
+    setManualEmail('')
+    setManualPhone('')
+
     try {
       const res = await fetch('/api/orders', {
         method: 'PUT',
@@ -741,26 +749,30 @@ export default function RestaurantAdminDashboard() {
         body: JSON.stringify({
           orderId: validateOrderId,
           status: 'CONFIRMED',
-          // Pass manual notification details
           manualEmail: manualEmail || undefined,
           manualPhone: manualPhone || undefined
         })
       })
+
       if (res.ok) {
-        toast({ title: 'Success', description: 'Order has been validated and confirmed' })
-        setValidateOrderId(null)
-        setManualEmail('')
-        setManualPhone('')
-        await fetchDashboardData()
+        toast({ title: 'Success', description: 'Order validated' })
+        // Background refresh only orders, not entire dashboard
+        loadOrderData()
       } else {
         throw new Error('Failed to update')
       }
     } catch (error) {
+      // Revert on error
+      setOrders(prevOrders)
       toast({ title: 'Error', variant: 'destructive', description: 'Failed to validate order' })
     }
   }
 
   const handleRejectOrder = async (orderId: string) => {
+    // Optimistic Update
+    const prevOrders = [...orders]
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o))
+
     try {
       const res = await fetch('/api/orders', {
         method: 'PUT',
@@ -769,16 +781,21 @@ export default function RestaurantAdminDashboard() {
       })
       if (res.ok) {
         toast({ title: 'Order Rejected', description: 'Order has been rejected' })
-        await fetchDashboardData()
+        loadOrderData()
       } else {
         throw new Error('Failed to update')
       }
     } catch (error) {
+      setOrders(prevOrders)
       toast({ title: 'Error', variant: 'destructive', description: 'Failed to reject order' })
     }
   }
 
   const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
+    // Optimistic Update
+    const prevOrders = [...orders]
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
+
     try {
       const res = await fetch('/api/orders', {
         method: 'PUT',
@@ -787,12 +804,13 @@ export default function RestaurantAdminDashboard() {
       })
       if (res.ok) {
         const statusText = status.replace('_', ' ').toLowerCase()
-        toast({ title: 'Success', description: `Order status updated to ${statusText}` })
-        await fetchDashboardData()
+        toast({ title: 'Success', description: `Order updated to ${statusText}` })
+        loadOrderData()
       } else {
         throw new Error('Failed to update')
       }
     } catch (error) {
+      setOrders(prevOrders)
       toast({ title: 'Error', variant: 'destructive', description: 'Failed to update status' })
     }
   }
