@@ -270,9 +270,14 @@ export default function RestaurantAdminDashboard() {
       ])
       const [dataMenu, dataCat, dataPay] = await Promise.all([resMenu.json(), resCat.json(), resPay.json()])
 
-      if (dataMenu.success) setMenuItems(dataMenu.data || [])
-      if (dataCat.success) setCategories(dataCat.data || [])
-      if (dataPay.success) setPaymentMethods(dataPay.data || [])
+      if (dataMenu.success && Array.isArray(dataMenu.data)) setMenuItems(dataMenu.data)
+      else setMenuItems([])
+
+      if (dataCat.success && Array.isArray(dataCat.data)) setCategories(dataCat.data)
+      else setCategories([])
+
+      if (dataPay.success && Array.isArray(dataPay.data)) setPaymentMethods(dataPay.data)
+      else setPaymentMethods([])
     } catch (e) {
       console.error("Menu Load Error", e)
     }
@@ -831,7 +836,8 @@ export default function RestaurantAdminDashboard() {
 
   const handleDownloadReport = () => {
     // Filter orders by selected month/year
-    const filteredOrders = orders.filter(o => {
+    const safeOrders = Array.isArray(orders) ? orders : [];
+    const filteredOrders = safeOrders.filter(o => {
       // Check date filter
       const d = new Date(o.createdAt);
       d.setHours(0, 0, 0, 0);
