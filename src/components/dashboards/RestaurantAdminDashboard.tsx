@@ -639,17 +639,26 @@ export default function RestaurantAdminDashboard() {
   const handleDeletePaymentMethod = async (id: string) => {
     if (!confirm('Are you sure you want to delete this payment method?')) return
     try {
+      // Optimistic update
+      const previousMethods = [...paymentMethods]
+      setPaymentMethods(prev => prev.filter(p => p.id !== id))
+
       const res = await fetch(`/api/restaurants/${restaurantId}/payment-methods?paymentId=${id}`, {
         method: 'DELETE'
       })
       if (res.ok) {
-        await fetchDashboardData()
-        toast({ title: 'Deleted', description: 'Payment method removed' })
+        // success
+        toast({ title: 'Deleted', description: 'Payment method removed permanently' })
+        // No need to refetch if we are confident, but can do background refetch
+        fetchDashboardData()
       } else {
-        throw new Error('Failed to delete')
+        // Revert on error
+        setPaymentMethods(previousMethods)
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete')
       }
-    } catch (error) {
-      toast({ title: 'Error', variant: 'destructive', description: 'Failed to delete payment method' })
+    } catch (error: any) {
+      toast({ title: 'Error', variant: 'destructive', description: error.message || 'Failed to delete payment method' })
     }
   }
 
@@ -689,10 +698,9 @@ export default function RestaurantAdminDashboard() {
         toast({ title: 'Success', description: 'Branch created successfully' })
         setBranchDialogOpen(false)
         setBranchForm({})
-        // Refresh branches
-        const branchesRes = await fetch(`/api/restaurants?adminId=${user?.id}`)
-        const branchesData = await branchesRes.json()
-        if (branchesData.success) setMyBranches(branchesData.data)
+
+        // Refresh everything to ensure limits and lists are synced
+        await fetchDashboardData()
       } else {
         throw new Error(data.error)
       }
@@ -2615,9 +2623,25 @@ export default function RestaurantAdminDashboard() {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter>
-                    <Button variant="outline" size="sm" className="w-full" asChild>
+                  <CardFooter className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" asChild>
                       <a href={`/menu/${branch.slug || branch.id}`} target="_blank">View Menu</a>
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => {
+                      if (confirm('Delete this branch?')) {
+                        fetch(`/api/restaurants/${branch.id}`, { method: 'DELETE' })
+                          .then(res => res.json())
+                          .then(data => {
+                            if (data.success) {
+                              toast({ title: 'Deleted', description: 'Branch deleted' })
+                              fetchDashboardData()
+                            } else {
+                              toast({ title: 'Error', variant: 'destructive', description: data.error })
+                            }
+                          })
+                      }
+                    }}>
+                      <Trash className="h-4 w-4" />
                     </Button>
                   </CardFooter>
                 </Card>

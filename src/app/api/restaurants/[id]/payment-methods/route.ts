@@ -32,9 +32,10 @@ export async function GET(
 
         const methods = await prisma.paymentMethod.findMany({
             where: {
-                restaurantId: restaurantId,
-                isActive: true
-            }
+                restaurantId: restaurantId
+                // Show ALL methods (Active & Inactive) so admin can manage them
+            },
+            orderBy: { createdAt: 'desc' }
         })
         return NextResponse.json({ success: true, data: methods })
     } catch (error) {
@@ -119,9 +120,8 @@ export async function DELETE(
     if (!paymentId) return NextResponse.json({ success: false }, { status: 400 })
 
     try {
-        await prisma.paymentMethod.update({
-            where: { id: paymentId },
-            data: { isActive: false }
+        await prisma.paymentMethod.delete({
+            where: { id: paymentId }
         })
         return NextResponse.json({ success: true })
     } catch (error) {

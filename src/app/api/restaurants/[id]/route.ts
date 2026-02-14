@@ -163,9 +163,9 @@ export async function PUT(
             'name', 'description', 'address', 'phone', 'email',
             'logo', 'banner', 'slug', 'theme', 'status', 'isActive',
             'detailAddress', 'googleMapsUrl', 'latitude', 'longitude',
-            // Configs (Limits should NOT be editable here by Resto Admin, only Super Admin via /api/restaurants)
-            'allowMaps', 'enableAnalytics', 'printerSettings'
-            // Removed: 'maxCategories', 'maxMenuItems', 'maxStaff', 'maxAdmins', 'allowBranches', 'maxSlugChanges'
+            // Configs (Allowed for Super Admin updates via this route)
+            'allowMaps', 'enableAnalytics', 'printerSettings',
+            'maxCategories', 'maxMenuItems', 'maxBranches', 'maxStaff', 'maxAdmins', 'package', 'allowBranches', 'maxSlugChanges'
         ]
 
         // Filter updates

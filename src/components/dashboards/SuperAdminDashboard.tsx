@@ -340,9 +340,22 @@ export default function SuperAdminDashboard() {
     }
   }
 
-  const handleDeleteRestaurant = (id: string) => {
-    // Mock delete
-    toast({ title: 'Notice', description: 'Deletion is disabled in this demo.' })
+  const handleDeleteRestaurant = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this restaurant? This cannot be undone.')) return
+
+    try {
+      const res = await fetch(`/api/restaurants/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+
+      if (data.success) {
+        toast({ title: 'Success', description: 'Restaurant deleted' })
+        setRestaurants(prev => prev.filter(r => r.id !== id))
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', variant: 'destructive', description: e.message })
+    }
   }
 
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false)
@@ -413,14 +426,40 @@ export default function SuperAdminDashboard() {
     setSubscriptionDialogOpen(true)
   }
 
-  const handleUpdateSubscription = () => {
+  const handleUpdateSubscription = async () => {
     if (!editingSubscription) return
 
-    updateRestaurant(editingSubscription.id, { package: newSubscriptionType as any })
+    try {
+      // Find plan details
+      const plan = subscriptionPlans.find(p => p.name.toUpperCase() === newSubscriptionType)
+      const updates: any = { package: newSubscriptionType }
 
-    setSubscriptionDialogOpen(false)
-    setEditingSubscription(null)
-    toast({ title: 'Success', description: 'Subscription updated' })
+      if (plan) {
+        updates.maxCategories = plan.maxCategories
+        updates.maxMenuItems = plan.menuLimit
+        updates.allowMaps = plan.allowMaps
+        updates.enableAnalytics = plan.enableAnalytics
+        // Add other limits if available in plan or use defaults
+      }
+
+      const res = await fetch(`/api/restaurants/${editingSubscription.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingSubscription.id, ...updates })
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        updateRestaurant(editingSubscription.id, updates)
+        toast({ title: 'Success', description: 'Subscription updated' })
+        setSubscriptionDialogOpen(false)
+        setEditingSubscription(null)
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' })
+    }
   }
 
   const handleEditPlan = (plan: SubscriptionPlan) => {
