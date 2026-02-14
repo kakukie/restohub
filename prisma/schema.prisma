@@ -190,6 +190,7 @@ model PaymentMethod {
   merchantId String?
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
+  deletedAt  DateTime?
 
   // Relations
   restaurantId String

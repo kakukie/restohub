@@ -379,60 +379,33 @@ export default function RestaurantAdminDashboard() {
   }, [user?.id, currentRestaurant])
 
   // Monolith wrapper for Manual Refresh
-  const loadInitialData = useCallback(async () => {
-    if (!restaurantId) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/restaurants/${restaurantId}/dashboard-init?adminId=${user?.id}&_t=${new Date().getTime()}`);
-      const data = await res.json();
-
-      if (data.success && data.data) {
-        // Sync Store & State in one batch
-        if (data.data.restaurant) {
-          updateRestaurant(restaurantId, data.data.restaurant);
-          // Ensure local settings form syncs
-          // (This happens via useEffect [currentRestaurant], so updating store is enough)
-        }
-
-        if (Array.isArray(data.data.menuItems)) setMenuItems(data.data.menuItems);
-        if (Array.isArray(data.data.categories)) setCategories(data.data.categories);
-        if (Array.isArray(data.data.paymentMethods)) setPaymentMethods(data.data.paymentMethods);
-        if (Array.isArray(data.data.activeAnnouncements)) setActiveAnnouncements(data.data.activeAnnouncements);
-        if (Array.isArray(data.data.myBranches)) setMyBranches(data.data.myBranches);
-      }
-    } catch (e) {
-      console.error("Dashboard Init Error", e);
-      // Fallback to individual loaders if agg fails?
-      loadMenuData();
-      loadAnnouncements();
-      loadRestaurantDetails();
-      loadBranches();
-    } finally {
-      setIsLoading(false);
-    }
-  }, [restaurantId, user?.id, updateRestaurant, loadMenuData, loadAnnouncements, loadRestaurantDetails, loadBranches]);
-
-  // Monolith wrapper for Manual Refresh
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true)
     await Promise.all([
-      loadInitialData(), // Use aggregated
+      // fetchRestaurantDetails(), // Redundant, loadRestaurantDetails does this
+      loadMenuData(),
       loadOrderData(),
-      loadReportData()
+      loadReportData(),
+      loadAnnouncements(),
+      loadRestaurantDetails(),
+      loadBranches()
     ])
     setIsLoading(false)
-  }, [loadInitialData, loadOrderData, loadReportData])
+  }, [loadMenuData, loadOrderData, loadReportData, loadAnnouncements, loadRestaurantDetails, loadBranches])
 
   // Initial Load (Parallel)
   useEffect(() => {
     if (restaurantId) {
-      // Fire Aggreated + Orders + Reports
-      loadInitialData()
+      // Fire all independently for faster perception (progressive loading)
+      loadRestaurantDetails() // Sync latest limits/slug
+      loadMenuData()
       loadOrderData()
       loadReportData()
-      // Duplicate loadReportData removed
+      loadReportData()
+      loadAnnouncements()
+      loadBranches()
     }
-  }, [restaurantId, loadInitialData, loadOrderData, loadReportData])
+  }, [restaurantId, loadMenuData, loadOrderData, loadReportData, loadAnnouncements, loadBranches])
 
   // Fix: Sync Settings Form when currentRestaurant loads
   useEffect(() => {
@@ -2019,23 +1992,428 @@ export default function RestaurantAdminDashboard() {
                 </Card>
               ))}
             </div>
-          </TabsContent>
+          </TabsContent >
 
           {/* History Tab */}
-          <TabsContent value="history">
-            <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-              <div className="text-lg font-medium">History</div>
-              <p className="text-sm">Order history and logs will be displayed here.</p>
-            </div>
-          </TabsContent>
+
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">{t('restaurantSettings')}</h2>
+              <div className="flex gap-2">
+                <Button variant="destructive" onClick={async () => {
+                  if (!confirm(t('deleteConfirm'))) return
+                  try {
+                    const res = await fetch(`/api/restaurants/${restaurantId}`, { method: 'DELETE' })
+                    const data = await res.json()
+                    if (data.success) {
+                      toast({ title: 'Deleted', description: 'Restaurant deleted' })
+                      window.location.href = '/dashboard'
+                    } else {
+                      throw new Error(data.error)
+                    }
+                  } catch (e: any) {
+                    toast({ title: 'Error', variant: 'destructive', description: e.message })
+                  }
+                }}>
+                  <Trash2 className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">{t('delete')}</span>
+                </Button>
+                {/* Create Branch Button - Only if allowed */}
+                {currentRestaurant?.allowBranches && (
+                  <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" onClick={() => setBranchForm({})}>
+                        <Plus className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">{t('createBranch')}</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create New Branch</DialogTitle>
+                        <DialogDescription>Create a new outlet linked to this restaurant.</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Branch Name</Label>
+                          <Input
+                            placeholder="e.g. Cabang Jakarta Selatan"
+                            value={branchForm.name || ''}
+                            onChange={e => setBranchForm({ ...branchForm, name: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Address</Label>
+                          <Input
+                            placeholder="Full address"
+                            value={branchForm.address || ''}
+                            onChange={e => setBranchForm({ ...branchForm, address: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Phone</Label>
+                          <Input
+                            placeholder="081..."
+                            value={branchForm.phone || ''}
+                            onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
+                          />
+                        </div>
+
+                        <div className="border-t pt-4 mt-2 space-y-4">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="createAdmin"
+                              checked={branchForm.createAdmin}
+                              onCheckedChange={(checked) => setBranchForm({ ...branchForm, createAdmin: checked })}
+                            />
+                            <Label htmlFor="createAdmin">Create Branch Admin?</Label>
+                          </div>
+
+                          {branchForm.createAdmin && (
+                            <div className="pl-6 space-y-4 border-l-2 border-emerald-100">
+                              <div className="space-y-1">
+                                <Label>Admin Name</Label>
+                                <Input
+                                  placeholder="John Doe"
+                                  value={branchForm.newAdminName || ''}
+                                  onChange={(e) => setBranchForm({ ...branchForm, newAdminName: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label>Admin Email</Label>
+                                <Input
+                                  type="email"
+                                  placeholder="manager@branch.com"
+                                  value={branchForm.newAdminEmail || ''}
+                                  onChange={(e) => setBranchForm({ ...branchForm, newAdminEmail: e.target.value })}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label>Password</Label>
+                                <Input
+                                  type="password"
+                                  placeholder="******"
+                                  value={branchForm.newAdminPassword || ''}
+                                  onChange={(e) => setBranchForm({ ...branchForm, newAdminPassword: e.target.value })}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Phone</Label>
+                          <Input
+                            placeholder="Phone number"
+                            value={branchForm.phone || ''}
+                            onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setBranchDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleCreateBranch}>Create Branch</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
             </div>
-            <RestaurantSettingsForm restaurantId={restaurantId} />
+
+            {myBranches.length > 0 && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>{t('myBranches')}</CardTitle>
+                  <CardDescription>{t('switchBranches')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {myBranches.map(branch => (
+                      <Button
+                        key={branch.id}
+                        variant={branch.id === restaurantId ? "default" : "outline"}
+                        className="justify-start h-auto py-3 px-4"
+                        onClick={() => window.location.href = `?restaurantId=${branch.id}`} // Simple reload to switch context
+                      >
+                        <div className="text-left">
+                          <div className="font-semibold">{branch.name}</div>
+                          <div className="text-xs opacity-70">{branch.address}</div>
+                        </div>
+                        {branch.id === restaurantId && <CheckCircle className="ml-auto h-4 w-4" />}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* General Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('generalInfo')}</CardTitle>
+                <CardDescription>{t('generalInfoDesc')}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{t('restaurantName')}</Label>
+                    <Input
+                      placeholder="My Restaurant"
+                      value={settingsForm.name || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
+                    />
+                    <p className="text-xs text-gray-400">{t('restaurantNameDesc')}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('storeUrl')}</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="my-resto"
+                        value={settingsForm.slug || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, slug: e.target.value })}
+                        disabled={true} // Disabled as requested
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
+                      {/* Preview Button works with ID now if slug is disabled/ignored, but we keep slug in URL for now or ID? User asked for rollback to random URL (ID). */}
+                      <Button variant="outline" size="icon" asChild title="Preview Store">
+                        <a href={`/menu/${currentRestaurant?.id}`} target="_blank" rel="noopener noreferrer">
+                          <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {t('storeUrlDesc')} - Permanent URL: <span className="font-mono text-emerald-600">.../menu/{currentRestaurant?.id}</span>
+                    </p>
+                  </div>
+
+                  {/* Printer Settings */}
+                  <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
+                    <h3 className="font-medium mb-2">Printer Settings (Bluetooth Thermal)</h3>
+                    <div className="flex items-center justify-between bg-white p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Printer className="h-5 w-5 text-gray-500" />
+                        <div>
+                          <div className="font-medium">Thermal Printer</div>
+                          <div className="text-xs text-gray-500">{isPrinterConnected ? "Connected" : "Disconnected"}</div>
+                        </div>
+                      </div>
+                      <Button
+                        variant={isPrinterConnected ? "outline" : "default"}
+                        className={isPrinterConnected ? "text-green-600 border-green-200 bg-green-50" : ""}
+                        onClick={handleConnectPrinter}
+                      >
+                        {isPrinterConnected ? <CheckCircle className="h-4 w-4 mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
+                        {isPrinterConnected ? "Connected" : "Connect"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{t('address')}</Label>
+                    <Input
+                      value={settingsForm.address || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('phone')}</Label>
+                    <Input
+                      value={settingsForm.phone || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                    />
+                  </div>
+                  {/* Map Settings */}
+                  <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
+                    <h3 className="font-medium mb-2">{t('locationMaps')}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>{t('googleMapsUrl')}</Label>
+                        <Input
+                          placeholder="https://maps.google.com/..."
+                          value={settingsForm.googleMapsUrl || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, googleMapsUrl: e.target.value })}
+                        />
+                      </div>
+                      <div className="flex items-center gap-4 pt-8">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="setting-allowMaps"
+                            checked={settingsForm.allowMaps || false}
+                            onCheckedChange={(checked) => setSettingsForm({ ...settingsForm, allowMaps: checked })}
+                          />
+                          <Label htmlFor="setting-allowMaps">{t('showMap')}</Label>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t('latitude')}</Label>
+                        <Input
+                          type="number" step="any"
+                          value={settingsForm.latitude || 0}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, latitude: parseFloat(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{t('longitude')}</Label>
+                        <Input
+                          type="number" step="any"
+                          value={settingsForm.longitude || 0}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, longitude: parseFloat(e.target.value) })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Printer Settings */}
+                <div className="border rounded-lg p-4 space-y-4 mt-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Printer className="h-4 w-4" />
+                      {t('printerSettings')}
+                    </h3>
+                    <Badge variant={currentRestaurant?.printerSettings?.paperSize ? "secondary" : "outline"} className={currentRestaurant?.printerSettings?.paperSize ? "bg-green-100 text-green-700" : ""}>
+                      {currentRestaurant?.printerSettings?.paperSize ? t('connected') : t('disconnected')}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>{t('paperSize')}</Label>
+                      <Select
+                        value={currentRestaurant?.printerSettings?.paperSize || '58mm'}
+                        onValueChange={(val) => {
+                          const newSettings = { ...(currentRestaurant?.printerSettings || {}), paperSize: val };
+                          fetch(`/api/restaurants/${restaurantId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ printerSettings: newSettings })
+                          }).then(() => { toast({ title: "Saved", description: "Printer size updated" }); loadRestaurantDetails(); });
+                        }}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="58mm">58mm (Standard)</SelectItem>
+                          <SelectItem value="80mm">80mm (Wide)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <Button variant="outline" className="flex-1" onClick={() => handlePrintOrder({
+                        ...orders[0],
+                        items: orders[0]?.items || [],
+                        totalAmount: 0,
+                        orderNumber: 'TEST-PRINT'
+                      } as any)}>
+                        {t('testPrint')}
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => toast({ title: t('printerStatus'), description: t('printerReady') })}>
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logo and Banner */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <Label>Logo</Label>
+                    <div className="flex items-center gap-4">
+                      {currentRestaurant?.logo ? (
+                        <div className="relative h-16 w-16 rounded-full overflow-hidden border">
+                          <Image src={currentRestaurant.logo} alt="Logo" fill className="object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-dashed">
+                          <Utensils className="h-6 w-6" />
+                        </div>
+                      )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, async (base64) => {
+                          try {
+                            const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ logo: base64 })
+                            });
+                            if (res.ok) {
+                              toast({ title: "Updated", description: "Logo updated successfully" });
+                              fetchDashboardData();
+                            }
+                          } catch (err) { toast({ title: "Error", description: "Failed to upload logo", variant: "destructive" }); }
+                        })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Banner Image</Label>
+                    <div className="space-y-2">
+                      {currentRestaurant?.banner && (
+                        <div className="relative h-24 w-full rounded overflow-hidden border">
+                          <Image src={currentRestaurant.banner} alt="Banner" fill className="object-cover" />
+                        </div>
+                      )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, async (base64) => {
+                          try {
+                            const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ banner: base64 })
+                            });
+                            if (res.ok) {
+                              toast({ title: "Updated", description: "Banner updated successfully" });
+                              fetchDashboardData();
+                            }
+                          } catch (err) { toast({ title: "Error", description: "Failed to upload banner", variant: "destructive" }); }
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  className="bg-emerald-600 hover:bg-emerald-700 mt-4"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/restaurants/${restaurantId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(settingsForm)
+                      });
+
+                      const data = await res.json();
+
+                      if (res.ok) {
+                        toast({ title: t('save'), description: "Settings saved successfully" });
+
+                        try {
+                          // Force refresh to ensure Slug is propagated
+                          await fetchDashboardData();
+
+                          if (data.data && data.data.slug !== currentRestaurant?.slug) {
+                            toast({ title: t('save'), description: "URL updated. Please refresh if links look old." });
+                            // Optional: window.location.reload()
+                          }
+                        } catch (refreshErr) {
+                          console.error("Refresh failed", refreshErr)
+                        }
+                      } else {
+                        throw new Error(data.error || 'Failed to save settings')
+                      }
+                    } catch (err: any) {
+                      console.error(err)
+                      toast({ title: "Error", description: err.message, variant: "destructive" });
+                    }
+                  }}
+                >
+                  {t('save')}
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
+
           {/* Reports Tab */}
           <TabsContent value="reports" className="space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -2198,7 +2576,7 @@ export default function RestaurantAdminDashboard() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent >
+          </TabsContent>
 
           <TabsContent value="branches" className="space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -2348,11 +2726,10 @@ export default function RestaurantAdminDashboard() {
       </div >
 
       {/* QR Code Dialog for Restaurant Menu */}
-      < QRCodeDialog
+      <QRCodeDialog
         open={qrCodeDialogOpen}
         onOpenChange={setQrCodeDialogOpen}
-        restaurantSlug={currentRestaurant?.id || user?.restaurantId || ''
-        }
+        restaurantSlug={currentRestaurant?.id || user?.restaurantId || ''}
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
 

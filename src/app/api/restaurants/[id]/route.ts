@@ -45,7 +45,7 @@ export async function GET(
                 },
                 paymentMethods: {
                     where: {
-                        isActive: true
+                        deletedAt: null // Fix: Exclude soft-deleted methods
                     }
                 },
                 _count: {
