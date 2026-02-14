@@ -1454,8 +1454,16 @@ export default function RestaurantAdminDashboard() {
                     className="bg-green-600 hover:bg-green-700"
                     disabled={(!!currentRestaurant?.maxCategories && currentRestaurant?.maxCategories > 0) && (categories.length >= currentRestaurant?.maxCategories)}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t('addCategory')}
+                    {((!!currentRestaurant?.maxCategories && currentRestaurant?.maxCategories > 0) && (categories.length >= currentRestaurant?.maxCategories)) ? (
+                      <>
+                        <span className="mr-2">Limit Reached</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        {t('addCategory')}
+                      </>
+                    )}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -2002,23 +2010,8 @@ export default function RestaurantAdminDashboard() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">{t('restaurantSettings')}</h2>
               <div className="flex gap-2">
-                <Button variant="destructive" onClick={async () => {
-                  if (!confirm(t('deleteConfirm'))) return
-                  try {
-                    const res = await fetch(`/api/restaurants/${restaurantId}`, { method: 'DELETE' })
-                    const data = await res.json()
-                    if (data.success) {
-                      toast({ title: 'Deleted', description: 'Restaurant deleted' })
-                      window.location.href = '/dashboard'
-                    } else {
-                      throw new Error(data.error)
-                    }
-                  } catch (e: any) {
-                    toast({ title: 'Error', variant: 'destructive', description: e.message })
-                  }
-                }}>
-                  <Trash2 className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">{t('delete')}</span>
-                </Button>
+                {/* Delete button removed as requested - moved to Branch management */}
+
                 {/* Create Branch Button - Only if allowed */}
                 {currentRestaurant?.allowBranches && (
                   <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
