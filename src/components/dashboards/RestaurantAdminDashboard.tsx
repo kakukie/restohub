@@ -2536,7 +2536,7 @@ export default function RestaurantAdminDashboard() {
       <QRCodeDialog
         open={qrCodeDialogOpen}
         onOpenChange={setQrCodeDialogOpen}
-        restaurantSlug={currentRestaurant?.id || ''}
+        restaurantSlug={currentRestaurant?.id || user?.restaurantId || ''}
         restaurantName={currentRestaurant?.name || 'Restaurant'}
       />
 
