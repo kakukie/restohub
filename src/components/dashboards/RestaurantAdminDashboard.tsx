@@ -87,17 +87,101 @@ export default function RestaurantAdminDashboard() {
     }
   }
 
+  // System Print (Legacy/Preview)
+  const handleSystemPrint = (order: Order) => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Order #${order.orderNumber}</title>
+          <style>
+             @media print {
+              @page { size: 58mm auto; margin: 0mm; }
+              body { margin: 0; padding: 5px; width: 58mm; text-align: left; }
+              * { font-family: 'Courier New', monospace !important; }
+            }
+            body { font-family: 'Courier New', monospace; font-size: 10px; width: 58mm; margin: 0 auto; color: #000; background: #fff; }
+            .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+            .header h1 { font-size: 16px; margin: 0; font-weight: bold; text-transform: uppercase; }
+            .info { font-size: 10px; margin-bottom: 10px; }
+            .info p { margin: 2px 0; }
+            .items { border-bottom: 1px dashed #000; padding-bottom: 10px; }
+            .item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+            .item-details { display: flex; flex-direction: column; width: 100%; }
+            .item-row { display: flex; justify-content: space-between; width: 100%; }
+            .item-name { font-weight: bold; }
+            .item-qty { min-width: 20px; }
+            .notes { font-size: 10px; font-style: italic; margin-left: 20px; }
+            .total { margin-top: 10px; font-weight: bold; border-bottom: 1px double #000; padding-bottom: 10px; }
+            .footer { text-align: center; margin-top: 15px; font-size: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${currentRestaurant?.name || 'MEENUIN'}</h1>
+            <p>${currentRestaurant?.address || ''}</p>
+          </div>
+          <div class="info">
+            <p>Order: #${order.orderNumber}</p>
+            <p>Time: ${new Date(order.createdAt).toLocaleString('id-ID')}</p>
+            <p>Cust: ${order.customerName}</p>
+            <p>Table: ${order.tableNumber || 'N/A'}</p>
+            <p>Pay: ${order.paymentMethod} (${order.paymentStatus})</p>
+          </div>
+          <div class="items">
+            ${order.items.map(item => `
+              <div class="item">
+                <div class="item-details">
+                   <div class="item-row">
+                      <span class="item-qty">${item.quantity}x</span>
+                      <span class="item-name">${item.menuItemName}</span>
+                      <span>${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                   </div>
+                   ${item.notes ? `<div class="notes">Note: ${item.notes}</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="total">
+            <div class="item-row" style="display:flex; justify-content:space-between">
+              <span>TOTAL</span>
+              <span>Rp ${order.totalAmount.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+          <div class="footer">
+            <p>Terima Kasih!</p>
+            <p>Powered by Meenuin</p>
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.setTimeout(function(){ window.close(); }, 500); }
+          </script>
+        </body>
+      </html>
+    `
+    const printWindow = window.open('', '', 'width=380,height=600')
+    if (printWindow) {
+      printWindow.document.write(printContent)
+      printWindow.document.close()
+      printWindow.focus()
+      // Print is triggered by window.onload in the script above
+    }
+  }
+
   const handlePrintOrder = async (order: Order) => {
-    if (!printerCharacteristic) {
-      toast({ title: "Printer not connected", description: "Please connect printer in Settings", variant: "destructive" })
-      return
+    // 1. Try Bluetooth Printer first
+    if (printerCharacteristic && isPrinterConnected) {
+      try {
+        await printReceipt(printerCharacteristic, order, currentRestaurant?.name || 'Restaurant')
+        toast({ title: "Printed", description: "Order sent to thermal printer" })
+        return
+      } catch (e) {
+        console.error("Bluetooth print failed, falling back", e)
+        toast({ title: "Bluetooth Error", description: "Falling back to system print", variant: "destructive" })
+        // Fallthrough to system print
+      }
     }
-    try {
-      await printReceipt(printerCharacteristic, order, currentRestaurant?.name || 'Restaurant')
-      toast({ title: "Printed", description: "Order sent to printer" })
-    } catch (e) {
-      toast({ title: "Error", description: "Failed to print", variant: "destructive" })
-    }
+
+    // 2. Fallback to System Print (Preview)
+    handleSystemPrint(order)
   }
 
   // Unified Settings Form State
