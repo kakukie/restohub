@@ -72,6 +72,34 @@ export default function RestaurantAdminDashboard() {
 
   const [prevPendingCount, setPrevPendingCount] = useState(0)
 
+  // Printer State
+  const [printerCharacteristic, setPrinterCharacteristic] = useState<any>(null)
+  const [isPrinterConnected, setIsPrinterConnected] = useState(false)
+
+  const handleConnectPrinter = async () => {
+    try {
+      const { characteristic } = await connectToPrinter()
+      setPrinterCharacteristic(characteristic)
+      setIsPrinterConnected(true)
+      toast({ title: "Connected", description: "Printer connected successfully" })
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to connect printer", variant: "destructive" })
+    }
+  }
+
+  const handlePrintOrder = async (order: Order) => {
+    if (!printerCharacteristic) {
+      toast({ title: "Printer not connected", description: "Please connect printer in Settings", variant: "destructive" })
+      return
+    }
+    try {
+      await printReceipt(printerCharacteristic, order, currentRestaurant?.name || 'Restaurant')
+      toast({ title: "Printed", description: "Order sent to printer" })
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to print", variant: "destructive" })
+    }
+  }
+
   // Unified Settings Form State
   const [settingsForm, setSettingsForm] = useState<Partial<Restaurant>>({})
 
@@ -2504,94 +2532,62 @@ export default function RestaurantAdminDashboard() {
         </Button>
       </div >
 
-  // Printer State
-      const [printerCharacteristic, setPrinterCharacteristic] = useState<any>(null)
-        const [isPrinterConnected, setIsPrinterConnected] = useState(false)
+      {/* QR Code Dialog for Restaurant Menu */}
+      <QRCodeDialog
+        open={qrCodeDialogOpen}
+        onOpenChange={setQrCodeDialogOpen}
+        restaurantSlug={currentRestaurant?.id || ''}
+        restaurantName={currentRestaurant?.name || 'Restaurant'}
+      />
 
-  const handleConnectPrinter = async () => {
-    try {
-      const {characteristic} = await connectToPrinter()
-        setPrinterCharacteristic(characteristic)
-        setIsPrinterConnected(true)
-        toast({title: "Connected", description: "Printer connected successfully" })
-    } catch (e) {
-          toast({ title: "Error", description: "Failed to connect printer", variant: "destructive" })
-        }
-  }
+      {/* ... View Order Dialog ... */}
+      <Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Order Details #{viewOrder?.orderNumber}</DialogTitle>
+            <DialogDescription>{new Date(viewOrder?.createdAt || '').toLocaleString()}</DialogDescription>
+          </DialogHeader>
+          {viewOrder && (
+            <ScrollArea className="max-h-[60vh]">
+              <div className="space-y-4 p-1">
+                <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                  <div className="flex justify-between"><span>Customer:</span><span className="font-medium">{viewOrder.customerName}</span></div>
+                  <div className="flex justify-between"><span>Table:</span><span className="font-medium">{viewOrder.tableNumber || 'Takeaway'}</span></div>
+                  <div className="flex justify-between"><span>Status:</span><Badge variant="outline">{viewOrder.status}</Badge></div>
+                  <div className="flex justify-between"><span>Payment:</span><span>{viewOrder.paymentMethod} ({viewOrder.paymentStatus})</span></div>
+                  {viewOrder.notes && <div className="mt-2 text-xs italic">Note: {viewOrder.notes}</div>}
+                </div>
 
-  const handlePrintOrder = async (order: Order) => {
-    if (!printerCharacteristic) {
-          toast({ title: "Printer not connected", description: "Please connect printer in Settings", variant: "destructive" })
-      return
-    }
-        try {
-          await printReceipt(printerCharacteristic, order, currentRestaurant?.name || 'Restaurant')
-      toast({title: "Printed", description: "Order sent to printer" })
-    } catch (e) {
-          toast({ title: "Error", description: "Failed to print", variant: "destructive" })
-        }
-  }
-
-        return (
-        <div className="min-h-screen bg-gray-50 flex flex-col dark:bg-gray-900">
-          {/* ... Header ... */}
-
-          {/* QR Code Dialog - Fix: Use ID for random/permanent URL */}
-          <QRCodeDialog
-            open={qrCodeDialogOpen}
-            onOpenChange={setQrCodeDialogOpen}
-            restaurantSlug={currentRestaurant?.id || ''}
-            restaurantName={currentRestaurant?.name || 'Restaurant'}
-          />
-
-          {/* ... View Order Dialog ... */}
-          <Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Order Details #{viewOrder?.orderNumber}</DialogTitle>
-                <DialogDescription>{new Date(viewOrder?.createdAt || '').toLocaleString()}</DialogDescription>
-              </DialogHeader>
-              {viewOrder && (
-                <ScrollArea className="max-h-[60vh]">
-                  <div className="space-y-4 p-1">
-                    <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
-                      <div className="flex justify-between"><span>Customer:</span><span className="font-medium">{viewOrder.customerName}</span></div>
-                      <div className="flex justify-between"><span>Table:</span><span className="font-medium">{viewOrder.tableNumber || 'Takeaway'}</span></div>
-                      <div className="flex justify-between"><span>Status:</span><Badge variant="outline">{viewOrder.status}</Badge></div>
-                      <div className="flex justify-between"><span>Payment:</span><span>{viewOrder.paymentMethod} ({viewOrder.paymentStatus})</span></div>
-                      {viewOrder.notes && <div className="mt-2 text-xs italic">Note: {viewOrder.notes}</div>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm border-b pb-1">Items</h4>
-                      {viewOrder.items.map((item, i) => (
-                        <div key={i} className="flex justify-between text-sm">
-                          <div className="flex gap-2">
-                            <span className="font-bold">{item.quantity}x</span>
-                            <div>
-                              <div>{item.menuItemName}</div>
-                              {item.notes && <div className="text-xs text-gray-400">{item.notes}</div>}
-                            </div>
-                          </div>
-                          <div>{item.price.toLocaleString()}</div>
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm border-b pb-1">Items</h4>
+                  {viewOrder.items.map((item, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <div className="flex gap-2">
+                        <span className="font-bold">{item.quantity}x</span>
+                        <div>
+                          <div>{item.menuItemName}</div>
+                          {item.notes && <div className="text-xs text-gray-400">{item.notes}</div>}
                         </div>
-                      ))}
+                      </div>
+                      <div>{item.price.toLocaleString()}</div>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="flex justify-between items-center border-t pt-3 font-bold">
-                      <span>Total Amount</span>
-                      <span className="text-lg text-emerald-600">Rp {viewOrder.totalAmount.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </ScrollArea>
-              )}
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setViewOrder(null)}>Close</Button>
-                <Button onClick={() => viewOrder && handlePrintOrder(viewOrder)}>Print</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div >
-        )
+                <div className="flex justify-between items-center border-t pt-3 font-bold">
+                  <span>Total Amount</span>
+                  <span className="text-lg text-emerald-600">Rp {viewOrder.totalAmount.toLocaleString()}</span>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewOrder(null)}>Close</Button>
+            <Button onClick={() => viewOrder && handlePrintOrder(viewOrder)}>Print</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div >
+  )
 }
 
