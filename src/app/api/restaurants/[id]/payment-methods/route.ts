@@ -35,11 +35,51 @@ export async function GET(
         const methods = await prisma.paymentMethod.findMany({
             where: {
                 restaurantId: restaurantId
-                // Show ALL methods (Active & Inactive) so admin can manage them
             },
             orderBy: { createdAt: 'desc' }
         })
-        return NextResponse.json({ success: true, data: methods })
+
+        // Deduplicate: Keep only the most relevant method per type
+        // Priority: Active > Inactive. Tie-breaker: Latest Created.
+        const uniqueMethodsMap = new Map()
+
+        methods.forEach(method => {
+            const existing = uniqueMethodsMap.get(method.type)
+            if (!existing) {
+                uniqueMethodsMap.set(method.type, method)
+            } else {
+                // If existing is Inactive and new is Active, replace
+                if (!existing.isActive && method.isActive) {
+                    uniqueMethodsMap.set(method.type, method)
+                }
+                // If both same status, keep new (latest) because of orderBy desc ??
+                // Actually orderBy desc means First is Latest.
+                // So if we see it first, it's the latest.
+                // If existing (latest) is Inactive, and we find another Inactive, we ignore.
+                // If existing is Inactive, and we find Active (older), do we want the Active one?
+                // Probably yes, we want the Active one regardless of age if the "latest" was accidentally disabled duplicate?
+                // But usually User wants the Active one.
+                // Let's iterate and pick the BEST one.
+            }
+        })
+
+        // Better Logic: Filter inside the array
+        const processed = methods.reduce((acc: any[], curr) => {
+            const existingIndex = acc.findIndex(item => item.type === curr.type)
+            if (existingIndex === -1) {
+                acc.push(curr)
+            } else {
+                // If we have an existing one, should we replace it?
+                // We want the ACTIVE one.
+                if (!acc[existingIndex].isActive && curr.isActive) {
+                    acc[existingIndex] = curr
+                }
+                // If both active, keep the one already there (Latest, due to sort)
+            }
+            return acc
+        }, [])
+
+        return NextResponse.json({ success: true, data: processed })
     } catch (error) {
         return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
     }

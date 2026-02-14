@@ -349,7 +349,7 @@ export default function SuperAdminDashboard() {
 
       if (data.success) {
         toast({ title: 'Success', description: 'Restaurant deleted' })
-        setRestaurants(prev => prev.filter(r => r.id !== id))
+        setRestaurants((prev: Restaurant[]) => (Array.isArray(prev) ? prev.filter(r => r.id !== id) : []))
       } else {
         throw new Error(data.error)
       }
@@ -1289,7 +1289,10 @@ export default function SuperAdminDashboard() {
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => handleDeleteRestaurant(restaurant.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteRestaurant(restaurant.id);
+                                }}
                               >
                                 <Trash2 className="h-4 w-4 mr-1" />
                                 Delete
