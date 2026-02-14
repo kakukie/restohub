@@ -755,6 +755,15 @@ export default function SuperAdminDashboard() {
                       placeholder="Unlimited"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Max Categories (0 = Unlimited)</Label>
+                    <Input
+                      type="number"
+                      value={restaurantForm.maxCategories || ''}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, maxCategories: parseInt(e.target.value) || 0 })}
+                      placeholder="Unlimited"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2 py-2">
                   <input
@@ -909,6 +918,15 @@ export default function SuperAdminDashboard() {
                 <Input
                   value={planForm.description || ''}
                   onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Category Limit</Label>
+                <Input
+                  type="number"
+                  value={planForm.maxCategories || ''}
+                  onChange={(e) => setPlanForm({ ...planForm, maxCategories: Number(e.target.value) })}
+                  placeholder="0 for Unlimited"
                 />
               </div>
               <div className="space-y-2">

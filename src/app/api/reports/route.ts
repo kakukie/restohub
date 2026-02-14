@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
         }
 
         // 1. Fetch Orders for calculations
+        // 1. Fetch Orders for calculations
         const orders = await prisma.order.findMany({
             where: whereClause,
             include: {
@@ -53,12 +54,13 @@ export async function GET(request: NextRequest) {
             }
         })
 
-        const validOrders = orders.filter(o => o.status !== 'CANCELLED')
+        // Fix: Only count COMPLETED orders for all stats (Revenue, Count, Charts)
+        const validOrders = orders.filter(o => o.status === 'COMPLETED')
         const cancelledOrders = orders.filter(o => o.status === 'CANCELLED')
 
         // 2. Aggregate Stats
         const stats = {
-            totalOrders: orders.length,
+            totalOrders: validOrders.length, // Only COMPLETED
             totalRevenue: validOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
             cancelledOrders: cancelledOrders.length,
             cancelledRevenue: cancelledOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
