@@ -745,8 +745,11 @@ export default function RestaurantAdminDashboard() {
     if (!validateOrderId) return
 
     // Optimistic Update
-    const prevOrders = [...orders]
-    setOrders(prev => prev.map(o => o.id === validateOrderId ? { ...o, status: 'CONFIRMED' } : o))
+    // Optimistic Update
+    const prevOrders = [...(Array.isArray(orders) ? orders : [])]
+    const newOrders = prevOrders.map(o => o.id === validateOrderId ? { ...o, status: 'CONFIRMED' } : o)
+    // Fix: setOrders in store doesn't support functional update
+    setOrders(newOrders as Order[])
     setValidateOrderId(null)
     setManualEmail('')
     setManualPhone('')
@@ -772,15 +775,17 @@ export default function RestaurantAdminDashboard() {
       }
     } catch (error) {
       // Revert on error
-      setOrders(prevOrders)
+      setOrders(prevOrders as Order[])
       toast({ title: 'Error', variant: 'destructive', description: 'Failed to validate order' })
     }
   }
 
   const handleRejectOrder = async (orderId: string) => {
     // Optimistic Update
-    const prevOrders = [...orders]
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o))
+    // Optimistic Update
+    const prevOrders = [...(Array.isArray(orders) ? orders : [])]
+    const newOrders = prevOrders.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o)
+    setOrders(newOrders as Order[])
 
     try {
       const res = await fetch('/api/orders', {
@@ -795,15 +800,16 @@ export default function RestaurantAdminDashboard() {
         throw new Error('Failed to update')
       }
     } catch (error) {
-      setOrders(prevOrders)
+      setOrders(prevOrders as Order[])
       toast({ title: 'Error', variant: 'destructive', description: 'Failed to reject order' })
     }
   }
 
   const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
     // Optimistic Update
-    const prevOrders = [...orders]
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
+    const prevOrders = [...(Array.isArray(orders) ? orders : [])]
+    const newOrders = prevOrders.map(o => o.id === orderId ? { ...o, status } : o)
+    setOrders(newOrders as Order[])
 
     try {
       const res = await fetch('/api/orders', {
@@ -819,7 +825,7 @@ export default function RestaurantAdminDashboard() {
         throw new Error('Failed to update')
       }
     } catch (error) {
-      setOrders(prevOrders)
+      setOrders(prevOrders as Order[])
       toast({ title: 'Error', variant: 'destructive', description: 'Failed to update status' })
     }
   }
