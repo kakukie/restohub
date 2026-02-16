@@ -1445,7 +1445,7 @@ export default function RestaurantAdminDashboard() {
                 <nav className="flex items-center text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">{t('lists')}</span>
                   <span className="mx-2 text-muted-foreground/50">/</span>
-                  <span className={(Number(currentRestaurant?.maxCategories || 0) > 0) && categories.length >= Number(currentRestaurant.maxCategories) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                  <span className={(Number(currentRestaurant?.maxCategories || 0) > 0) && categories.length >= Number(currentRestaurant?.maxCategories || 0) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
                     {categories.length || 0} / {(Number(currentRestaurant?.maxCategories || 0) === 0) ? 'Unlimited' : currentRestaurant?.maxCategories} {t('used')}
                   </span>
                 </nav>
