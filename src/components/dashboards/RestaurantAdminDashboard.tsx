@@ -1452,9 +1452,9 @@ export default function RestaurantAdminDashboard() {
                     setCategoryForm({})
                   }}
                     className="bg-green-600 hover:bg-green-700"
-                    disabled={(!!currentRestaurant?.maxCategories && currentRestaurant?.maxCategories > 0) && (categories.length >= currentRestaurant?.maxCategories)}
+                    disabled={currentRestaurant?.maxCategories ? categories.length >= currentRestaurant.maxCategories : false}
                   >
-                    {((!!currentRestaurant?.maxCategories && currentRestaurant?.maxCategories > 0) && (categories.length >= currentRestaurant?.maxCategories)) ? (
+                    {currentRestaurant?.maxCategories && categories.length >= currentRestaurant.maxCategories ? (
                       <>
                         <span className="mr-2">Limit Reached</span>
                       </>
