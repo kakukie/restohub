@@ -106,7 +106,10 @@ export default function PublicMenuPage() {
 
         const loadData = async () => {
             // 1. Try local store first
-            let existingResto = restaurants.find(r => r.slug === slug || r.id === slug)
+            let existingResto = restaurants.find(r =>
+                (r.slug && r.slug.toLowerCase() === slug.toLowerCase()) ||
+                r.id === slug
+            )
 
             if (existingResto) {
                 setRestaurant(existingResto)

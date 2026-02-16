@@ -1445,8 +1445,8 @@ export default function RestaurantAdminDashboard() {
                 <nav className="flex items-center text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">{t('lists')}</span>
                   <span className="mx-2 text-muted-foreground/50">/</span>
-                  <span className={(currentRestaurant?.maxCategories ?? 0) > 0 && categories.length >= (currentRestaurant?.maxCategories ?? 0) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
-                    {categories.length || 0} / {(currentRestaurant?.maxCategories ?? 0) === 0 ? 'Unlimited' : currentRestaurant?.maxCategories} {t('used')}
+                  <span className={(Number(currentRestaurant?.maxCategories || 0) > 0) && categories.length >= Number(currentRestaurant.maxCategories) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                    {categories.length || 0} / {(Number(currentRestaurant?.maxCategories || 0) === 0) ? 'Unlimited' : currentRestaurant?.maxCategories} {t('used')}
                   </span>
                 </nav>
               </div>
@@ -1463,13 +1463,15 @@ export default function RestaurantAdminDashboard() {
                   }}
                     className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={(() => {
-                      const max = currentRestaurant?.maxCategories ?? 0;
-                      return max > 0 && categories.length >= max;
+                      const max = Number(currentRestaurant?.maxCategories || 0);
+                      const count = categories.length;
+                      return max > 0 && count >= max;
                     })()}
                   >
                     {(() => {
-                      const max = currentRestaurant?.maxCategories ?? 0;
-                      if (max > 0 && categories.length >= max) {
+                      const max = Number(currentRestaurant?.maxCategories || 0);
+                      const count = categories.length;
+                      if (max > 0 && count >= max) {
                         return <><span className="mr-2">Limit Reached</span></>;
                       }
                       return (
