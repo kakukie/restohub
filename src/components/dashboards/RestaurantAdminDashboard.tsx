@@ -1469,7 +1469,6 @@ export default function RestaurantAdminDashboard() {
                         </>
                       );
                     })()}
-                    )}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
