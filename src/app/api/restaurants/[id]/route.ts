@@ -215,6 +215,9 @@ export async function PUT(
 
         console.log(`[PUT] Updating restaurant ${restaurant.id} with keys: ${Object.keys(cleanUpdates).join(', ')}`) // DEBUG LOG
 
+        // Fix: Auto-restore soft-deleted restaurants on update
+        cleanUpdates.deletedAt = null;
+
         const updated = await prisma.restaurant.update({
             where: { id: restaurant.id },
             data: cleanUpdates
