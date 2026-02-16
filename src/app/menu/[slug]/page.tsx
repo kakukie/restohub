@@ -59,7 +59,7 @@ const themeConfig = {
 
 export default function PublicMenuPage() {
     const params = useParams()
-    const slug = params.slug as string
+    const slug = decodeURIComponent(params.slug as string)
 
     // Global Store
     const restaurants = useAppStore(state => state.restaurants)

@@ -2177,27 +2177,7 @@ export default function RestaurantAdminDashboard() {
                     </p>
                   </div>
 
-                  {/* Printer Settings */}
-                  <div className="space-y-2 col-span-1 md:col-span-2 border-t pt-4">
-                    <h3 className="font-medium mb-2">Printer Settings (Bluetooth Thermal)</h3>
-                    <div className="flex items-center justify-between bg-white p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Printer className="h-5 w-5 text-gray-500" />
-                        <div>
-                          <div className="font-medium">Thermal Printer</div>
-                          <div className="text-xs text-gray-500">{isPrinterConnected ? "Connected" : "Disconnected"}</div>
-                        </div>
-                      </div>
-                      <Button
-                        variant={isPrinterConnected ? "outline" : "default"}
-                        className={isPrinterConnected ? "text-green-600 border-green-200 bg-green-50" : ""}
-                        onClick={handleConnectPrinter}
-                      >
-                        {isPrinterConnected ? <CheckCircle className="h-4 w-4 mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
-                        {isPrinterConnected ? "Connected" : "Connect"}
-                      </Button>
-                    </div>
-                  </div>
+
 
                   <div className="space-y-2">
                     <Label>{t('address')}</Label>
@@ -2262,12 +2242,30 @@ export default function RestaurantAdminDashboard() {
                       <Printer className="h-4 w-4" />
                       {t('printerSettings')}
                     </h3>
-                    <Badge variant={currentRestaurant?.printerSettings?.paperSize ? "secondary" : "outline"} className={currentRestaurant?.printerSettings?.paperSize ? "bg-green-100 text-green-700" : ""}>
-                      {currentRestaurant?.printerSettings?.paperSize ? t('connected') : t('disconnected')}
-                    </Badge>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Connection Status */}
+                    <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-2 w-2 rounded-full ${isPrinterConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <div>
+                          <div className="font-medium text-sm">Thermal Printer</div>
+                          <div className="text-xs text-gray-500">{isPrinterConnected ? "Connected" : "Disconnected"}</div>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={isPrinterConnected ? "outline" : "default"}
+                        className={isPrinterConnected ? "text-green-600 border-green-200 bg-green-50" : ""}
+                        onClick={handleConnectPrinter}
+                      >
+                        {isPrinterConnected ? <CheckCircle className="h-3 w-3 mr-2" /> : <Zap className="h-3 w-3 mr-2" />}
+                        {isPrinterConnected ? "Connected" : "Connect"}
+                      </Button>
+                    </div>
+
+                    {/* Paper Size */}
                     <div className="space-y-2">
                       <Label>{t('paperSize')}</Label>
                       <Select
@@ -2288,17 +2286,17 @@ export default function RestaurantAdminDashboard() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="flex items-end gap-2">
-                      <Button variant="outline" className="flex-1" onClick={() => handlePrintOrder({
+
+                    {/* Test Print */}
+                    <div className="flex items-end gap-2 md:col-span-2">
+                      <Button variant="outline" className="w-full" onClick={() => handlePrintOrder({
                         ...orders[0],
                         items: orders[0]?.items || [],
                         totalAmount: 0,
                         orderNumber: 'TEST-PRINT'
                       } as any)}>
+                        <Printer className="h-4 w-4 mr-2" />
                         {t('testPrint')}
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => toast({ title: t('printerStatus'), description: t('printerReady') })}>
-                        <RefreshCw className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>

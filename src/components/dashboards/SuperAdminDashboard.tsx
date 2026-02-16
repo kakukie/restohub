@@ -349,7 +349,9 @@ export default function SuperAdminDashboard() {
 
       if (data.success) {
         toast({ title: 'Success', description: 'Restaurant deleted' })
-        setRestaurants(prev => prev.filter(r => r.id !== id))
+        // Fix: setRestaurants expects array, not function updater
+        const updated = restaurants.filter(r => r.id !== id)
+        setRestaurants(updated)
       } else {
         throw new Error(data.error)
       }
