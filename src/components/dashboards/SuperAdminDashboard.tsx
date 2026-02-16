@@ -71,7 +71,8 @@ export default function SuperAdminDashboard() {
       const resResto = await fetch('/api/restaurants')
       const dataResto = await resResto.json()
       if (dataResto.success) {
-        setRestaurants(dataResto.data)
+        const active = Array.isArray(dataResto.data) ? dataResto.data.filter((r: any) => !r.deletedAt) : []
+        setRestaurants(active)
       }
 
       // Fetch Users (Admins)
