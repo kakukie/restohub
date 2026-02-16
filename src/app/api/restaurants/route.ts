@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     const restaurants = await prisma.restaurant.findMany({
-      where,
+      where: { ...where, deletedAt: null },
       orderBy: { createdAt: 'desc' },
       include: {
         admin: {

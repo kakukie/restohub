@@ -1440,14 +1440,19 @@ export default function RestaurantAdminDashboard() {
                 <nav className="flex items-center text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">{t('lists')}</span>
                   <span className="mx-2 text-muted-foreground/50">/</span>
-                  <span className={(categories.length || 0) >= (currentRestaurant?.maxCategories || 0) && (currentRestaurant?.maxCategories !== 0) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
-                    {categories.length || 0} / {(!currentRestaurant?.maxCategories || currentRestaurant?.maxCategories === 0) ? 'Unlimited' : currentRestaurant?.maxCategories} {t('used')}
+                  <span className={(currentRestaurant?.maxCategories ?? 0) > 0 && categories.length >= (currentRestaurant?.maxCategories ?? 0) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                    {categories.length || 0} / {(currentRestaurant?.maxCategories ?? 0) === 0 ? 'Unlimited' : currentRestaurant?.maxCategories} {t('used')}
                   </span>
                 </nav>
               </div>
               <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={() => {
+                    console.log("Debug Category Limit:", {
+                      max: currentRestaurant?.maxCategories,
+                      count: categories.length,
+                      isLimitReached: (currentRestaurant?.maxCategories ?? 0) > 0 && categories.length >= (currentRestaurant?.maxCategories ?? 0)
+                    })
                     setEditingCategory(null)
                     setCategoryForm({})
                   }}
