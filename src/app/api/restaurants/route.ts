@@ -97,7 +97,9 @@ export async function POST(request: NextRequest) {
     // If creating a branch
     if (parentId) {
       // Validate parent
-      // Validate parent
+      const parent = await prisma.restaurant.findUnique({
+        where: { id: parentId }
+      })
       const parent = await prisma.restaurant.findUnique({
         where: { id: parentId },
         where: { id: parentId },
