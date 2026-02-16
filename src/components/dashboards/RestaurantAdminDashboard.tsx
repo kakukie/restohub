@@ -775,6 +775,7 @@ export default function RestaurantAdminDashboard() {
         }
         // Background sync
         loadMenuData()
+        loadRestaurantDetails() // Update category count for limits
       } else {
         throw new Error(data.error)
       }
@@ -806,6 +807,7 @@ export default function RestaurantAdminDashboard() {
       if (data.success) {
         toast({ title: 'Deleted', description: 'Category removed' })
         loadMenuData() // Background sync
+        loadRestaurantDetails() // Update limit count
       } else {
         throw new Error(data.error)
       }

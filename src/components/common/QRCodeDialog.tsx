@@ -14,7 +14,7 @@ interface QRCodeDialogProps {
 
 export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, restaurantName }: QRCodeDialogProps) {
   // Use slug for the URL (properly formatted for sharing)
-  const menuUrl = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/menu/${restaurantSlug}`
+  const menuUrl = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/menu/${encodeURIComponent(restaurantSlug)}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(menuUrl)
