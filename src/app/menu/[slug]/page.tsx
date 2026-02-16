@@ -122,7 +122,7 @@ export default function PublicMenuPage() {
             const timeoutId = setTimeout(() => controller.abort(), 15000)
 
             try {
-                const res = await fetch(`/api/restaurants/${slug}`, {
+                const res = await fetch(`/api/restaurants/${encodeURIComponent(slug)}`, {
                     signal: controller.signal,
                     cache: 'no-store' // Ensure fresh data for Theme Sync
                 })

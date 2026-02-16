@@ -350,6 +350,11 @@ export default function RestaurantAdminDashboard() {
       const res = await fetch(`/api/restaurants/${restaurantId}?_t=${new Date().getTime()}`);
       const data = await res.json();
       if (data.success && data.data) {
+        console.log("Debug Resto Data:", {
+          slug: data.data.slug,
+          categories: data.data.categories,
+          categoriesCount: data.data.categories?.length
+        })
         // Fix: Check if exists in store, else add to ensure UI updates
         const exists = restaurants.find(r => r.id === restaurantId)
         if (exists) {

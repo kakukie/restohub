@@ -41,7 +41,11 @@ export async function GET(
                 categories: {
                     where: {
                         deletedAt: null
-                    }
+                    },
+                    orderBy: [
+                        { displayOrder: 'asc' },
+                        { createdAt: 'desc' }
+                    ]
                 },
                 paymentMethods: {
                     where: {
