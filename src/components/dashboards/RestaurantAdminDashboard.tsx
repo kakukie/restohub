@@ -1451,18 +1451,24 @@ export default function RestaurantAdminDashboard() {
                     setEditingCategory(null)
                     setCategoryForm({})
                   }}
-                    className="bg-green-600 hover:bg-green-700"
-                    disabled={currentRestaurant?.maxCategories ? categories.length >= currentRestaurant.maxCategories : false}
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    disabled={(() => {
+                      const max = currentRestaurant?.maxCategories ?? 0;
+                      return max > 0 && categories.length >= max;
+                    })()}
                   >
-                    {currentRestaurant?.maxCategories && categories.length >= currentRestaurant.maxCategories ? (
-                      <>
-                        <span className="mr-2">Limit Reached</span>
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-4 w-4 mr-2" />
-                        {t('addCategory')}
-                      </>
+                    {(() => {
+                      const max = currentRestaurant?.maxCategories ?? 0;
+                      if (max > 0 && categories.length >= max) {
+                        return <><span className="mr-2">Limit Reached</span></>;
+                      }
+                      return (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          {t('addCategory')}
+                        </>
+                      );
+                    })()}
                     )}
                   </Button>
                 </DialogTrigger>

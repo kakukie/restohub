@@ -24,7 +24,7 @@ export async function GET(
                 deletedAt: null,
                 OR: [
                     { id: idOrSlug },
-                    { slug: idOrSlug }
+                    { slug: { equals: idOrSlug, mode: 'insensitive' } }
                 ]
             },
             include: {
