@@ -98,10 +98,6 @@ export async function POST(request: NextRequest) {
     if (parentId) {
       // Validate parent
       const parent = await prisma.restaurant.findUnique({
-        where: { id: parentId }
-      })
-      const parent = await prisma.restaurant.findUnique({
-        where: { id: parentId },
         where: { id: parentId },
         select: { id: true, adminId: true, maxAdmins: true, allowBranches: true, maxBranches: true } // Fetch required fields
       })
