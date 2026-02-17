@@ -12,9 +12,11 @@ interface PaymentMethod {
 interface PaymentMethodsProps {
     methods: PaymentMethod[]
     onToggle: (id: string, isActive: boolean) => void
+    onEdit: (method: PaymentMethod) => void
+    onDelete: (id: string) => void
 }
 
-export default function PaymentMethods({ methods, onToggle }: PaymentMethodsProps) {
+export default function PaymentMethods({ methods, onToggle, onEdit, onDelete }: PaymentMethodsProps) {
     const getIcon = (type: string) => {
         switch (type) {
             case 'OVO': return <Wallet className="h-6 w-6 text-purple-600" />
@@ -49,10 +51,26 @@ export default function PaymentMethods({ methods, onToggle }: PaymentMethodsProp
                             <span className="font-bold text-sm text-slate-900 dark:text-white">{method.type}</span>
                         </div>
 
-                        <Switch
-                            checked={method.isActive}
-                            onCheckedChange={(checked) => onToggle(method.id, checked)}
-                        />
+                        <div className="flex items-center gap-4">
+                            <Switch
+                                checked={method.isActive}
+                                onCheckedChange={(checked) => onToggle(method.id, checked)}
+                            />
+                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={() => onEdit(method)}
+                                    className="text-slate-400 hover:text-blue-500 transition-colors"
+                                >
+                                    <span className="text-xs font-bold">Edit</span>
+                                </button>
+                                <button
+                                    onClick={() => onDelete(method.id)}
+                                    className="text-slate-400 hover:text-red-500 transition-colors"
+                                >
+                                    <span className="text-xs font-bold">Del</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 ))}
                 {methods.length === 0 && (

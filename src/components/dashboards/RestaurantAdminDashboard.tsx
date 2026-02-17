@@ -147,71 +147,160 @@ export default function RestaurantAdminDashboard() {
                     <PaymentMethods
                         methods={paymentMethods}
                         onToggle={handleTogglePaymentMethod}
-                    />
-                    <BestSellers
-                        items={menuItems.map(m => ({
-                            id: m.id,
-                            name: m.name,
-                            price: m.price,
-                            imageUrl: m.imageUrl,
-                            soldCount: 0 // Mock for now
-                        }))}
-                    />
-                </div>
-            </div>
-        </>
-    )
+                <div className="space-y-8">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Payments</h2>
+                            <Button size="sm" onClick={() => { setPaymentMethodForm({}); setPaymentMethodDialogOpen(true) }} className="bg-emerald-500 hover:bg-emerald-600">
+                                <Plus className="h-4 w-4 mr-2" /> Add
+                            </Button>
+                        </div>
+
+                        <PaymentMethods
+                            methods={paymentMethods}
+                            onToggle={handleTogglePaymentMethod}
+                            onEdit={(method) => {
+                                setPaymentMethodForm(method)
+                                setPaymentMethodDialogOpen(true)
+                            }}
+                            onDelete={(id) => handleDeletePaymentMethod(id)}
+                        />
+                        <BestSellers
+                            items={menuItems.map(m => ({
+                                id: m.id,
+                                name: m.name,
+                                price: m.price,
+                                imageUrl: m.imageUrl,
+                                soldCount: 0 // Mock for now
+                            }))}
+                        />
+                    </div>
+
+                    {/* Payment Method Dialog */}
+                    <Dialog open={paymentMethodDialogOpen} onOpenChange={setPaymentMethodDialogOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>{paymentMethodForm.id ? 'Edit Payment Method' : 'Add Payment Method'}</DialogTitle>
+                                <DialogDescription>Configure payment details</DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="payment-type">Payment Method *</Label>
+                                    <Select
+                                        value={paymentMethodForm.type || ''}
+                                        onValueChange={(value) => setPaymentMethodForm({ ...paymentMethodForm, type: value })}
+                                    >
+                                        <SelectTrigger id="payment-type">
+                                            <SelectValue placeholder="Select payment method" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="QRIS">QRIS</SelectItem>
+                                            <SelectItem value="GOPAY">GoPay</SelectItem>
+                                            <SelectItem value="OVO">OVO</SelectItem>
+                                            <SelectItem value="DANA">DANA</SelectItem>
+                                            <SelectItem value="LINKAJA">LinkAja</SelectItem>
+                                            <SelectItem value="SHOPEEPAY">ShopeePay</SelectItem>
+                                            <SelectItem value="CASH">Cash</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                {/* QR Code Upload for applicable methods */}
+                                {['QRIS', 'GOPAY', 'DANA', 'OVO', 'SHOPEEPAY', 'LINKAJA'].includes(paymentMethodForm.type || '') && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="qr-image">QR Code Image</Label>
+                                        <Input
+                                            id="qr-image"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => handleImageUpload(e, (base64) => setPaymentMethodForm({ ...paymentMethodForm, qrCode: base64 }))}
+                                        />
+                                        {paymentMethodForm.qrCode && (
+                                            <div className="mt-2 relative h-32 w-32 border rounded-lg overflow-hidden bg-white">
+                                                <Image
+                                                    src={paymentMethodForm.qrCode}
+                                                    alt="QR Preview"
+                                                    fill
+                                                    className="object-contain"
+                                                />
+                                                <Button
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    className="absolute top-1 right-1 h-6 w-6"
+                                                    onClick={() => setPaymentMethodForm({ ...paymentMethodForm, qrCode: undefined })}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                <div className="space-y-2">
+                                    <Label htmlFor="merchant-id">Merchant ID (Optional)</Label>
+                                    <Input
+                                        id="merchant-id"
+                                        value={paymentMethodForm.merchantId || ''}
+                                        onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, merchantId: e.target.value })}
+                                        placeholder="Enter merchant ID"
+                                    />
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button onClick={handleSavePaymentMethod} className="bg-green-600 hover:bg-green-700">
+                                    {paymentMethodForm.id ? 'Save Changes' : 'Add Payment Method'}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
 
     const renderMenuContent = () => (
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-            {/* Reuse the Table/Grid from Old Dashboard for Menu Items */}
-            {/* We will need to copy the Menu Management JSX here */}
-            <h2 className="text-xl font-bold mb-4">Menu Management</h2>
-            {/* ... */}
-        </div>
-    )
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        {/* Reuse the Table/Grid from Old Dashboard for Menu Items */}
+                        {/* We will need to copy the Menu Management JSX here */}
+                        <h2 className="text-xl font-bold mb-4">Menu Management</h2>
+                        {/* ... */}
+                    </div>
+                    )
 
-    // ... renderOrdersContent, renderSettingsContent ...
+                    // ... renderOrdersContent, renderSettingsContent ...
 
-    return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans">
-            <Sidebar
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                user={user}
-                onLogout={logout}
-            />
+                    return (
+                    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans">
+                        <Sidebar
+                            activeTab={activeTab}
+                            setActiveTab={setActiveTab}
+                            user={user}
+                            onLogout={logout}
+                        />
 
-            <main className="lg:ml-24 p-4 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
-                <Header
-                    restaurantName={currentRestaurant?.name}
-                    userName={user?.name}
-                    onShowQR={() => setQrCodeDialogOpen(true)}
-                    onAddItem={() => {
-                        setEditingMenuItem(null)
-                        setMenuItemForm({})
-                        setMenuItemDialogOpen(true)
-                    }}
-                />
+                        <main className="lg:ml-24 p-4 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
+                            <Header
+                                restaurantName={currentRestaurant?.name}
+                                userName={user?.name}
+                                onShowQR={() => setQrCodeDialogOpen(true)}
+                                onAddItem={() => {
+                                    setEditingMenuItem(null)
+                                    setMenuItemForm({})
+                                    setMenuItemDialogOpen(true)
+                                }}
+                            />
 
-                {activeTab === 'dashboard' && renderDashboardContent()}
-                {activeTab === 'menu' && renderMenuContent()}
-                {/* {activeTab === 'orders' && renderOrdersContent()} */}
-                {/* {activeTab === 'settings' && renderSettingsContent()} */}
+                            {activeTab === 'dashboard' && renderDashboardContent()}
+                            {activeTab === 'menu' && renderMenuContent()}
+                            {/* {activeTab === 'orders' && renderOrdersContent()} */}
+                            {/* {activeTab === 'settings' && renderSettingsContent()} */}
 
-            </main>
+                        </main>
 
-            {/* Dialogs */}
-            <QRCodeDialog
-                open={qrCodeDialogOpen}
-                onOpenChange={setQrCodeDialogOpen}
-                restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || ''}
-                restaurantName={currentRestaurant?.name || 'Restaurant'}
-            />
+                        {/* Dialogs */}
+                        <QRCodeDialog
+                            open={qrCodeDialogOpen}
+                            onOpenChange={setQrCodeDialogOpen}
+                            restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || ''}
+                            restaurantName={currentRestaurant?.name || 'Restaurant'}
+                        />
 
-            {/* Add Item Dialog (Copy from Old) */}
-            {/* View Order Dialog (Copy from Old) */}
+                        {/* Add Item Dialog (Copy from Old) */}
+                        {/* View Order Dialog (Copy from Old) */}
 
-        </div>
-    )
+                    </div>
+                    )
 }
