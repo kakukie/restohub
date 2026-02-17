@@ -18,11 +18,21 @@ export async function GET(request: NextRequest) {
 
         let startDate: Date, endDate: Date
 
-        if (startDateParam && endDateParam) {
-            startDate = new Date(startDateParam)
-            endDate = new Date(endDateParam)
-            // Adjust end date to end of day
-            endDate.setHours(23, 59, 59, 999)
+        if (startDateParam && endDateParam && startDateParam !== 'undefined' && endDateParam !== 'undefined') {
+            const start = new Date(startDateParam)
+            const end = new Date(endDateParam)
+
+            if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                startDate = start
+                endDate = end
+                // Adjust end date to end of day
+                endDate.setHours(23, 59, 59, 999)
+            } else {
+                // Fallback if invalid date string
+                const now = new Date()
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+                endDate = new Date()
+            }
         } else {
             const year = yearParam ? parseInt(yearParam) : new Date().getFullYear()
             const month = monthParam ? parseInt(monthParam) : new Date().getMonth() + 1

@@ -54,6 +54,8 @@ export interface PaymentMethod {
   isActive: boolean
   merchantId?: string
   qrCode?: string
+  accountNumber?: string
+  accountName?: string
 }
 
 export interface OrderItem {
@@ -105,6 +107,7 @@ export interface MenuItem {
   description?: string
   price: number
   image?: string
+  imageUrl?: string // Alias for compatibility
   isAvailable: boolean
   displayOrder: number
   categoryId: string

@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  images: {
+    unoptimized: true, // Fix for Docker/Localhost image loading issues
+  },
 };
 
 const withPWA = require("@ducanh2912/next-pwa").default({

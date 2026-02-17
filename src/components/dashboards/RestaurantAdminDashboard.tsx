@@ -379,8 +379,8 @@ export default function RestaurantAdminDashboard() {
             granularity: reportGranularity
         })
 
-        if (reportDateRange.start) params.append('startDate', reportDateRange.start)
-        if (reportDateRange.end) params.append('endDate', reportDateRange.end)
+        if (reportDateRange.start && reportDateRange.start !== '') params.append('startDate', reportDateRange.start)
+        if (reportDateRange.end && reportDateRange.end !== '') params.append('endDate', reportDateRange.end)
 
         try {
             const res = await fetch(`/api/reports?${params.toString()}`)
@@ -1328,6 +1328,44 @@ export default function RestaurantAdminDashboard() {
 
     // ... renderOrdersContent, renderSettingsContent ...
 
+    const renderPaymentsContent = () => (
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <PaymentMethods
+                methods={paymentMethods}
+                onToggle={async (id, isActive) => {
+                    // Optimistic update
+                    setPaymentMethods(methods => methods.map(m => m.id === id ? { ...m, isActive } : m))
+                    try {
+                        await fetch(`/api/payment-methods/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ isActive })
+                        })
+                    } catch (error) {
+                        toast({ title: 'Error', description: 'Failed to update status', variant: 'destructive' })
+                        loadRestaurantDetails() // Revert on error
+                    }
+                }}
+                onEdit={(method) => {
+                    setPaymentMethodForm(method)
+                    setPaymentMethodDialogOpen(true)
+                }}
+                onDelete={handleDeletePaymentMethod}
+            />
+            <div className="mt-6">
+                <Button onClick={() => {
+                    setPaymentMethodForm({ type: 'QRIS', isActive: true }) // Default
+                    setPaymentMethodDialogOpen(true)
+                }}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Payment Method
+                </Button>
+            </div>
+        </div>
+    )
+
     return (
         <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 lg:pb-0">
             <Sidebar
@@ -1349,11 +1387,19 @@ export default function RestaurantAdminDashboard() {
                     }}
                 />
 
+                {!user?.restaurantId && (
+                    <div className="mb-6 p-4 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
+                        <p className="font-bold">⚠️ Warning: Restaurant ID not found.</p>
+                        <p className="text-sm mt-1">Please try logging out and logging in again. If the issue persists, contact support.</p>
+                    </div>
+                )}
+
                 {activeTab === 'dashboard' && renderDashboardContent()}
                 {activeTab === 'menu' && renderMenuContent()}
                 {activeTab === 'categories' && renderCategoriesContent()}
                 {activeTab === 'orders' && renderOrdersContent()}
                 {activeTab === 'analytics' && renderAnalyticsContent()}
+                {activeTab === 'payments' && renderPaymentsContent()}
                 {activeTab === 'staff' && (
                     <StaffManagement
                         restaurantId={user?.restaurantId || ''}
@@ -1582,7 +1628,7 @@ export default function RestaurantAdminDashboard() {
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-500">Type:</span>
-                                <Badge variant="outline">{viewOrder.type}</Badge>
+                                <Badge variant="outline">{viewOrder.tableNumber ? 'Dine In' : 'Take Away'}</Badge>
                             </div>
                             {viewOrder.tableNumber && (
                                 <div className="flex justify-between items-center text-sm">

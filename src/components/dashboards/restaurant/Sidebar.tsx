@@ -162,8 +162,8 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                 </button>
             </div>
 
-            {/* Bottom Actions (Desktop Only) */}
-            <div className="hidden lg:flex flex-col items-center gap-6 mt-auto">
+            {/* Bottom Actions */}
+            <div className="flex flex-row lg:flex-col items-center justify-center gap-4 lg:gap-6 mt-6 lg:mt-auto pt-4 lg:pt-0 border-t border-slate-200 dark:border-slate-800 lg:border-t-0 w-full">
                 <button
                     className="p-3 text-slate-400 hover:text-yellow-500 transition-colors"
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
