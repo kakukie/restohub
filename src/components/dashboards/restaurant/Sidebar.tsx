@@ -90,8 +90,30 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
                     >
-                        <Receipt className="h-6 w-6" />
+                        <Receipt className="h-5 w-5 mb-1" />
                         <span className="text-xs mt-1 font-medium">{t.orders}</span>
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('analytics')}
+                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'analytics'
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                    >
+                        <Package className="h-5 w-5 mb-1" />
+                        <span className="text-xs mt-1 font-medium">Analytics</span>
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('payments')}
+                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'payments'
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                    >
+                        <Wallet className="h-5 w-5 mb-1" />
+                        <span className="text-xs mt-1 font-medium">{t.payments}</span>
                     </button>
 
                     <button
@@ -101,7 +123,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
                     >
-                        <UtensilsCrossed className="h-6 w-6" />
+                        <UtensilsCrossed className="h-5 w-5 mb-1" />
                         <span className="text-xs mt-1 font-medium">{t.menu}</span>
                     </button>
 

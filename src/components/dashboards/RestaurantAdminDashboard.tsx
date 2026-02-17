@@ -26,7 +26,7 @@ import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' // Might still need for sub-tabs
 import { Plus, Edit, Trash2, Search, Filter, RefreshCw, Printer, Grid, List, Eye, Check, X } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -92,6 +92,17 @@ export default function RestaurantAdminDashboard() {
     const [menuViewMode, setMenuViewMode] = useState<'grid' | 'table'>('grid')
     const [selectedMenuItems, setSelectedMenuItems] = useState<string[]>([])
 
+    // Orders Management States
+    const [orderStatusFilter, setOrderStatusFilter] = useState<string>('ALL')
+    const [orderDateRange, setOrderDateRange] = useState({ start: '', end: '' })
+    const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
+
+    // Reports & Analytics States
+    const [reportGranularity, setReportGranularity] = useState<'day' | 'month' | 'year'>('day')
+    const [reportDateRange, setReportDateRange] = useState({ start: '', end: '' })
+    const [loadingReports, setLoadingReports] = useState(false)
+    const [reportStats, setReportStats] = useState<any>({})
+
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
 
@@ -117,14 +128,56 @@ export default function RestaurantAdminDashboard() {
     }, [user?.restaurantId])
 
     const loadOrderData = useCallback(async () => {
-        // ... Implementation from Old
         if (!user?.restaurantId) return
+
+        const params = new URLSearchParams({
+            restaurantId: user.restaurantId
+        })
+
+        if (orderStatusFilter !== 'ALL') {
+            params.append('status', orderStatusFilter)
+        }
+
+        if (orderDateRange.start) {
+            params.append('startDate', orderDateRange.start)
+        }
+
+        if (orderDateRange.end) {
+            params.append('endDate', orderDateRange.end)
+        }
+
         try {
-            const res = await fetch(`/api/orders?restaurantId=${user.restaurantId}`)
+            const res = await fetch(`/api/orders?${params.toString()}`)
             const data = await res.json()
-            if (data.success) setOrders(data.data)
-        } catch (e) { }
-    }, [user?.restaurantId, setOrders])
+            if (data.success) {
+                setOrders(data.data)
+            }
+        } catch (e) {
+            console.error("Failed to load orders", e)
+        }
+    }, [user?.restaurantId, orderStatusFilter, orderDateRange, setOrders])
+
+    const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+        setUpdatingOrderId(orderId)
+        try {
+            const res = await fetch(`/api/orders/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            })
+
+            if (res.ok) {
+                toast({ title: "Success", description: `Order ${newStatus.toLowerCase()}` })
+                loadOrderData()
+            } else {
+                toast({ title: "Error", description: "Failed to update order", variant: "destructive" })
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to update order", variant: "destructive" })
+        } finally {
+            setUpdatingOrderId(null)
+        }
+    }
 
     useEffect(() => {
         loadRestaurantDetails()
@@ -280,6 +333,33 @@ export default function RestaurantAdminDashboard() {
         }
     }
 
+    const loadReportsData = useCallback(async () => {
+        if (!user?.restaurantId) return
+        setLoadingReports(true)
+
+        const params = new URLSearchParams({
+            restaurantId: user.restaurantId,
+            granularity: reportGranularity
+        })
+
+        if (reportDateRange.start) params.append('startDate', reportDateRange.start)
+        if (reportDateRange.end) params.append('endDate', reportDateRange.end)
+
+        try {
+            const res = await fetch(`/api/reports?${params.toString()}`)
+            const data = await res.json()
+            if (data.success) {
+                setReportStats(data.data)
+            }
+        } catch (e) {
+            console.error("Failed to load reports", e)
+            toast({ title: "Error", description: "Failed to load analytics data", variant: "destructive" })
+        } finally {
+            setLoadingReports(false)
+        }
+    }, [user?.restaurantId, reportGranularity, reportDateRange])
+
+    // --- RENDER FUNCTIONS ---
     const handleSavePaymentMethod = async () => {
         if (!paymentMethodForm.type) return toast({ title: "Error", description: "Method type is required", variant: "destructive" })
         try {
@@ -837,6 +917,257 @@ export default function RestaurantAdminDashboard() {
         </div>
     )
 
+    const renderOrdersContent = () => {
+        const filteredOrders = orders.filter(order => {
+            if (orderStatusFilter !== 'ALL' && order.status !== orderStatusFilter) return false
+            return true
+        })
+
+        return (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Orders</h2>
+                    <Button onClick={() => loadOrderData()} variant="outline" size="sm">
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Refresh
+                    </Button>
+                </div>
+
+                {/* Filters */}
+                <div className="flex flex-col lg:flex-row gap-4 mb-6">
+                    <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
+                        <SelectTrigger className="w-full lg:w-48">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ALL">All Status</SelectItem>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                            <SelectItem value="PREPARING">Preparing</SelectItem>
+                            <SelectItem value="READY">Ready</SelectItem>
+                            <SelectItem value="COMPLETED">Completed</SelectItem>
+                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <div className="flex gap-2">
+                        <Input
+                            type="date"
+                            value={orderDateRange.start}
+                            onChange={(e) => setOrderDateRange({ ...orderDateRange, start: e.target.value })}
+                            placeholder="Start date"
+                        />
+                        <Input
+                            type="date"
+                            value={orderDateRange.end}
+                            onChange={(e) => setOrderDateRange({ ...orderDateRange, end: e.target.value })}
+                            placeholder="End date"
+                        />
+                    </div>
+                </div>
+
+                {/* Orders List */}
+                <div className="space-y-4">
+                    {filteredOrders.length === 0 ? (
+                        <div className="text-center py-12 text-slate-500">
+                            <p>No orders found. {orderStatusFilter !== 'ALL' || orderDateRange.start || orderDateRange.end ? 'Try adjusting your filters.' : 'Orders will appear here.'}</p>
+                        </div>
+                    ) : (
+                        filteredOrders.map(order => (
+                            <Card key={order.id}>
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <CardTitle>Order #{order.orderNumber}</CardTitle>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                                {order.customerName} • {new Date(order.createdAt).toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <Badge variant={order.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                                            {order.status}
+                                        </Badge>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-2 mb-4">
+                                        {order.items.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between text-sm">
+                                                <span>{item.quantity}x {item.menuItemName}</span>
+                                                <span>Rp {(item.price * item.quantity).toLocaleString()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex justify-between items-center pt-4 border-t">
+                                        <span className="font-bold">Total: Rp {order.totalAmount.toLocaleString()}</span>
+                                        <div className="flex gap-2">
+                                            {order.status === 'PENDING' && (
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleUpdateOrderStatus(order.id, 'CONFIRMED')}
+                                                    disabled={updatingOrderId === order.id}
+                                                >
+                                                    Confirm
+                                                </Button>
+                                            )}
+                                            {order.status === 'CONFIRMED' && (
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}
+                                                    disabled={updatingOrderId === order.id}
+                                                >
+                                                    Prepare
+                                                </Button>
+                                            )}
+                                            {order.status === 'PREPARING' && (
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleUpdateOrderStatus(order.id, 'READY')}
+                                                    disabled={updatingOrderId === order.id}
+                                                >
+                                                    Ready
+                                                </Button>
+                                            )}
+                                            {order.status === 'READY' && (
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}
+                                                    disabled={updatingOrderId === order.id}
+                                                >
+                                                    Complete
+                                                </Button>
+                                            )}
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setViewOrder(order)}
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
+            </div>
+        )
+    }
+
+    const renderAnalyticsContent = () => (
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Reports & Analytics</h2>
+                <Button onClick={() => loadReportsData()} variant="outline" size="sm" disabled={loadingReports}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${loadingReports ? 'animate-spin' : ''}`} />
+                    {loadingReports ? 'Loading...' : 'Refresh'}
+                </Button>
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+                <Select value={reportGranularity} onValueChange={(value: any) => setReportGranularity(value)}>
+                    <SelectTrigger className="w-full lg:w-48">
+                        <SelectValue placeholder="Granularity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="day">Daily</SelectItem>
+                        <SelectItem value="month">Monthly</SelectItem>
+                        <SelectItem value="year">Yearly</SelectItem>
+                    </SelectContent>
+                </Select>
+                <div className="flex gap-2">
+                    <Input
+                        type="date"
+                        value={reportDateRange.start}
+                        onChange={(e) => setReportDateRange({ ...reportDateRange, start: e.target.value })}
+                        placeholder="Start date"
+                    />
+                    <Input
+                        type="date"
+                        value={reportDateRange.end}
+                        onChange={(e) => setReportDateRange({ ...reportDateRange, end: e.target.value })}
+                        placeholder="End date"
+                    />
+                </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Revenue</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-2xl font-bold text-emerald-600">
+                            Rp {(reportStats?.totalRevenue || 0).toLocaleString()}
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Orders</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-2xl font-bold">{reportStats?.totalOrders || 0}</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Avg Order Value</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-2xl font-bold">
+                            Rp {(reportStats?.averageOrderValue || 0).toLocaleString()}
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Completed Orders</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-2xl font-bold">{reportStats?.completedOrders || 0}</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Top Items */}
+            {reportStats?.topMenuItems && reportStats.topMenuItems.length > 0 && (
+                <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle>Top Menu Items</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {reportStats.topMenuItems.map((item: any, idx: number) => (
+                                <div key={idx} className="flex justify-between items-center">
+                                    <span className="text-sm">{item.name}</span>
+                                    <div className="flex gap-4 text-sm text-slate-600">
+                                        <span>{item.count} orders</span>
+                                        <span className="font-medium">Rp {item.revenue.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {!reportStats || Object.keys(reportStats).length === 0 && (
+                <div className="text-center py-12 text-slate-500">
+                    <p>No analytics data available. Select a date range and click Refresh.</p>
+                </div>
+            )}
+        </div>
+    )
+
+    const renderSettingsContent = () => (
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Restaurant Settings</h2>
+            <RestaurantSettingsForm restaurantId={user?.restaurantId || ''} />
+        </div>
+    )
+
     // ... renderOrdersContent, renderSettingsContent ...
 
     return (
@@ -863,8 +1194,10 @@ export default function RestaurantAdminDashboard() {
                 {activeTab === 'dashboard' && renderDashboardContent()}
                 {activeTab === 'menu' && renderMenuContent()}
                 {activeTab === 'categories' && renderCategoriesContent()}
-                {/* {activeTab === 'orders' && renderOrdersContent()} */}
-                {/* {activeTab === 'settings' && renderSettingsContent()} */}
+                {activeTab === 'orders' && renderOrdersContent()}
+                {activeTab === 'analytics' && renderAnalyticsContent()}
+                {activeTab === 'settings' && renderSettingsContent()}
+
 
             </main>
 
