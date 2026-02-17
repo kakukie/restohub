@@ -37,8 +37,8 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
         if (!restaurantId) return
         setLoading(true)
         try {
-            // Fetch restaurant staff (RESTAURANT_ADMIN) and guests who ordered
-            const res = await fetch(`/api/users?restaurantId=${restaurantId}&roles=RESTAURANT_ADMIN,GUEST`)
+            // Fetch restaurant staff (RESTAURANT_ADMIN) and customers who ordered
+            const res = await fetch(`/api/users?restaurantId=${restaurantId}`)
             const data = await res.json()
             if (data.success) {
                 setStaff(data.data)

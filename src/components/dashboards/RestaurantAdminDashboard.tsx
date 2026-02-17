@@ -117,20 +117,30 @@ export default function RestaurantAdminDashboard() {
     // ... (Refer to Old file for loadRestaurantDetails, loadMenuData, loadOrderData)
 
     const loadRestaurantDetails = useCallback(async () => {
-        if (!user?.restaurantId) return
+        if (!user?.restaurantId) {
+            console.log('❌ No restaurantId found in user:', user)
+            return
+        }
+        console.log('✅ Loading restaurant details for:', user.restaurantId)
         setRestaurantId(user.restaurantId)
         try {
             const res = await fetch(`/api/restaurants/${user.restaurantId}`)
             const data = await res.json()
+            console.log('📊 Restaurant data response:', data)
             if (data.success) {
                 setCurrentRestaurant(data.data)
                 setCategories(data.data.categories || [])
                 setMenuItems(data.data.menuItems || [])
                 setPaymentMethods(data.data.paymentMethods || [])
                 setMyBranches(data.data.branches || [])
+                console.log('✅ Restaurant data loaded successfully')
+            } else {
+                console.error('❌ Failed to load restaurant:', data.error)
+                toast({ title: 'Error', description: 'Failed to load restaurant data', variant: 'destructive' })
             }
         } catch (error) {
-            console.error("Failed to load details", error)
+            console.error("❌ Failed to load details", error)
+            toast({ title: 'Error', description: 'Failed to load restaurant data', variant: 'destructive' })
         }
     }, [user?.restaurantId])
 

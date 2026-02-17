@@ -7,33 +7,34 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const role = searchParams.get('role') // Single role (legacy)
-        const rolesParam = searchParams.get('roles') // Multiple roles: "RESTAURANT_ADMIN,GUEST"
+        const rolesParam = searchParams.get('roles') // Multiple roles: "RESTAURANT_ADMIN,CUSTOMER"
         const restaurantId = searchParams.get('restaurantId')
 
         const whereClause: any = { deletedAt: null }
 
-        // Handle multiple roles or single role
-        if (rolesParam) {
-            const roles = rolesParam.split(',')
-            whereClause.role = { in: roles }
-        } else if (role) {
-            whereClause.role = role
-        }
-
-        // Filter by restaurant if provided
+        // If restaurantId is provided, use special filtering logic
         if (restaurantId) {
+            // Don't add role filter to whereClause, use it in OR conditions
             whereClause.OR = [
                 // Restaurant staff (admins)
                 {
                     role: 'RESTAURANT_ADMIN',
                     restaurants: { some: { id: restaurantId } }
                 },
-                // Guests who placed orders at this restaurant
+                // Customers who placed orders at this restaurant
                 {
-                    role: 'GUEST',
+                    role: 'CUSTOMER',
                     orders: { some: { restaurantId: restaurantId } }
                 }
             ]
+        } else {
+            // Normal role filtering (no restaurant filter)
+            if (rolesParam) {
+                const roles = rolesParam.split(',')
+                whereClause.role = { in: roles }
+            } else if (role) {
+                whereClause.role = role
+            }
         }
 
         const users = await prisma.user.findMany({
