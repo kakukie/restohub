@@ -1001,6 +1001,11 @@ export default function RestaurantAdminDashboard() {
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                                                 {order.customerName} • {new Date(order.createdAt).toLocaleString()}
                                             </p>
+                                            {order.paymentMethod && (
+                                                <Badge variant="outline" className="mt-2">
+                                                    💳 {order.paymentMethod}
+                                                </Badge>
+                                            )}
                                         </div>
                                         <Badge variant={order.status === 'COMPLETED' ? 'default' : 'secondary'}>
                                             {order.status}
@@ -1016,53 +1021,61 @@ export default function RestaurantAdminDashboard() {
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="flex justify-between items-center pt-4 border-t">
-                                        <span className="font-bold">Total: Rp {order.totalAmount.toLocaleString()}</span>
-                                        <div className="flex gap-2">
-                                            {order.status === 'PENDING' && (
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleUpdateOrderStatus(order.id, 'CONFIRMED')}
-                                                    disabled={updatingOrderId === order.id}
-                                                >
-                                                    Confirm
-                                                </Button>
-                                            )}
-                                            {order.status === 'CONFIRMED' && (
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}
-                                                    disabled={updatingOrderId === order.id}
-                                                >
-                                                    Prepare
-                                                </Button>
-                                            )}
-                                            {order.status === 'PREPARING' && (
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleUpdateOrderStatus(order.id, 'READY')}
-                                                    disabled={updatingOrderId === order.id}
-                                                >
-                                                    Ready
-                                                </Button>
-                                            )}
-                                            {order.status === 'READY' && (
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}
-                                                    disabled={updatingOrderId === order.id}
-                                                >
-                                                    Complete
-                                                </Button>
-                                            )}
+                                    <div className="pt-4 border-t space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-slate-600 dark:text-slate-400">Payment Method:</span>
+                                            <span className="text-sm font-medium">{order.paymentMethod || 'CASH'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-bold">Total:</span>
+                                            <span className="font-bold">Rp {order.totalAmount.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 mt-4">
+
+                                        {order.status === 'PENDING' && (
                                             <Button
                                                 size="sm"
-                                                variant="outline"
-                                                onClick={() => setViewOrder(order)}
+                                                onClick={() => handleUpdateOrderStatus(order.id, 'CONFIRMED')}
+                                                disabled={updatingOrderId === order.id}
                                             >
-                                                <Eye className="h-4 w-4" />
+                                                Confirm
                                             </Button>
-                                        </div>
+                                        )}
+                                        {order.status === 'CONFIRMED' && (
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}
+                                                disabled={updatingOrderId === order.id}
+                                            >
+                                                Prepare
+                                            </Button>
+                                        )}
+                                        {order.status === 'PREPARING' && (
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleUpdateOrderStatus(order.id, 'READY')}
+                                                disabled={updatingOrderId === order.id}
+                                            >
+                                                Ready
+                                            </Button>
+                                        )}
+                                        {order.status === 'READY' && (
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}
+                                                disabled={updatingOrderId === order.id}
+                                            >
+                                                Complete
+                                            </Button>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setViewOrder(order)}
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -1191,7 +1204,7 @@ export default function RestaurantAdminDashboard() {
     // ... renderOrdersContent, renderSettingsContent ...
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans">
+        <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 lg:pb-0">
             <Sidebar
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}

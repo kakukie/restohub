@@ -34,6 +34,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/scripts ./scripts
 RUN chmod +x ./scripts/start.sh
 
+# Create uploads directory with proper permissions
+RUN mkdir -p /app/public/uploads && chmod 777 /app/public/uploads
+
 # Create non-root user with home directory
 RUN groupadd -r nodejs && useradd -r -g nodejs -m -d /home/nextjs nextjs
 RUN chown -R nextjs:nodejs /app
