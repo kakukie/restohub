@@ -18,6 +18,7 @@ import Header from './restaurant/Header'
 import StatsGrid from './restaurant/StatsGrid'
 import RecentOrders from './restaurant/RecentOrders'
 import PaymentMethods from './restaurant/PaymentMethods'
+import PaymentMethodDialog from './restaurant/PaymentMethodDialog' // Imported
 import StaffManagement from './restaurant/StaffManagement'
 import BestSellers from './restaurant/BestSellers'
 
@@ -36,14 +37,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 
 // ... (Import other necessary UI components like in Old file)
 
-interface OrderItem {
-    menuItemId: string
-    menuItemName: string
-    price: number
-    quantity: number
-    categoryName?: string
-    notes?: string
-}
+
 
 export default function RestaurantAdminDashboard() {
     const {
@@ -1322,7 +1316,10 @@ export default function RestaurantAdminDashboard() {
     const renderSettingsContent = () => (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Restaurant Settings</h2>
-            <RestaurantSettingsForm restaurantId={user?.restaurantId || ''} />
+            <RestaurantSettingsForm
+                restaurantId={user?.restaurantId || ''}
+                initialData={currentRestaurant}
+            />
         </div>
     )
 
@@ -1417,6 +1414,14 @@ export default function RestaurantAdminDashboard() {
                 onOpenChange={setQrCodeDialogOpen}
                 restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || ''}
                 restaurantName={currentRestaurant?.name || 'Restaurant'}
+            />
+
+            <PaymentMethodDialog
+                open={paymentMethodDialogOpen}
+                onOpenChange={setPaymentMethodDialogOpen}
+                initialData={paymentMethodForm}
+                restaurantId={user?.restaurantId || ''}
+                onSuccess={loadRestaurantDetails}
             />
 
             {/* Category Dialog */}

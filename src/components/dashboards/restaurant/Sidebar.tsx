@@ -171,20 +171,26 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                     {theme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
                 </button>
 
-                <div className="relative group cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-transparent hover:border-emerald-500 transition-colors">
-                        {/* Placeholder Avatar if no image */}
-                        <div className="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 font-bold">
-                            {user?.name?.charAt(0) || 'A'}
+                <div className="flex flex-col gap-2 relative">
+                    {/* Profile Info */}
+                    <div className="flex items-center gap-3 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-transparent hover:border-emerald-500 transition-colors shrink-0">
+                            <div className="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 font-bold">
+                                {user?.name?.charAt(0) || 'A'}
+                            </div>
+                        </div>
+                        <div className="flex flex-col lg:hidden xl:flex">
+                            <span className="text-sm font-semibold truncate max-w-[100px]">{user?.name || 'Admin'}</span>
+                            <span className="text-xs text-slate-500 truncate max-w-[100px]">{user?.role || 'Role'}</span>
                         </div>
                     </div>
 
                     <button
                         onClick={onLogout}
-                        className="absolute left-12 top-0 bg-red-50 text-red-500 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm border border-red-100 whitespace-nowrap flex items-center gap-2"
+                        className="w-full flex items-center justify-center gap-2 mt-2 py-2 px-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium border border-red-100 dark:border-red-900/20"
                     >
                         <LogOut className="h-4 w-4" />
-                        <span className="text-xs font-medium">Logout</span>
+                        <span>Logout</span>
                     </button>
                 </div>
             </div>

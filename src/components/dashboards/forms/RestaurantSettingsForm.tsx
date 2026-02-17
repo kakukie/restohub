@@ -13,9 +13,10 @@ import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import { Trash2, MapPin, Map, Globe, Store, Palette, ImageIcon } from 'lucide-react'
 
-export default function RestaurantSettingsForm({ restaurantId }: { restaurantId: string }) {
+export default function RestaurantSettingsForm({ restaurantId, initialData }: { restaurantId: string; initialData?: any }) {
     const { restaurants, updateRestaurant } = useAppStore()
-    const restaurant = restaurants.find(r => r.id === restaurantId)
+    // Use initialData if provided, otherwise try to find in store
+    const restaurant = initialData || restaurants.find(r => r.id === restaurantId)
 
     const [form, setForm] = useState<{
         name: string;
@@ -48,18 +49,19 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
     useEffect(() => {
         if (restaurant) {
             setForm({
-                name: restaurant.name,
+                name: restaurant.name || '',
                 description: restaurant.description || '',
                 address: restaurant.address || '',
                 detailAddress: restaurant.detailAddress || '',
-                latitude: restaurant.latitude?.toString() || '',
-                longitude: restaurant.longitude?.toString() || '',
+                // Handle numbers safely
+                latitude: restaurant.latitude !== undefined && restaurant.latitude !== null ? restaurant.latitude.toString() : '',
+                longitude: restaurant.longitude !== undefined && restaurant.longitude !== null ? restaurant.longitude.toString() : '',
                 googleMapsUrl: restaurant.googleMapsUrl || '',
                 phone: restaurant.phone || '',
-                logo: restaurant.logo,
-                banner: restaurant.banner,
+                logo: restaurant.logo || '',
+                banner: restaurant.banner || '',
                 slug: restaurant.slug || '',
-                theme: restaurant.theme as any || 'modern-emerald'
+                theme: (restaurant.theme as any) || 'modern-emerald'
             })
         }
     }, [restaurant])
