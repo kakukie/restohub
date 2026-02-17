@@ -246,249 +246,251 @@ export default function RestaurantAdminDashboard() {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+            </div>
+            )
 
     const renderMenuContent = () => (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-                    {/* Reuse the Table/Grid from Old Dashboard for Menu Items */}
-                    {/* We will need to copy the Menu Management JSX here */}
-                    <h2 className="text-xl font-bold mb-4">Menu Management</h2>
-                    {/* ... */}
-                </div>
-                )
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                {/* Reuse the Table/Grid from Old Dashboard for Menu Items */}
+                {/* We will need to copy the Menu Management JSX here */}
+                <h2 className="text-xl font-bold mb-4">Menu Management</h2>
+                {/* ... */}
+            </div>
+            )
 
-                // ... renderOrdersContent, renderSettingsContent ...
+            // ... renderOrdersContent, renderSettingsContent ...
 
-                return (
-                <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans">
-                    <Sidebar
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
-                        user={user}
-                        onLogout={logout}
+            return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans">
+                <Sidebar
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    user={user}
+                    onLogout={logout}
+                />
+
+                <main className="lg:ml-24 p-4 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
+                    <Header
+                        restaurantName={currentRestaurant?.name}
+                        userName={user?.name}
+                        onShowQR={() => setQrCodeDialogOpen(true)}
+                        onAddItem={() => {
+                            setEditingMenuItem(null)
+                            setMenuItemForm({})
+                            setMenuItemDialogOpen(true)
+                        }}
                     />
 
-                    <main className="lg:ml-24 p-4 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
-                        <Header
-                            restaurantName={currentRestaurant?.name}
-                            userName={user?.name}
-                            onShowQR={() => setQrCodeDialogOpen(true)}
-                            onAddItem={() => {
-                                setEditingMenuItem(null)
-                                setMenuItemForm({})
-                                setMenuItemDialogOpen(true)
-                            }}
-                        />
+                    {activeTab === 'dashboard' && renderDashboardContent()}
+                    {activeTab === 'menu' && renderMenuContent()}
+                    {/* {activeTab === 'orders' && renderOrdersContent()} */}
+                    {/* {activeTab === 'settings' && renderSettingsContent()} */}
 
-                        {activeTab === 'dashboard' && renderDashboardContent()}
-                        {activeTab === 'menu' && renderMenuContent()}
-                        {/* {activeTab === 'orders' && renderOrdersContent()} */}
-                        {/* {activeTab === 'settings' && renderSettingsContent()} */}
+                </main>
 
-                    </main>
+                {/* Dialogs */}
+                <QRCodeDialog
+                    open={qrCodeDialogOpen}
+                    onOpenChange={setQrCodeDialogOpen}
+                    restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || ''}
+                    restaurantName={currentRestaurant?.name || 'Restaurant'}
+                />
 
-                    {/* Dialogs */}
-                    <QRCodeDialog
-                        open={qrCodeDialogOpen}
-                        onOpenChange={setQrCodeDialogOpen}
-                        restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || ''}
-                        restaurantName={currentRestaurant?.name || 'Restaurant'}
-                    />
-
-                    {/* Add/Edit Menu Item Dialog */}
-                    <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>{editingMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
-                                <DialogDescription>
-                                    {editingMenuItem ? 'Update menu item details' : 'Create a new menu item'}
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="menu-name">Name *</Label>
-                                    <Input
-                                        id="menu-name"
-                                        value={menuItemForm.name || ''}
-                                        onChange={(e) => setMenuItemForm({ ...menuItemForm, name: e.target.value })}
-                                        placeholder="Menu item name"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="menu-description">Description</Label>
-                                    <Input
-                                        id="menu-description"
-                                        value={menuItemForm.description || ''}
-                                        onChange={(e) => setMenuItemForm({ ...menuItemForm, description: e.target.value })}
-                                        placeholder="Menu item description"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="menu-price">Price *</Label>
-                                    <Input
-                                        id="menu-price"
-                                        type="number"
-                                        value={menuItemForm.price || ''}
-                                        onChange={(e) => setMenuItemForm({ ...menuItemForm, price: parseFloat(e.target.value) })}
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="menu-category">Category *</Label>
-                                    <Select
-                                        value={menuItemForm.categoryId || ''}
-                                        onValueChange={(value) => setMenuItemForm({ ...menuItemForm, categoryId: value })}
-                                    >
-                                        <SelectTrigger id="menu-category">
-                                            <SelectValue placeholder="Select category" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {categories.map((category) => (
-                                                <SelectItem key={category.id} value={category.id}>
-                                                    {category.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="menu-image">Menu Image</Label>
-                                    <Input
-                                        id="menu-image"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => handleImageUpload(e, (base64) => setMenuItemForm({ ...menuItemForm, image: base64 }))}
-                                    />
-                                    {menuItemForm.image && (
-                                        <div className="relative w-full h-40 mt-2 rounded-md overflow-hidden border">
-                                            <Image src={menuItemForm.image} alt="Preview" fill className="object-cover" />
-                                            <Button
-                                                variant="destructive"
-                                                size="icon"
-                                                className="absolute top-2 right-2 h-6 w-6"
-                                                onClick={() => setMenuItemForm({ ...menuItemForm, image: undefined })}
-                                            >
-                                                <Trash2 className="h-3 w-3" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="flex space-x-4 pt-2">
-                                    <div className="flex items-center space-x-2">
-                                        <input
-                                            type="checkbox"
-                                            id="isBestSeller"
-                                            className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                                            checked={menuItemForm.isBestSeller || false}
-                                            onChange={(e) => setMenuItemForm({ ...menuItemForm, isBestSeller: e.target.checked })}
-                                        />
-                                        <Label htmlFor="isBestSeller" className="cursor-pointer font-medium">Best Seller</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <input
-                                            type="checkbox"
-                                            id="isRecommended"
-                                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                            checked={menuItemForm.isRecommended || false}
-                                            onChange={(e) => setMenuItemForm({ ...menuItemForm, isRecommended: e.target.checked })}
-                                        />
-                                        <Label htmlFor="isRecommended" className="cursor-pointer font-medium">Recommended</Label>
-                                    </div>
-                                </div>
+                {/* Add/Edit Menu Item Dialog */}
+                <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{editingMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
+                            <DialogDescription>
+                                {editingMenuItem ? 'Update menu item details' : 'Create a new menu item'}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="menu-name">Name *</Label>
+                                <Input
+                                    id="menu-name"
+                                    value={menuItemForm.name || ''}
+                                    onChange={(e) => setMenuItemForm({ ...menuItemForm, name: e.target.value })}
+                                    placeholder="Menu item name"
+                                />
                             </div>
-                            <DialogFooter>
-                                <Button onClick={handleSaveMenuItem} className="bg-green-600 hover:bg-green-700">
-                                    {editingMenuItem ? 'Update' : 'Add'}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* Validation Dialog */}
-                    <Dialog open={!!validateOrderId} onOpenChange={(open) => !open && setValidateOrderId(null)}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Confirm Accept Order</DialogTitle>
-                                <DialogDescription>
-                                    You can optionally enter customer contact details to send manual notification.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-3 py-2">
-                                <div className="space-y-1">
-                                    <Label>Manual Email (Optional)</Label>
-                                    <Input
-                                        placeholder="customer@example.com"
-                                        value={manualEmail}
-                                        onChange={(e) => setManualEmail(e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label>Manual WhatsApp (Optional)</Label>
-                                    <Input
-                                        placeholder="62812..."
-                                        value={manualPhone}
-                                        onChange={(e) => setManualPhone(e.target.value)}
-                                    />
-                                </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="menu-description">Description</Label>
+                                <Input
+                                    id="menu-description"
+                                    value={menuItemForm.description || ''}
+                                    onChange={(e) => setMenuItemForm({ ...menuItemForm, description: e.target.value })}
+                                    placeholder="Menu item description"
+                                />
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setValidateOrderId(null)}>Cancel</Button>
-                                <Button className="bg-green-600 text-white" onClick={handleValidateOrder}>Confirm & Notify</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* View Order Dialog */}
-                    <Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
-                        <DialogContent className="max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Order Details #{viewOrder?.orderNumber}</DialogTitle>
-                            </DialogHeader>
-                            {viewOrder && (
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-500">Date:</span>
-                                        <span className="font-medium">{new Date(viewOrder.createdAt).toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-500">Customer:</span>
-                                        <span className="font-medium">{viewOrder.customerName}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-500">Type:</span>
-                                        <Badge variant="outline">{viewOrder.type}</Badge>
-                                    </div>
-                                    {viewOrder.tableNumber && (
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-500">Table:</span>
-                                            <span className="font-medium">{viewOrder.tableNumber}</span>
-                                        </div>
-                                    )}
-
-                                    <div className="border-t border-b py-2 my-2 space-y-2">
-                                        {viewOrder.items.map((item: any, idx: number) => (
-                                            <div key={idx} className="flex justify-between text-sm">
-                                                <span>{item.quantity}x {item.menuItemName}</span>
-                                                <span>Rp {(item.price * item.quantity).toLocaleString()}</span>
-                                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="menu-price">Price *</Label>
+                                <Input
+                                    id="menu-price"
+                                    type="number"
+                                    value={menuItemForm.price || ''}
+                                    onChange={(e) => setMenuItemForm({ ...menuItemForm, price: parseFloat(e.target.value) })}
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="menu-category">Category *</Label>
+                                <Select
+                                    value={menuItemForm.categoryId || ''}
+                                    onValueChange={(value) => setMenuItemForm({ ...menuItemForm, categoryId: value })}
+                                >
+                                    <SelectTrigger id="menu-category">
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map((category) => (
+                                            <SelectItem key={category.id} value={category.id}>
+                                                {category.name}
+                                            </SelectItem>
                                         ))}
-                                    </div>
-
-                                    <div className="flex justify-between items-center font-bold text-lg">
-                                        <span>Total:</span>
-                                        <span>Rp {viewOrder.totalAmount.toLocaleString()}</span>
-                                    </div>
-
-                                    <div className="flex gap-2 justify-end pt-2">
-                                        <Button variant="outline" onClick={() => handlePrintOrder(viewOrder)}>
-                                            <Printer className="h-4 w-4 mr-2" /> Print
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="menu-image">Menu Image</Label>
+                                <Input
+                                    id="menu-image"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleImageUpload(e, (base64) => setMenuItemForm({ ...menuItemForm, image: base64 }))}
+                                />
+                                {menuItemForm.image && (
+                                    <div className="relative w-full h-40 mt-2 rounded-md overflow-hidden border">
+                                        <Image src={menuItemForm.image} alt="Preview" fill className="object-cover" />
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-2 right-2 h-6 w-6"
+                                            onClick={() => setMenuItemForm({ ...menuItemForm, image: undefined })}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
                                         </Button>
                                     </div>
-                                </div>
-                            )}
-                        </DialogContent>
-                    </Dialog>
+                                )}
+                            </div>
 
-                </div>
-                )
+                            <div className="flex space-x-4 pt-2">
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="isBestSeller"
+                                        className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                        checked={menuItemForm.isBestSeller || false}
+                                        onChange={(e) => setMenuItemForm({ ...menuItemForm, isBestSeller: e.target.checked })}
+                                    />
+                                    <Label htmlFor="isBestSeller" className="cursor-pointer font-medium">Best Seller</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="isRecommended"
+                                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        checked={menuItemForm.isRecommended || false}
+                                        onChange={(e) => setMenuItemForm({ ...menuItemForm, isRecommended: e.target.checked })}
+                                    />
+                                    <Label htmlFor="isRecommended" className="cursor-pointer font-medium">Recommended</Label>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button onClick={handleSaveMenuItem} className="bg-green-600 hover:bg-green-700">
+                                {editingMenuItem ? 'Update' : 'Add'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Validation Dialog */}
+                <Dialog open={!!validateOrderId} onOpenChange={(open) => !open && setValidateOrderId(null)}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirm Accept Order</DialogTitle>
+                            <DialogDescription>
+                                You can optionally enter customer contact details to send manual notification.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-3 py-2">
+                            <div className="space-y-1">
+                                <Label>Manual Email (Optional)</Label>
+                                <Input
+                                    placeholder="customer@example.com"
+                                    value={manualEmail}
+                                    onChange={(e) => setManualEmail(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label>Manual WhatsApp (Optional)</Label>
+                                <Input
+                                    placeholder="62812..."
+                                    value={manualPhone}
+                                    onChange={(e) => setManualPhone(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setValidateOrderId(null)}>Cancel</Button>
+                            <Button className="bg-green-600 text-white" onClick={handleValidateOrder}>Confirm & Notify</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* View Order Dialog */}
+                <Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Order Details #{viewOrder?.orderNumber}</DialogTitle>
+                        </DialogHeader>
+                        {viewOrder && (
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">Date:</span>
+                                    <span className="font-medium">{new Date(viewOrder.createdAt).toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">Customer:</span>
+                                    <span className="font-medium">{viewOrder.customerName}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">Type:</span>
+                                    <Badge variant="outline">{viewOrder.type}</Badge>
+                                </div>
+                                {viewOrder.tableNumber && (
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-500">Table:</span>
+                                        <span className="font-medium">{viewOrder.tableNumber}</span>
+                                    </div>
+                                )}
+
+                                <div className="border-t border-b py-2 my-2 space-y-2">
+                                    {viewOrder.items.map((item: any, idx: number) => (
+                                        <div key={idx} className="flex justify-between text-sm">
+                                            <span>{item.quantity}x {item.menuItemName}</span>
+                                            <span>Rp {(item.price * item.quantity).toLocaleString()}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex justify-between items-center font-bold text-lg">
+                                    <span>Total:</span>
+                                    <span>Rp {viewOrder.totalAmount.toLocaleString()}</span>
+                                </div>
+
+                                <div className="flex gap-2 justify-end pt-2">
+                                    <Button variant="outline" onClick={() => handlePrintOrder(viewOrder)}>
+                                        <Printer className="h-4 w-4 mr-2" /> Print
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
+
+            </div>
+            )
 }
