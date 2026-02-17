@@ -112,6 +112,7 @@ export interface MenuItem {
   restaurantId: string // Link to restaurant
   isRecommended?: boolean
   isBestSeller?: boolean
+  stock?: number // Optional stock quantity
   maxSlugChanges?: number
   maxBranches?: number
 }

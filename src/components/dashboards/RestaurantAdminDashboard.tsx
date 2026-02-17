@@ -25,7 +25,7 @@ import BestSellers from './restaurant/BestSellers'
 import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' // Might still need for sub-tabs
-import { Plus, Edit, Trash2, Search, Filter, RefreshCw, Printer } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, Filter, RefreshCw, Printer, Grid, List, Eye, Check, X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -85,6 +85,12 @@ export default function RestaurantAdminDashboard() {
     const [validateOrderId, setValidateOrderId] = useState<string | null>(null)
     const [manualEmail, setManualEmail] = useState('')
     const [manualPhone, setManualPhone] = useState('')
+
+    // Menu Management States
+    const [menuSearchQuery, setMenuSearchQuery] = useState('')
+    const [menuCategoryFilter, setMenuCategoryFilter] = useState<string>('ALL')
+    const [menuViewMode, setMenuViewMode] = useState<'grid' | 'table'>('grid')
+    const [selectedMenuItems, setSelectedMenuItems] = useState<string[]>([])
 
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
@@ -442,14 +448,321 @@ export default function RestaurantAdminDashboard() {
         </>
     )
 
-    const renderMenuContent = () => (
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-            {/* Reuse the Table/Grid from Old Dashboard for Menu Items */}
-            {/* We will need to copy the Menu Management JSX here */}
-            <h2 className="text-xl font-bold mb-4">Menu Management</h2>
-            {/* ... */}
-        </div>
-    )
+    const renderMenuContent = () => {
+        // Filter menu items based on search and category
+        const filteredMenuItems = menuItems.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(menuSearchQuery.toLowerCase()) ||
+                item.description?.toLowerCase().includes(menuSearchQuery.toLowerCase())
+            const matchesCategory = menuCategoryFilter === 'ALL' || item.categoryId === menuCategoryFilter
+            return matchesSearch && matchesCategory
+        })
+
+        const handleBulkDelete = async () => {
+            if (!confirm(`Delete ${selectedMenuItems.length} selected items?`)) return
+            try {
+                await Promise.all(selectedMenuItems.map(id =>
+                    fetch(`/api/menu-items/${id}`, { method: 'DELETE' })
+                ))
+                setSelectedMenuItems([])
+                loadRestaurantDetails()
+                toast({ title: "Success", description: `${selectedMenuItems.length} items deleted` })
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to delete items", variant: "destructive" })
+            }
+        }
+
+        const handleBulkToggleAvailability = async (isAvailable: boolean) => {
+            try {
+                await Promise.all(selectedMenuItems.map(id =>
+                    fetch(`/api/menu-items/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, isAvailable })
+                    })
+                ))
+                setSelectedMenuItems([])
+                loadRestaurantDetails()
+                toast({ title: "Success", description: `${selectedMenuItems.length} items ${isAvailable ? 'enabled' : 'disabled'}` })
+            } catch (error) {
+                toast({ title: "Error", description: "Failed to update items", variant: "destructive" })
+            }
+        }
+
+        const toggleSelectItem = (id: string) => {
+            setSelectedMenuItems(prev =>
+                prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+            )
+        }
+
+        const toggleSelectAll = () => {
+            if (selectedMenuItems.length === filteredMenuItems.length) {
+                setSelectedMenuItems([])
+            } else {
+                setSelectedMenuItems(filteredMenuItems.map(item => item.id))
+            }
+        }
+
+        return (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                {/* Header with Search and Filters */}
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Menu Items</h2>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                            <span className={(currentRestaurant?.maxMenuItems && menuItems.length >= currentRestaurant.maxMenuItems) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                                {menuItems.length} / {currentRestaurant?.maxMenuItems === 0 || !currentRestaurant?.maxMenuItems ? 'Unlimited' : currentRestaurant.maxMenuItems} items
+                            </span>
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setMenuViewMode('grid')}
+                            className={menuViewMode === 'grid' ? 'bg-emerald-50 text-emerald-600' : ''}
+                        >
+                            <Grid className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setMenuViewMode('table')}
+                            className={menuViewMode === 'table' ? 'bg-emerald-50 text-emerald-600' : ''}
+                        >
+                            <List className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Search and Filter Bar */}
+                <div className="flex flex-col lg:flex-row gap-4 mb-6">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                            placeholder="Search menu items..."
+                            value={menuSearchQuery}
+                            onChange={(e) => setMenuSearchQuery(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                    <Select value={menuCategoryFilter} onValueChange={setMenuCategoryFilter}>
+                        <SelectTrigger className="w-full lg:w-48">
+                            <SelectValue placeholder="All Categories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ALL">All Categories</SelectItem>
+                            {categories.map(cat => (
+                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Bulk Actions Toolbar */}
+                {selectedMenuItems.length > 0 && (
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 mb-4 flex items-center justify-between">
+                        <span className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
+                            {selectedMenuItems.length} item(s) selected
+                        </span>
+                        <div className="flex gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleBulkToggleAvailability(true)}
+                            >
+                                <Check className="h-4 w-4 mr-1" />
+                                Enable
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleBulkToggleAvailability(false)}
+                            >
+                                <X className="h-4 w-4 mr-1" />
+                                Disable
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={handleBulkDelete}
+                            >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Grid View */}
+                {menuViewMode === 'grid' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredMenuItems.length === 0 ? (
+                            <div className="col-span-full text-center py-12 text-slate-500">
+                                <p>No menu items found. {menuSearchQuery || menuCategoryFilter !== 'ALL' ? 'Try adjusting your filters.' : 'Add your first menu item to get started.'}</p>
+                            </div>
+                        ) : (
+                            filteredMenuItems.map(item => (
+                                <Card key={item.id} className={`hover:shadow-lg transition-shadow ${selectedMenuItems.includes(item.id) ? 'ring-2 ring-emerald-500' : ''}`}>
+                                    <CardHeader className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedMenuItems.includes(item.id)}
+                                            onChange={() => toggleSelectItem(item.id)}
+                                            className="absolute top-4 left-4 h-4 w-4 rounded border-gray-300"
+                                        />
+                                        {item.image && (
+                                            <div className="relative h-40 w-full rounded-lg overflow-hidden mb-3">
+                                                <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                            </div>
+                                        )}
+                                        <CardTitle className="flex justify-between items-start">
+                                            <span className="flex-1">{item.name}</span>
+                                            <Badge variant={item.isAvailable ? 'default' : 'secondary'}>
+                                                {item.isAvailable ? 'Available' : 'Unavailable'}
+                                            </Badge>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {item.description && (
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{item.description}</p>
+                                        )}
+                                        <div className="flex justify-between items-center mb-3">
+                                            <span className="text-lg font-bold text-emerald-600">Rp {item.price.toLocaleString()}</span>
+                                            {item.stock !== null && item.stock !== undefined && (
+                                                <span className="text-xs text-slate-500">Stock: {item.stock}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="flex-1"
+                                                onClick={() => {
+                                                    setEditingMenuItem(item)
+                                                    setMenuItemForm(item)
+                                                    setMenuItemDialogOpen(true)
+                                                }}
+                                            >
+                                                <Edit className="h-3 w-3 mr-1" />
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                onClick={() => handleDeleteMenuItem(item.id)}
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        )}
+                    </div>
+                )}
+
+                {/* Table View */}
+                {menuViewMode === 'table' && (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-slate-50 dark:bg-slate-800">
+                                <tr>
+                                    <th className="p-3 text-left">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedMenuItems.length === filteredMenuItems.length && filteredMenuItems.length > 0}
+                                            onChange={toggleSelectAll}
+                                            className="h-4 w-4 rounded border-gray-300"
+                                        />
+                                    </th>
+                                    <th className="p-3 text-left text-sm font-semibold">Image</th>
+                                    <th className="p-3 text-left text-sm font-semibold">Name</th>
+                                    <th className="p-3 text-left text-sm font-semibold">Category</th>
+                                    <th className="p-3 text-left text-sm font-semibold">Price</th>
+                                    <th className="p-3 text-left text-sm font-semibold">Stock</th>
+                                    <th className="p-3 text-left text-sm font-semibold">Status</th>
+                                    <th className="p-3 text-left text-sm font-semibold">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredMenuItems.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8} className="p-12 text-center text-slate-500">
+                                            No menu items found. {menuSearchQuery || menuCategoryFilter !== 'ALL' ? 'Try adjusting your filters.' : 'Add your first menu item to get started.'}
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredMenuItems.map(item => (
+                                        <tr key={item.id} className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
+                                            <td className="p-3">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedMenuItems.includes(item.id)}
+                                                    onChange={() => toggleSelectItem(item.id)}
+                                                    className="h-4 w-4 rounded border-gray-300"
+                                                />
+                                            </td>
+                                            <td className="p-3">
+                                                {item.image && (
+                                                    <div className="relative h-12 w-12 rounded overflow-hidden">
+                                                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="p-3">
+                                                <div>
+                                                    <p className="font-medium">{item.name}</p>
+                                                    {item.description && (
+                                                        <p className="text-xs text-slate-500 truncate max-w-xs">{item.description}</p>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="p-3 text-sm">
+                                                {categories.find(c => c.id === item.categoryId)?.name || '-'}
+                                            </td>
+                                            <td className="p-3 text-sm font-medium text-emerald-600">
+                                                Rp {item.price.toLocaleString()}
+                                            </td>
+                                            <td className="p-3 text-sm">
+                                                {item.stock !== null && item.stock !== undefined ? item.stock : '-'}
+                                            </td>
+                                            <td className="p-3">
+                                                <Badge variant={item.isAvailable ? 'default' : 'secondary'} className="text-xs">
+                                                    {item.isAvailable ? 'Available' : 'Unavailable'}
+                                                </Badge>
+                                            </td>
+                                            <td className="p-3">
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => {
+                                                            setEditingMenuItem(item)
+                                                            setMenuItemForm(item)
+                                                            setMenuItemDialogOpen(true)
+                                                        }}
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => handleDeleteMenuItem(item.id)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        )
+    }
 
     const renderCategoriesContent = () => (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
