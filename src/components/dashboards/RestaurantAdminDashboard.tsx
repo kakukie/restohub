@@ -63,7 +63,6 @@ export default function RestaurantAdminDashboard() {
     const [menuItems, setMenuItems] = useState<MenuItem[]>([])
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
     const [myBranches, setMyBranches] = useState<any[]>([])
-    const [reportStats, setReportStats] = useState<any>({})
 
     // Dialog States
     const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false)
