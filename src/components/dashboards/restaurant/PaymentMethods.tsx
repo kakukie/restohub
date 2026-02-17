@@ -48,7 +48,15 @@ export default function PaymentMethods({ methods, onToggle, onEdit, onDelete }: 
                             <div className={`w-10 h-10 ${getBgColor(method.type)} rounded-xl flex items-center justify-center`}>
                                 {getIcon(method.type)}
                             </div>
-                            <span className="font-bold text-sm text-slate-900 dark:text-white">{method.type}</span>
+                            <div>
+                                <p className="font-bold text-sm text-slate-900 dark:text-white">{method.type}</p>
+                                {(method as any).accountNumber && (
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        {(method as any).accountNumber}
+                                        {(method as any).accountName && ` - ${(method as any).accountName}`}
+                                    </p>
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-4">

@@ -183,14 +183,16 @@ model OrderItem {
 }
 
 model PaymentMethod {
-  id         String            @id @default(cuid())
-  type       PaymentMethodType
-  isActive   Boolean           @default(true)
-  qrCode     String?
-  merchantId String?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
-  deletedAt  DateTime?
+  id           String            @id @default(cuid())
+  type         PaymentMethodType
+  isActive     Boolean           @default(true)
+  qrCode       String?
+  merchantId   String?
+  accountNumber String?
+  accountName   String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  deletedAt    DateTime?
 
   // Relations
   restaurantId String

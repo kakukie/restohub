@@ -101,7 +101,14 @@ export default function RestaurantAdminDashboard() {
     const [reportGranularity, setReportGranularity] = useState<'day' | 'month' | 'year'>('day')
     const [reportDateRange, setReportDateRange] = useState({ start: '', end: '' })
     const [loadingReports, setLoadingReports] = useState(false)
-    const [reportStats, setReportStats] = useState<any>({})
+    const [reportStats, setReportStats] = useState<any>({
+        totalRevenue: 0,
+        totalOrders: 0,
+        averageOrderValue: 0,
+        completedOrders: 0,
+        topMenuItems: [],
+        topPaymentMethods: []
+    })
 
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
@@ -551,6 +558,31 @@ export default function RestaurantAdminDashboard() {
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                            {/* Account Number */}
+                            <div className="space-y-2">
+                                <Label htmlFor="account-number">Account Number / ID</Label>
+                                <Input
+                                    id="account-number"
+                                    type="text"
+                                    placeholder="e.g., 08123456789 or account number"
+                                    value={(paymentMethodForm as any).accountNumber || ''}
+                                    onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, accountNumber: e.target.value })}
+                                />
+                            </div>
+
+                            {/* Account Name */}
+                            <div className="space-y-2">
+                                <Label htmlFor="account-name">Account Name</Label>
+                                <Input
+                                    id="account-name"
+                                    type="text"
+                                    placeholder="e.g., Restaurant Name"
+                                    value={(paymentMethodForm as any).accountName || ''}
+                                    onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, accountName: e.target.value })}
+                                />
+                            </div>
+
                             {/* QR Code Upload for applicable methods */}
                             {['QRIS', 'GOPAY', 'DANA', 'OVO', 'SHOPEEPAY', 'LINKAJA'].includes(paymentMethodForm.type || '') && (
                                 <div className="space-y-2">
@@ -1295,7 +1327,7 @@ export default function RestaurantAdminDashboard() {
                 onLogout={logout}
             />
 
-            <main className="lg:ml-24 p-4 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
+            <main className="w-full lg:ml-24 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
                 <Header
                     restaurantName={currentRestaurant?.name}
                     userName={user?.name}

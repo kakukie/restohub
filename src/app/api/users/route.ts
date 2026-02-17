@@ -5,14 +5,35 @@ import bcrypt from 'bcryptjs'
 // GET /api/users - List all users (Super Admin only ideally)
 export async function GET(request: NextRequest) {
     try {
-        // Note: Since User model doesn't have restaurantId field,
-        // we filter by role instead to show only staff/admin users
         const { searchParams } = new URL(request.url)
-        const role = searchParams.get('role') // Filter by role if needed
+        const role = searchParams.get('role') // Single role (legacy)
+        const rolesParam = searchParams.get('roles') // Multiple roles: "RESTAURANT_ADMIN,GUEST"
+        const restaurantId = searchParams.get('restaurantId')
 
         const whereClause: any = { deletedAt: null }
-        if (role) {
+
+        // Handle multiple roles or single role
+        if (rolesParam) {
+            const roles = rolesParam.split(',')
+            whereClause.role = { in: roles }
+        } else if (role) {
             whereClause.role = role
+        }
+
+        // Filter by restaurant if provided
+        if (restaurantId) {
+            whereClause.OR = [
+                // Restaurant staff (admins)
+                {
+                    role: 'RESTAURANT_ADMIN',
+                    restaurants: { some: { id: restaurantId } }
+                },
+                // Guests who placed orders at this restaurant
+                {
+                    role: 'GUEST',
+                    orders: { some: { restaurantId: restaurantId } }
+                }
+            ]
         }
 
         const users = await prisma.user.findMany({
@@ -20,7 +41,7 @@ export async function GET(request: NextRequest) {
             orderBy: { createdAt: 'desc' },
             include: {
                 _count: {
-                    select: { restaurants: true }
+                    select: { restaurants: true, orders: true }
                 },
                 restaurants: {
                     select: { id: true, name: true }
