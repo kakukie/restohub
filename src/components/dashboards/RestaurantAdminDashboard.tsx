@@ -76,6 +76,10 @@ export default function RestaurantAdminDashboard() {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null)
     const [categoryForm, setCategoryForm] = useState<Partial<Category>>({})
 
+    // Payment Method States
+    const [paymentMethodDialogOpen, setPaymentMethodDialogOpen] = useState(false)
+    const [paymentMethodForm, setPaymentMethodForm] = useState<Partial<PaymentMethod>>({})
+
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
 
@@ -119,9 +123,59 @@ export default function RestaurantAdminDashboard() {
     // handleSaveMenuItem, handleDeleteMenuItem, handleSaveCategory, handleDeleteCategory...
     // handlePrintOrder, handleUpdateOrderStatus...
 
-    // Mock Handlers for new UI components
+    // --- HANDLERS ---
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                callback(reader.result as string)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const handleSavePaymentMethod = async () => {
+        if (!paymentMethodForm.type) return toast({ title: "Error", description: "Method type is required", variant: "destructive" })
+        try {
+            const url = paymentMethodForm.id ? `/api/payment-methods/${paymentMethodForm.id}` : '/api/payment-methods'
+            const method = paymentMethodForm.id ? 'PUT' : 'POST'
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...paymentMethodForm, restaurantId: user?.restaurantId })
+            })
+            if (res.ok) {
+                toast({ title: "Success", description: "Payment method saved" })
+                setPaymentMethodDialogOpen(false)
+                loadRestaurantDetails() // Refresh
+            } else {
+                toast({ title: "Error", description: "Failed to save", variant: "destructive" })
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to save", variant: "destructive" })
+        }
+    }
+
+    const handleDeletePaymentMethod = async (id: string) => {
+        if (!confirm("Delete this payment method?")) return
+        try {
+            await fetch(`/api/payment-methods/${id}`, { method: 'DELETE' })
+            loadRestaurantDetails()
+            toast({ title: "Success", description: "Deleted" })
+        } catch (error) { }
+    }
+
     const handleTogglePaymentMethod = async (id: string, isActive: boolean) => {
-        // ... Implementation
+        try {
+            await fetch(`/api/payment-methods/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isActive })
+            })
+            loadRestaurantDetails()
+        } catch (error) { }
     }
 
     // --- RENDER HELPERS ---
