@@ -19,9 +19,35 @@ interface SidebarProps {
     setActiveTab: (tab: string) => void
     user: any
     onLogout: () => void
+    language?: 'en' | 'id'
+    onToggleLanguage?: () => void
 }
 
-export default function Sidebar({ activeTab, setActiveTab, user, onLogout }: SidebarProps) {
+const translations = {
+    en: {
+        dashboard: "Dashboard",
+        menu: "Menu",
+        orders: "Orders",
+        categories: "Categories",
+        settings: "Settings",
+        analytics: "Analytics",
+        payments: "Payments",
+        logout: "Logout"
+    },
+    id: {
+        dashboard: "Dasbor",
+        menu: "Menu",
+        orders: "Pesanan",
+        categories: "Kategori",
+        settings: "Pengaturan",
+        analytics: "Analitik",
+        payments: "Pembayaran",
+        logout: "Keluar"
+    }
+}
+
+export default function Sidebar({ activeTab, setActiveTab, user, onLogout, language = 'en', onToggleLanguage }: SidebarProps) {
+    const t = translations[language]
     const { theme, setTheme } = useTheme()
 
     const navItems = [
@@ -54,8 +80,8 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout }: Sid
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={`p-3 rounded-xl transition-all duration-200 group relative ${isActive
-                                    ? 'text-emerald-500 bg-emerald-500/10'
-                                    : 'text-slate-400 hover:text-emerald-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                ? 'text-emerald-500 bg-emerald-500/10'
+                                : 'text-slate-400 hover:text-emerald-500 hover:bg-slate-50 dark:hover:bg-slate-800'
                                 }`}
                             title={item.label}
                         >
