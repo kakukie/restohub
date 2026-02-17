@@ -160,17 +160,17 @@ export default function RestaurantAdminDashboard() {
     const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
         setUpdatingOrderId(orderId)
         try {
-            const res = await fetch(`/api/orders/${orderId}`, {
+            const res = await fetch('/api/orders', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({ orderId, status: newStatus }) // Changed from 'id' to 'orderId'
             })
-
-            if (res.ok) {
+            const data = await res.json()
+            if (data.success) {
                 toast({ title: "Success", description: `Order ${newStatus.toLowerCase()}` })
                 loadOrderData()
             } else {
-                toast({ title: "Error", description: "Failed to update order", variant: "destructive" })
+                toast({ title: "Error", description: data.error || "Failed to update order", variant: "destructive" })
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to update order", variant: "destructive" })
@@ -240,9 +240,14 @@ export default function RestaurantAdminDashboard() {
     const handleDeleteMenuItem = async (id: string) => {
         if (!confirm("Delete this menu item?")) return
         try {
-            await fetch(`/api/menu-items/${id}`, { method: 'DELETE' })
-            loadRestaurantDetails()
-            toast({ title: "Success", description: "Menu item deleted" })
+            const res = await fetch(`/api/menu-items?id=${id}`, { method: 'DELETE' }) // Fixed: use query parameter
+            if (res.ok) {
+                loadRestaurantDetails()
+                toast({ title: "Success", description: "Menu item deleted" })
+            } else {
+                const data = await res.json()
+                toast({ title: "Error", description: data.error || "Failed to delete", variant: "destructive" })
+            }
         } catch (error) {
             toast({ title: "Error", description: "Failed to delete", variant: "destructive" })
         }
@@ -335,12 +340,13 @@ export default function RestaurantAdminDashboard() {
     const handleDeleteCategory = async (id: string) => {
         if (!confirm("Delete this category? Menu items in this category will need to be reassigned.")) return
         try {
-            const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' })
+            const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE' }) // Fixed: use query parameter
             if (res.ok) {
                 loadRestaurantDetails()
                 toast({ title: "Success", description: "Category deleted" })
             } else {
-                toast({ title: "Error", description: "Failed to delete category", variant: "destructive" })
+                const data = await res.json()
+                toast({ title: "Error", description: data.error || "Failed to delete category", variant: "destructive" })
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to delete category", variant: "destructive" })
@@ -555,7 +561,7 @@ export default function RestaurantAdminDashboard() {
             if (!confirm(`Delete ${selectedMenuItems.length} selected items?`)) return
             try {
                 await Promise.all(selectedMenuItems.map(id =>
-                    fetch(`/api/menu-items/${id}`, { method: 'DELETE' })
+                    fetch(`/api/menu-items?id=${id}`, { method: 'DELETE' }) // Fixed: use query parameter
                 ))
                 setSelectedMenuItems([])
                 loadRestaurantDetails()

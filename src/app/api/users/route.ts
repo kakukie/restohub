@@ -5,12 +5,14 @@ import bcrypt from 'bcryptjs'
 // GET /api/users - List all users (Super Admin only ideally)
 export async function GET(request: NextRequest) {
     try {
+        // Note: Since User model doesn't have restaurantId field,
+        // we filter by role instead to show only staff/admin users
         const { searchParams } = new URL(request.url)
-        const restaurantId = searchParams.get('restaurantId')
+        const role = searchParams.get('role') // Filter by role if needed
 
         const whereClause: any = { deletedAt: null }
-        if (restaurantId) {
-            whereClause.restaurantId = restaurantId
+        if (role) {
+            whereClause.role = role
         }
 
         const users = await prisma.user.findMany({
@@ -78,7 +80,7 @@ export async function DELETE(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { name, email, password, role, phone, restaurantId } = body
+        const { name, email, password, role, phone } = body
 
         if (!name || !email || !password || !role) {
             return NextResponse.json({
@@ -104,8 +106,7 @@ export async function POST(request: NextRequest) {
                 email,
                 password: hashedPassword,
                 role,
-                phone: phone || '',
-                restaurantId: restaurantId || null
+                phone: phone || ''
             }
         })
 
