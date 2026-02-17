@@ -26,7 +26,7 @@ import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' // Might still need for sub-tabs
 import { Plus, Edit, Trash2, Search, Filter, RefreshCw, Printer } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -222,6 +222,58 @@ export default function RestaurantAdminDashboard() {
         }
     }
 
+    const handleSaveCategory = async () => {
+        if (!categoryForm.name) {
+            return toast({ title: "Error", description: "Category name is required", variant: "destructive" })
+        }
+
+        // Check limit
+        if (!editingCategory && categories.length >= (currentRestaurant?.maxCategories || 0) && currentRestaurant?.maxCategories !== 0) {
+            return toast({ title: "Error", description: `Category limit reached (${currentRestaurant?.maxCategories} categories)`, variant: "destructive" })
+        }
+
+        try {
+            const url = editingCategory ? `/api/categories/${editingCategory.id}` : '/api/categories'
+            const method = editingCategory ? 'PUT' : 'POST'
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...categoryForm,
+                    restaurantId: user?.restaurantId
+                })
+            })
+
+            if (res.ok) {
+                toast({ title: "Success", description: "Category saved" })
+                setCategoryDialogOpen(false)
+                setEditingCategory(null)
+                setCategoryForm({})
+                loadRestaurantDetails()
+            } else {
+                const error = await res.json()
+                toast({ title: "Error", description: error.message || "Failed to save category", variant: "destructive" })
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to save category", variant: "destructive" })
+        }
+    }
+
+    const handleDeleteCategory = async (id: string) => {
+        if (!confirm("Delete this category? Menu items in this category will need to be reassigned.")) return
+        try {
+            const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' })
+            if (res.ok) {
+                loadRestaurantDetails()
+                toast({ title: "Success", description: "Category deleted" })
+            } else {
+                toast({ title: "Error", description: "Failed to delete category", variant: "destructive" })
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to delete category", variant: "destructive" })
+        }
+    }
+
     const handleSavePaymentMethod = async () => {
         if (!paymentMethodForm.type) return toast({ title: "Error", description: "Method type is required", variant: "destructive" })
         try {
@@ -399,6 +451,79 @@ export default function RestaurantAdminDashboard() {
         </div>
     )
 
+    const renderCategoriesContent = () => (
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Categories</h2>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        <span className={(currentRestaurant?.maxCategories && categories.length >= currentRestaurant.maxCategories) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
+                            {categories.length} / {currentRestaurant?.maxCategories === 0 || !currentRestaurant?.maxCategories ? 'Unlimited' : currentRestaurant.maxCategories} categories used
+                        </span>
+                    </p>
+                </div>
+                <Button
+                    onClick={() => {
+                        setEditingCategory(null)
+                        setCategoryForm({})
+                        setCategoryDialogOpen(true)
+                    }}
+                    disabled={currentRestaurant?.maxCategories !== 0 && categories.length >= (currentRestaurant?.maxCategories || 0)}
+                    className="bg-emerald-500 hover:bg-emerald-600"
+                >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {currentRestaurant?.maxCategories !== 0 && categories.length >= (currentRestaurant?.maxCategories || 0) ? 'Limit Reached' : 'Add Category'}
+                </Button>
+            </div>
+
+            {categories.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                    <p>No categories yet. Create your first category to organize your menu.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {categories.map((category) => (
+                        <Card key={category.id} className="hover:shadow-lg transition-shadow">
+                            <CardHeader>
+                                <CardTitle className="flex justify-between items-center">
+                                    <span>{category.name}</span>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setEditingCategory(category)
+                                                setCategoryForm(category)
+                                                setCategoryDialogOpen(true)
+                                            }}
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleDeleteCategory(category.id)}
+                                        >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                        </Button>
+                                    </div>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {category.description && (
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">{category.description}</p>
+                                )}
+                                <p className="text-xs text-slate-500 mt-2">
+                                    {menuItems.filter(item => item.categoryId === category.id).length} items
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+
     // ... renderOrdersContent, renderSettingsContent ...
 
     return (
@@ -424,6 +549,7 @@ export default function RestaurantAdminDashboard() {
 
                 {activeTab === 'dashboard' && renderDashboardContent()}
                 {activeTab === 'menu' && renderMenuContent()}
+                {activeTab === 'categories' && renderCategoriesContent()}
                 {/* {activeTab === 'orders' && renderOrdersContent()} */}
                 {/* {activeTab === 'settings' && renderSettingsContent()} */}
 
@@ -436,6 +562,53 @@ export default function RestaurantAdminDashboard() {
                 restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || ''}
                 restaurantName={currentRestaurant?.name || 'Restaurant'}
             />
+
+            {/* Category Dialog */}
+            <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
+                        <DialogDescription>
+                            {editingCategory ? 'Update category details' : 'Create a new category to organize your menu'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="category-name">Category Name *</Label>
+                            <Input
+                                id="category-name"
+                                value={categoryForm.name || ''}
+                                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                                placeholder="e.g., Appetizers, Main Course, Desserts"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="category-description">Description (Optional)</Label>
+                            <Input
+                                id="category-description"
+                                value={categoryForm.description || ''}
+                                onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+                                placeholder="Brief description of this category"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="category-order">Display Order (Optional)</Label>
+                            <Input
+                                id="category-order"
+                                type="number"
+                                value={categoryForm.displayOrder || ''}
+                                onChange={(e) => setCategoryForm({ ...categoryForm, displayOrder: parseInt(e.target.value) || 0 })}
+                                placeholder="Order in menu (lower numbers appear first)"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleSaveCategory} className="bg-emerald-600 hover:bg-emerald-700">
+                            {editingCategory ? 'Save Changes' : 'Add Category'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Add/Edit Menu Item Dialog */}
             <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
