@@ -4,7 +4,8 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useTheme } from 'next-themes'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import Image from 'next/image'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/app-store'
@@ -80,6 +81,11 @@ export default function RestaurantAdminDashboard() {
     const [paymentMethodDialogOpen, setPaymentMethodDialogOpen] = useState(false)
     const [paymentMethodForm, setPaymentMethodForm] = useState<Partial<PaymentMethod>>({})
 
+    // Order Validation States
+    const [validateOrderId, setValidateOrderId] = useState<string | null>(null)
+    const [manualEmail, setManualEmail] = useState('')
+    const [manualPhone, setManualPhone] = useState('')
+
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
 
@@ -119,10 +125,6 @@ export default function RestaurantAdminDashboard() {
         loadOrderData()
     }, [loadRestaurantDetails, loadOrderData])
 
-    // --- HANDLERS (Copied from Old) ---
-    // handleSaveMenuItem, handleDeleteMenuItem, handleSaveCategory, handleDeleteCategory...
-    // handlePrintOrder, handleUpdateOrderStatus...
-
     // --- HANDLERS ---
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
@@ -133,6 +135,90 @@ export default function RestaurantAdminDashboard() {
                 callback(reader.result as string)
             }
             reader.readAsDataURL(file)
+        }
+    }
+
+    const handleSaveMenuItem = async () => {
+        if (!menuItemForm.name || !menuItemForm.price || !menuItemForm.categoryId) {
+            return toast({ title: "Error", description: "Name, price, and category are required", variant: "destructive" })
+        }
+        try {
+            const url = editingMenuItem ? `/api/menu-items/${editingMenuItem.id}` : '/api/menu-items'
+            const method = editingMenuItem ? 'PUT' : 'POST'
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...menuItemForm, restaurantId: user?.restaurantId })
+            })
+            if (res.ok) {
+                toast({ title: "Success", description: "Menu item saved" })
+                setMenuItemDialogOpen(false)
+                setEditingMenuItem(null)
+                setMenuItemForm({})
+                loadRestaurantDetails()
+            } else {
+                toast({ title: "Error", description: "Failed to save", variant: "destructive" })
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to save", variant: "destructive" })
+        }
+    }
+
+    const handleDeleteMenuItem = async (id: string) => {
+        if (!confirm("Delete this menu item?")) return
+        try {
+            await fetch(`/api/menu-items/${id}`, { method: 'DELETE' })
+            loadRestaurantDetails()
+            toast({ title: "Success", description: "Menu item deleted" })
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to delete", variant: "destructive" })
+        }
+    }
+
+    const handlePrintOrder = (order: any) => {
+        // Simple print implementation
+        const printWindow = window.open('', '_blank')
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                <head><title>Order #${order.orderNumber}</title></head>
+                <body>
+                    <h1>Order #${order.orderNumber}</h1>
+                    <p>Customer: ${order.customerName}</p>
+                    <p>Table: ${order.tableNumber || 'Takeaway'}</p>
+                    <hr/>
+                    ${order.items.map((item: any) => `<p>${item.quantity}x ${item.menuItemName} - Rp ${item.price * item.quantity}</p>`).join('')}
+                    <hr/>
+                    <h3>Total: Rp ${order.totalAmount}</h3>
+                </body>
+                </html>
+            `)
+            printWindow.document.close()
+            printWindow.print()
+        }
+    }
+
+    const handleValidateOrder = async () => {
+        if (!validateOrderId) return
+        try {
+            const res = await fetch(`/api/orders/${validateOrderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'CONFIRMED',
+                    manualEmail: manualEmail || undefined,
+                    manualPhone: manualPhone || undefined
+                })
+            })
+            if (res.ok) {
+                toast({ title: "Success", description: "Order confirmed" })
+                setValidateOrderId(null)
+                setManualEmail('')
+                setManualPhone('')
+                loadOrderData()
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to confirm order", variant: "destructive" })
         }
     }
 
