@@ -258,30 +258,24 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
                                     className="w-full"
                                     onChange={async (e) => {
                                         const file = e.target.files?.[0]
-                                        if (file) {
-                                            const reader = new FileReader()
-                                            reader.onload = (event) => {
-                                                const img = document.createElement('img')
-                                                img.onload = () => {
-                                                    const canvas = document.createElement('canvas')
-                                                    let width = img.width
-                                                    let height = img.height
+                                        if (!file) return
 
-                                                    if (width > 800) {
-                                                        height = height * (800 / width)
-                                                        width = 800
-                                                    }
+                                        const formData = new FormData()
+                                        formData.append('file', file)
 
-                                                    canvas.width = width
-                                                    canvas.height = height
-                                                    const ctx = canvas.getContext('2d')
-                                                    ctx?.drawImage(img, 0, 0, width, height)
-                                                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
-                                                    setForm({ ...form, logo: compressedBase64 })
-                                                }
-                                                img.src = event.target?.result as string
+                                        try {
+                                            const res = await fetch('/api/upload', {
+                                                method: 'POST',
+                                                body: formData
+                                            })
+                                            const data = await res.json()
+                                            if (data.success) {
+                                                setForm({ ...form, logo: data.url })
+                                            } else {
+                                                toast({ title: 'Error', description: 'Logo upload failed', variant: 'destructive' })
                                             }
-                                            reader.readAsDataURL(file)
+                                        } catch (error) {
+                                            toast({ title: 'Error', description: 'Logo upload failed', variant: 'destructive' })
                                         }
                                     }}
                                 />
@@ -323,30 +317,24 @@ export default function RestaurantSettingsForm({ restaurantId }: { restaurantId:
                                         className="hidden"
                                         onChange={async (e) => {
                                             const file = e.target.files?.[0]
-                                            if (file) {
-                                                const reader = new FileReader()
-                                                reader.onload = (event) => {
-                                                    const img = document.createElement('img')
-                                                    img.onload = () => {
-                                                        const canvas = document.createElement('canvas')
-                                                        let width = img.width
-                                                        let height = img.height
+                                            if (!file) return
 
-                                                        if (width > 1200) {
-                                                            height = height * (1200 / width)
-                                                            width = 1200
-                                                        }
+                                            const formData = new FormData()
+                                            formData.append('file', file)
 
-                                                        canvas.width = width
-                                                        canvas.height = height
-                                                        const ctx = canvas.getContext('2d')
-                                                        ctx?.drawImage(img, 0, 0, width, height)
-                                                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
-                                                        setForm({ ...form, banner: compressedBase64 })
-                                                    }
-                                                    img.src = event.target?.result as string
+                                            try {
+                                                const res = await fetch('/api/upload', {
+                                                    method: 'POST',
+                                                    body: formData
+                                                })
+                                                const data = await res.json()
+                                                if (data.success) {
+                                                    setForm({ ...form, banner: data.url })
+                                                } else {
+                                                    toast({ title: 'Error', description: 'Banner upload failed', variant: 'destructive' })
                                                 }
-                                                reader.readAsDataURL(file)
+                                            } catch (error) {
+                                                toast({ title: 'Error', description: 'Banner upload failed', variant: 'destructive' })
                                             }
                                         }}
                                     />

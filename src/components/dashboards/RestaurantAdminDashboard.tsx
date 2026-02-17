@@ -18,6 +18,7 @@ import Header from './restaurant/Header'
 import StatsGrid from './restaurant/StatsGrid'
 import RecentOrders from './restaurant/RecentOrders'
 import PaymentMethods from './restaurant/PaymentMethods'
+import StaffManagement from './restaurant/StaffManagement'
 import BestSellers from './restaurant/BestSellers'
 
 // Legacy / Existing Sub-Components (We will reuse these or refactor later)
@@ -185,14 +186,28 @@ export default function RestaurantAdminDashboard() {
 
     // --- HANDLERS ---
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
         const file = e.target.files?.[0]
-        if (file) {
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                callback(reader.result as string)
+        if (!file) return
+
+        const formData = new FormData()
+        formData.append('file', file)
+
+        try {
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            const data = await res.json()
+
+            if (data.success) {
+                callback(data.url)
+            } else {
+                toast({ title: "Error", description: "Image upload failed", variant: "destructive" })
             }
-            reader.readAsDataURL(file)
+        } catch (error) {
+            console.error("Upload error:", error)
+            toast({ title: "Error", description: "Image upload failed", variant: "destructive" })
         }
     }
 
@@ -1195,6 +1210,12 @@ export default function RestaurantAdminDashboard() {
                 {activeTab === 'categories' && renderCategoriesContent()}
                 {activeTab === 'orders' && renderOrdersContent()}
                 {activeTab === 'analytics' && renderAnalyticsContent()}
+                {activeTab === 'staff' && (
+                    <StaffManagement
+                        restaurantId={user?.restaurantId || ''}
+                        maxStaff={currentRestaurant?.maxStaff || 5}
+                    />
+                )}
                 {activeTab === 'settings' && renderSettingsContent()}
 
 

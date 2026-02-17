@@ -9,7 +9,8 @@ import {
     Moon,
     Sun,
     LogOut,
-    UtensilsCrossed
+    UtensilsCrossed,
+    User as UserIcon
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
@@ -147,6 +148,17 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                     >
                         <Settings className="h-6 w-6" />
                         <span className="text-xs mt-1 font-medium">{t.settings}</span>
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab('staff')}
+                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'staff'
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                    >
+                        <UserIcon className="h-6 w-6" />
+                        <span className="text-xs mt-1 font-medium">Staff</span>
                     </button>
                 </nav>
             </div>
