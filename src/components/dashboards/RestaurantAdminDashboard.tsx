@@ -26,7 +26,7 @@ import BestSellers from './restaurant/BestSellers'
 import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' // Might still need for sub-tabs
-import { Plus, Edit, Trash2, Search, Filter, RefreshCw, Printer, Grid, List, Eye, Check, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, Filter, RefreshCw, Printer, Grid, List, Eye, Check, X, Download } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -378,6 +378,60 @@ export default function RestaurantAdminDashboard() {
             setLoadingReports(false)
         }
     }, [user?.restaurantId, reportGranularity, reportDateRange])
+
+    const handleExportReport = () => {
+        if (!reportStats || Object.keys(reportStats).length === 0) {
+            toast({ title: 'No Data', description: 'No analytics data to export', variant: 'destructive' })
+            return
+        }
+
+        try {
+            // Create CSV content
+            let csv = 'Restaurant Analytics Report\n\n'
+            csv += `Period: ${reportDateRange.start} to ${reportDateRange.end}\n`
+            csv += `Granularity: ${reportGranularity}\n\n`
+
+            csv += 'Summary Statistics\n'
+            csv += 'Metric,Value\n'
+            csv += `Total Revenue,Rp ${reportStats.totalRevenue || 0}\n`
+            csv += `Total Orders,${reportStats.totalOrders || 0}\n`
+            csv += `Average Order Value,Rp ${reportStats.averageOrderValue || 0}\n`
+            csv += `Completed Orders,${reportStats.completedOrders || 0}\n\n`
+
+            if (reportStats.topMenuItems && reportStats.topMenuItems.length > 0) {
+                csv += 'Top Menu Items\n'
+                csv += 'Item Name,Orders,Revenue\n'
+                reportStats.topMenuItems.forEach((item: any) => {
+                    csv += `${item.name},${item.count},Rp ${item.revenue}\n`
+                })
+                csv += '\n'
+            }
+
+            if (reportStats.topPaymentMethods && reportStats.topPaymentMethods.length > 0) {
+                csv += 'Top Payment Methods\n'
+                csv += 'Payment Method,Transactions,Revenue\n'
+                reportStats.topPaymentMethods.forEach((method: any) => {
+                    csv += `${method.name},${method.count},Rp ${method.revenue}\n`
+                })
+            }
+
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+            const link = document.createElement('a')
+            const url = URL.createObjectURL(blob)
+            link.setAttribute('href', url)
+            link.setAttribute('download', `analytics_${new Date().toISOString().split('T')[0]}.csv`)
+            link.style.visibility = 'hidden'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+
+            toast({ title: 'Success', description: 'Report exported successfully' })
+        } catch (error) {
+            console.error('Export error:', error)
+            toast({ title: 'Error', description: 'Failed to export report', variant: 'destructive' })
+        }
+    }
 
     // --- RENDER FUNCTIONS ---
     const handleSavePaymentMethod = async () => {
@@ -1090,10 +1144,16 @@ export default function RestaurantAdminDashboard() {
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Reports & Analytics</h2>
-                <Button onClick={() => loadReportsData()} variant="outline" size="sm" disabled={loadingReports}>
-                    <RefreshCw className={`h-4 w-4 mr-2 ${loadingReports ? 'animate-spin' : ''}`} />
-                    {loadingReports ? 'Loading...' : 'Refresh'}
-                </Button>
+                <div className="flex gap-2">
+                    <Button onClick={() => handleExportReport()} variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export CSV
+                    </Button>
+                    <Button onClick={() => loadReportsData()} variant="outline" size="sm" disabled={loadingReports}>
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loadingReports ? 'animate-spin' : ''}`} />
+                        {loadingReports ? 'Loading...' : 'Refresh'}
+                    </Button>
+                </div>
             </div>
 
             {/* Filters */}
@@ -1164,27 +1224,50 @@ export default function RestaurantAdminDashboard() {
                 </Card>
             </div>
 
-            {/* Top Items */}
-            {reportStats?.topMenuItems && reportStats.topMenuItems.length > 0 && (
-                <Card className="mb-6">
-                    <CardHeader>
-                        <CardTitle>Top Menu Items</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            {reportStats.topMenuItems.map((item: any, idx: number) => (
-                                <div key={idx} className="flex justify-between items-center">
-                                    <span className="text-sm">{item.name}</span>
-                                    <div className="flex gap-4 text-sm text-slate-600">
-                                        <span>{item.count} orders</span>
-                                        <span className="font-medium">Rp {item.revenue.toLocaleString()}</span>
+            {/* Top Items and Payment Methods */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {reportStats?.topMenuItems && reportStats.topMenuItems.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Top Menu Items</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                {reportStats.topMenuItems.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center">
+                                        <span className="text-sm">{item.name}</span>
+                                        <div className="flex gap-4 text-sm text-slate-600">
+                                            <span>{item.count} orders</span>
+                                            <span className="font-medium">Rp {item.revenue.toLocaleString()}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {reportStats?.topPaymentMethods && reportStats.topPaymentMethods.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Top Payment Methods</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                {reportStats.topPaymentMethods.map((method: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center">
+                                        <span className="text-sm">💳 {method.name}</span>
+                                        <div className="flex gap-4 text-sm text-slate-600">
+                                            <span>{method.count} transactions</span>
+                                            <span className="font-medium">Rp {method.revenue.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
 
             {!reportStats || Object.keys(reportStats).length === 0 && (
                 <div className="text-center py-12 text-slate-500">

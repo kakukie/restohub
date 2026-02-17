@@ -37,10 +37,19 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
         if (!restaurantId) return
         setLoading(true)
         try {
-            const res = await fetch(`/api/users?restaurantId=${restaurantId}`)
+            // Fetch only RESTAURANT_ADMIN users (staff), not all users
+            // Since we removed restaurantId from User model, we filter by role
+            // and then client-side filter by restaurant ownership
+            const res = await fetch(`/api/users?role=RESTAURANT_ADMIN`)
             const data = await res.json()
             if (data.success) {
-                setStaff(data.data)
+                // Filter to only show staff who are admins of THIS restaurant
+                // This prevents showing staff from other restaurants
+                const restaurantStaff = data.data.filter((user: any) =>
+                    user.restaurants?.some((r: any) => r.id === restaurantId) ||
+                    user._count?.restaurants > 0 // Fallback if restaurants not included
+                )
+                setStaff(restaurantStaff)
             }
         } catch (error) {
             console.error('Failed to fetch staff', error)

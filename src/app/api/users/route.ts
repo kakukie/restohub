@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
             include: {
                 _count: {
                     select: { restaurants: true }
+                },
+                restaurants: {
+                    select: { id: true, name: true }
                 }
             }
         })

@@ -61,106 +61,105 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
     ]
 
     return (
-        <nav className="fixed bottom-0 left-0 w-full lg:top-0 lg:left-0 lg:w-24 lg:h-full bg-white dark:bg-slate-900 border-t lg:border-t-0 lg:border-r border-slate-200 dark:border-slate-800 z-50 flex lg:flex-col items-center justify-between p-4 transition-colors duration-300">
+        <nav className="fixed bottom-0 left-0 w-full lg:top-0 lg:left-0 lg:w-24 lg:h-full bg-white dark:bg-slate-900 border-t lg:border-t-0 lg:border-r border-slate-200 dark:border-slate-800 z-50 transition-colors duration-300">
 
             {/* Logo (Desktop Only) */}
-            <div className="hidden lg:flex items-center justify-center mb-8">
+            <div className="hidden lg:flex items-center justify-center py-6">
                 <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
                     <UtensilsCrossed className="h-6 w-6" />
                 </div>
             </div>
 
-            {/* Navigation Links */}
-            <div className="flex lg:flex-col gap-2 lg:gap-4 items-center w-full justify-around lg:justify-center">
-                <nav className="flex-1 space-y-1 px-2">
-                    <button
-                        onClick={() => setActiveTab('dashboard')}
-                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'dashboard'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                    >
-                        <LayoutDashboard className="h-6 w-6" />
-                        <span className="text-xs mt-1 font-medium">{t.dashboard}</span>
-                    </button>
+            {/* Navigation Links - Horizontal on Mobile, Vertical on Desktop */}
+            <div className="flex lg:flex-col items-center justify-around lg:justify-start w-full h-full lg:flex-1 px-2 py-2 lg:py-0 lg:px-0 overflow-x-auto lg:overflow-x-visible">
+                <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'dashboard'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <LayoutDashboard className="h-5 w-5 lg:h-6 lg:w-6" />
+                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.dashboard}</span>
+                </button>
 
-                    <button
-                        onClick={() => setActiveTab('orders')}
-                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'orders'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                    >
-                        <Receipt className="h-5 w-5 mb-1" />
-                        <span className="text-xs mt-1 font-medium">{t.orders}</span>
-                    </button>
+                <button
+                    onClick={() => setActiveTab('orders')}
+                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'orders'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <Receipt className="h-5 w-5 lg:h-6 lg:w-6" />
+                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.orders}</span>
+                </button>
 
-                    <button
-                        onClick={() => setActiveTab('analytics')}
-                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'analytics'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                    >
-                        <Package className="h-5 w-5 mb-1" />
-                        <span className="text-xs mt-1 font-medium">Analytics</span>
-                    </button>
+                <button
+                    onClick={() => setActiveTab('menu')}
+                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'menu'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <UtensilsCrossed className="h-5 w-5 lg:h-6 lg:w-6" />
+                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.menu}</span>
+                </button>
 
-                    <button
-                        onClick={() => setActiveTab('payments')}
-                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'payments'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                    >
-                        <Wallet className="h-5 w-5 mb-1" />
-                        <span className="text-xs mt-1 font-medium">{t.payments}</span>
-                    </button>
+                <button
+                    onClick={() => setActiveTab('payments')}
+                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'payments'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <Wallet className="h-5 w-5 lg:h-6 lg:w-6" />
+                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.payments}</span>
+                </button>
 
-                    <button
-                        onClick={() => setActiveTab('menu')}
-                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'menu'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                    >
-                        <UtensilsCrossed className="h-5 w-5 mb-1" />
-                        <span className="text-xs mt-1 font-medium">{t.menu}</span>
-                    </button>
+                {/* Hide less important items on mobile to save space */}
+                <button
+                    onClick={() => setActiveTab('analytics')}
+                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'analytics'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <Package className="h-5 w-5 lg:h-6 lg:w-6" />
+                    <span className="text-[10px] lg:text-xs mt-1 font-medium">Analytics</span>
+                </button>
 
-                    <button
-                        onClick={() => setActiveTab('categories')}
-                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'categories'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                    >
-                        <Package className="h-6 w-6" />
-                        <span className="text-xs mt-1 font-medium">{t.categories}</span>
-                    </button>
+                <button
+                    onClick={() => setActiveTab('categories')}
+                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'categories'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <Package className="h-5 w-5 lg:h-6 lg:w-6" />
+                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.categories}</span>
+                </button>
 
-                    <button
-                        onClick={() => setActiveTab('settings')}
-                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'settings'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                    >
-                        <Settings className="h-6 w-6" />
-                        <span className="text-xs mt-1 font-medium">{t.settings}</span>
-                    </button>
+                <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'settings'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <Settings className="h-5 w-5 lg:h-6 lg:w-6" />
+                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.settings}</span>
+                </button>
 
-                    <button
-                        onClick={() => setActiveTab('staff')}
-                        className={`w-full flex flex-col items-center py-3 px-2 rounded-xl transition-all ${activeTab === 'staff'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                    >
-                        <UserIcon className="h-6 w-6" />
-                        <span className="text-xs mt-1 font-medium">Staff</span>
-                    </button>
-                </nav>
+                <button
+                    onClick={() => setActiveTab('staff')}
+                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'staff'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                >
+                    <UserIcon className="h-5 w-5 lg:h-6 lg:w-6" />
+                    <span className="text-[10px] lg:text-xs mt-1 font-medium">Staff</span>
+                </button>
             </div>
 
             {/* Bottom Actions (Desktop Only) */}
