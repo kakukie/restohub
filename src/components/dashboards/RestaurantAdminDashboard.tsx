@@ -227,47 +227,7 @@ export default function RestaurantAdminDashboard() {
         }
     }
 
-    const handleSaveMenuItem = async () => {
-        if (!menuItemForm.name || !menuItemForm.price || !menuItemForm.categoryId) {
-            return toast({ title: "Error", description: "Name, price, and category are required", variant: "destructive" })
-        }
-        try {
-            const url = editingMenuItem ? `/api/menu-items/${editingMenuItem.id}` : '/api/menu-items'
-            const method = editingMenuItem ? 'PUT' : 'POST'
-            const res = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...menuItemForm, restaurantId: user?.restaurantId })
-            })
-            if (res.ok) {
-                toast({ title: "Success", description: "Menu item saved" })
-                setMenuItemDialogOpen(false)
-                setEditingMenuItem(null)
-                setMenuItemForm({})
-                loadRestaurantDetails()
-            } else {
-                toast({ title: "Error", description: "Failed to save", variant: "destructive" })
-            }
-        } catch (error) {
-            toast({ title: "Error", description: "Failed to save", variant: "destructive" })
-        }
-    }
 
-    const handleDeleteMenuItem = async (id: string) => {
-        if (!confirm("Delete this menu item?")) return
-        try {
-            const res = await fetch(`/api/menu-items?id=${id}`, { method: 'DELETE' }) // Fixed: use query parameter
-            if (res.ok) {
-                loadRestaurantDetails()
-                toast({ title: "Success", description: "Menu item deleted" })
-            } else {
-                const data = await res.json()
-                toast({ title: "Error", description: data.error || "Failed to delete", variant: "destructive" })
-            }
-        } catch (error) {
-            toast({ title: "Error", description: "Failed to delete", variant: "destructive" })
-        }
-    }
 
     const handlePrintOrder = (order: any) => {
         // Simple print implementation
@@ -539,109 +499,60 @@ export default function RestaurantAdminDashboard() {
                     />
                 </div>
 
-                {/* Payment Method Dialog */}
-                <Dialog open={paymentMethodDialogOpen} onOpenChange={setPaymentMethodDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>{paymentMethodForm.id ? 'Edit Payment Method' : 'Add Payment Method'}</DialogTitle>
-                            <DialogDescription>Configure payment details</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="payment-type">Payment Method *</Label>
-                                <Select
-                                    value={paymentMethodForm.type || ''}
-                                    onValueChange={(value) => setPaymentMethodForm({ ...paymentMethodForm, type: value })}
-                                >
-                                    <SelectTrigger id="payment-type">
-                                        <SelectValue placeholder="Select payment method" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="QRIS">QRIS</SelectItem>
-                                        <SelectItem value="GOPAY">GoPay</SelectItem>
-                                        <SelectItem value="OVO">OVO</SelectItem>
-                                        <SelectItem value="DANA">DANA</SelectItem>
-                                        <SelectItem value="LINKAJA">LinkAja</SelectItem>
-                                        <SelectItem value="SHOPEEPAY">ShopeePay</SelectItem>
-                                        <SelectItem value="CASH">Cash</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Account Number */}
-                            <div className="space-y-2">
-                                <Label htmlFor="account-number">Account Number / ID</Label>
-                                <Input
-                                    id="account-number"
-                                    type="text"
-                                    placeholder="e.g., 08123456789 or account number"
-                                    value={(paymentMethodForm as any).accountNumber || ''}
-                                    onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, accountNumber: e.target.value })}
-                                />
-                            </div>
-
-                            {/* Account Name */}
-                            <div className="space-y-2">
-                                <Label htmlFor="account-name">Account Name</Label>
-                                <Input
-                                    id="account-name"
-                                    type="text"
-                                    placeholder="e.g., Restaurant Name"
-                                    value={(paymentMethodForm as any).accountName || ''}
-                                    onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, accountName: e.target.value })}
-                                />
-                            </div>
-
-                            {/* QR Code Upload for applicable methods */}
-                            {['QRIS', 'GOPAY', 'DANA', 'OVO', 'SHOPEEPAY', 'LINKAJA'].includes(paymentMethodForm.type || '') && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="qr-image">QR Code Image</Label>
-                                    <Input
-                                        id="qr-image"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => handleImageUpload(e, (base64) => setPaymentMethodForm({ ...paymentMethodForm, qrCode: base64 }))}
-                                    />
-                                    {paymentMethodForm.qrCode && (
-                                        <div className="mt-2 relative h-32 w-32 border rounded-lg overflow-hidden bg-white">
-                                            <Image
-                                                src={paymentMethodForm.qrCode}
-                                                alt="QR Preview"
-                                                fill
-                                                className="object-contain"
-                                            />
-                                            <Button
-                                                variant="destructive"
-                                                size="icon"
-                                                className="absolute top-1 right-1 h-6 w-6"
-                                                onClick={() => setPaymentMethodForm({ ...paymentMethodForm, qrCode: undefined })}
-                                            >
-                                                <Trash2 className="h-3 w-3" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            <div className="space-y-2">
-                                <Label htmlFor="merchant-id">Merchant ID (Optional)</Label>
-                                <Input
-                                    id="merchant-id"
-                                    value={paymentMethodForm.merchantId || ''}
-                                    onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, merchantId: e.target.value })}
-                                    placeholder="Enter merchant ID"
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button onClick={handleSavePaymentMethod} className="bg-green-600 hover:bg-green-700">
-                                {paymentMethodForm.id ? 'Save Changes' : 'Add Payment Method'}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
             </div>
         </>
     )
+
+
+    // --- RENDER FUNCTIONS ---
+    const handleSaveMenuItem = async () => {
+        if (!menuItemForm.name || !menuItemForm.price || !menuItemForm.categoryId) {
+            return toast({ title: "Validation Error", description: "Name, Price and Category are required", variant: "destructive" })
+        }
+
+        try {
+            const url = editingMenuItem ? `/api/menu-items` : '/api/menu-items'
+            const method = editingMenuItem ? 'PUT' : 'POST'
+            const body = editingMenuItem
+                ? { ...menuItemForm, id: editingMenuItem.id, restaurantId: user?.restaurantId }
+                : { ...menuItemForm, restaurantId: user?.restaurantId }
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })
+
+            if (res.ok) {
+                toast({ title: "Success", description: `Menu item ${editingMenuItem ? 'updated' : 'added'} successfully` })
+                setMenuItemDialogOpen(false)
+                setEditingMenuItem(null)
+                setMenuItemForm({})
+                loadRestaurantDetails()
+            } else {
+                const error = await res.json()
+                toast({ title: "Error", description: error.error || "Failed to save menu item", variant: "destructive" })
+            }
+        } catch (error) {
+            console.error("Save Menu Item Error", error)
+            toast({ title: "Error", description: "Failed to save menu item", variant: "destructive" })
+        }
+    }
+
+    const handleDeleteMenuItem = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this item?")) return
+        try {
+            const res = await fetch(`/api/menu-items?id=${id}`, { method: 'DELETE' })
+            if (res.ok) {
+                toast({ title: "Success", description: "Menu item deleted" })
+                loadRestaurantDetails()
+            } else {
+                toast({ title: "Error", description: "Failed to delete item", variant: "destructive" })
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to delete item", variant: "destructive" })
+        }
+    }
 
     const renderMenuContent = () => {
         // Filter menu items based on search and category
@@ -1300,7 +1211,7 @@ export default function RestaurantAdminDashboard() {
                                         <span className="text-sm">💳 {method.name}</span>
                                         <div className="flex gap-4 text-sm text-slate-600">
                                             <span>{method.count} transactions</span>
-                                            <span className="font-medium">Rp {method.revenue.toLocaleString()}</span>
+                                            <span className="font-medium">Rp {(method.revenue || 0).toLocaleString()}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -1425,13 +1336,106 @@ export default function RestaurantAdminDashboard() {
                 restaurantName={currentRestaurant?.name || 'Restaurant'}
             />
 
-            <PaymentMethodDialog
-                open={paymentMethodDialogOpen}
-                onOpenChange={setPaymentMethodDialogOpen}
-                initialData={paymentMethodForm}
-                restaurantId={user?.restaurantId || ''}
-                onSuccess={loadRestaurantDetails}
-            />
+            {/* Payment Method Dialog (Global) */}
+            <Dialog open={paymentMethodDialogOpen} onOpenChange={setPaymentMethodDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{paymentMethodForm.id ? 'Edit Payment Method' : 'Add Payment Method'}</DialogTitle>
+                        <DialogDescription>Configure payment details</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="payment-type">Payment Method *</Label>
+                            <Select
+                                value={paymentMethodForm.type || ''}
+                                onValueChange={(value) => setPaymentMethodForm({ ...paymentMethodForm, type: value })}
+                            >
+                                <SelectTrigger id="payment-type">
+                                    <SelectValue placeholder="Select payment method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="QRIS">QRIS</SelectItem>
+                                    <SelectItem value="GOPAY">GoPay</SelectItem>
+                                    <SelectItem value="OVO">OVO</SelectItem>
+                                    <SelectItem value="DANA">DANA</SelectItem>
+                                    <SelectItem value="LINKAJA">LinkAja</SelectItem>
+                                    <SelectItem value="SHOPEEPAY">ShopeePay</SelectItem>
+                                    <SelectItem value="CASH">Cash</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Account Number */}
+                        <div className="space-y-2">
+                            <Label htmlFor="account-number">Account Number / ID</Label>
+                            <Input
+                                id="account-number"
+                                type="text"
+                                placeholder="e.g., 08123456789 or account number"
+                                value={(paymentMethodForm as any).accountNumber || ''}
+                                onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, accountNumber: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Account Name */}
+                        <div className="space-y-2">
+                            <Label htmlFor="account-name">Account Name</Label>
+                            <Input
+                                id="account-name"
+                                type="text"
+                                placeholder="e.g., Restaurant Name"
+                                value={(paymentMethodForm as any).accountName || ''}
+                                onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, accountName: e.target.value })}
+                            />
+                        </div>
+
+                        {/* QR Code Upload */}
+                        {['QRIS', 'GOPAY', 'DANA', 'OVO', 'SHOPEEPAY', 'LINKAJA'].includes(paymentMethodForm.type || '') && (
+                            <div className="space-y-2">
+                                <Label htmlFor="qr-image">QR Code Image</Label>
+                                <Input
+                                    id="qr-image"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleImageUpload(e, (base64) => setPaymentMethodForm({ ...paymentMethodForm, qrCode: base64 }))}
+                                />
+                                {paymentMethodForm.qrCode && (
+                                    <div className="mt-2 relative h-32 w-32 border rounded-lg overflow-hidden bg-white">
+                                        <Image
+                                            src={paymentMethodForm.qrCode}
+                                            alt="QR Preview"
+                                            fill
+                                            className="object-contain"
+                                        />
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-1 right-1 h-6 w-6"
+                                            onClick={() => setPaymentMethodForm({ ...paymentMethodForm, qrCode: undefined })}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <div className="space-y-2">
+                            <Label htmlFor="merchant-id">Merchant ID (Optional)</Label>
+                            <Input
+                                id="merchant-id"
+                                value={paymentMethodForm.merchantId || ''}
+                                onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, merchantId: e.target.value })}
+                                placeholder="Enter merchant ID"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleSavePaymentMethod} className="bg-green-600 hover:bg-green-700">
+                            {paymentMethodForm.id ? 'Save Changes' : 'Add Payment Method'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Category Dialog */}
             <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>

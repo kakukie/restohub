@@ -164,34 +164,32 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
             </div>
 
             {/* Bottom Actions */}
-            <div className="flex flex-row lg:flex-col items-center justify-center gap-4 lg:gap-6 mt-6 lg:mt-auto pt-4 lg:pt-0 border-t border-slate-200 dark:border-slate-800 lg:border-t-0 w-full">
+            <div className="flex flex-row lg:flex-col items-center justify-between lg:justify-center gap-2 lg:gap-6 mt-2 lg:mt-auto pt-2 lg:pt-0 border-t border-slate-200 dark:border-slate-800 lg:border-t-0 w-full px-4 lg:px-0">
                 <button
-                    className="p-3 text-slate-400 hover:text-yellow-500 transition-colors"
+                    className="p-2 lg:p-3 text-slate-400 hover:text-yellow-500 transition-colors"
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 >
-                    {theme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+                    {theme === 'dark' ? <Sun className="h-5 w-5 lg:h-6 lg:w-6" /> : <Moon className="h-5 w-5 lg:h-6 lg:w-6" />}
                 </button>
 
-                <div className="flex flex-col gap-2 relative">
-                    {/* Profile Info */}
-                    <div className="flex items-center gap-3 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-transparent hover:border-emerald-500 transition-colors shrink-0">
-                            <div className="w-full h-full flex items-center justify-center bg-emerald-100 text-emerald-600 font-bold">
-                                {user?.name?.charAt(0) || 'A'}
-                            </div>
-                        </div>
-                        <div className="flex flex-col lg:hidden xl:flex">
-                            <span className="text-sm font-semibold truncate max-w-[100px]">{user?.name || 'Admin'}</span>
-                            <span className="text-xs text-slate-500 truncate max-w-[100px]">{user?.role || 'Role'}</span>
-                        </div>
+                <div className="flex items-center gap-3 lg:flex-col lg:gap-2 relative">
+                    {/* Profile Info - Minimal on Mobile */}
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-transparent hover:border-emerald-500 transition-colors shrink-0 flex items-center justify-center bg-emerald-100 text-emerald-600 font-bold text-xs lg:text-sm">
+                        {user?.name?.charAt(0) || 'A'}
+                    </div>
+
+                    <div className="hidden xl:flex flex-col">
+                        <span className="text-sm font-semibold truncate max-w-[100px]">{user?.name || 'Admin'}</span>
+                        <span className="text-xs text-slate-500 truncate max-w-[100px]">{user?.role || 'Role'}</span>
                     </div>
 
                     <button
                         onClick={onLogout}
-                        className="w-full flex items-center justify-center gap-2 mt-2 py-2 px-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium border border-red-100 dark:border-red-900/20"
+                        className="flex items-center justify-center p-2 lg:py-2 lg:px-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium border border-transparent lg:border-red-100 dark:lg:border-red-900/20 lg:w-full lg:mt-2"
+                        title="Logout"
                     >
-                        <LogOut className="h-4 w-4" />
-                        <span>Logout</span>
+                        <LogOut className="h-5 w-5 lg:h-4 lg:w-4" />
+                        <span className="hidden lg:inline ml-2">Logout</span>
                     </button>
                 </div>
             </div>
