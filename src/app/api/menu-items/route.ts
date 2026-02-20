@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     })
     const count = await prisma.menuItem.count({ where: { restaurantId: resolvedId, deletedAt: null } })
 
-    if (restaurant?.maxMenuItems !== null && restaurant?.maxMenuItems !== undefined && count >= restaurant.maxMenuItems) {
+    if (restaurant?.maxMenuItems && restaurant.maxMenuItems > 0 && count >= restaurant.maxMenuItems) {
       return NextResponse.json({ success: false, error: `Menu item limit reached (${restaurant.maxMenuItems} items). Upgrade your plan.` }, { status: 403 })
     }
 

@@ -719,7 +719,7 @@ export default function RestaurantAdminDashboard() {
                                         />
                                         {item.image && (
                                             <div className="relative h-40 w-full rounded-lg overflow-hidden mb-3">
-                                                <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                             </div>
                                         )}
                                         <CardTitle className="flex justify-between items-start">
@@ -1553,7 +1553,7 @@ export default function RestaurantAdminDashboard() {
                             />
                             {menuItemForm.image && (
                                 <div className="relative w-full h-40 mt-2 rounded-md overflow-hidden border">
-                                    <Image src={menuItemForm.image} alt="Preview" fill className="object-cover" />
+                                    <img src={menuItemForm.image} alt="Preview" className="w-full h-full object-cover" />
                                     <Button
                                         variant="destructive"
                                         size="icon"
