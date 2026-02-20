@@ -55,7 +55,20 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, price, categoryId, restaurantId, description, isAvailable, image } = body
+    // Fix: Exclude category/categoryName objects to prevent Prisma validation error
+    const {
+      name,
+      price,
+      categoryId,
+      restaurantId,
+      description,
+      isAvailable,
+      image,
+      category,     // Exclude
+      categoryName, // Exclude
+      createdAt,    // Exclude
+      updatedAt     // Exclude
+    } = body
 
     if (!name || !price || !categoryId || !restaurantId) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })

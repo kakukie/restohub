@@ -10,10 +10,19 @@ import {
     Sun,
     LogOut,
     UtensilsCrossed,
-    User as UserIcon
+    User as UserIcon,
+    MoreHorizontal
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface SidebarProps {
     activeTab: string
@@ -48,101 +57,63 @@ const translations = {
 }
 
 export default function Sidebar({ activeTab, setActiveTab, user, onLogout, language = 'en', onToggleLanguage }: SidebarProps) {
-    const t = translations[language]
+    const t = translations[language] || translations.en
     const { theme, setTheme } = useTheme()
 
     const navItems = [
         { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { id: 'orders', icon: Receipt, label: 'Orders' },
         { id: 'menu', icon: Package, label: 'Menu' },
-        { id: 'categories', icon: UtensilsCrossed, label: 'Categories' }, // Added explicit Category tab
+        { id: 'categories', icon: UtensilsCrossed, label: 'Categories' },
         { id: 'analytics', icon: Wallet, label: 'Analytics' },
-        { id: 'payments', icon: Receipt, label: 'Payments' }, // Added Payments tab
-        { id: 'settings', icon: Settings, label: 'Settings' },
+        { id: 'payments', icon: Receipt, label: 'Payments' },
+        { id: 'staff', icon: UserIcon, label: 'Staff' }
     ]
 
     return (
-        <nav className="fixed bottom-0 left-0 w-full lg:top-0 lg:left-0 lg:w-24 lg:h-full bg-white dark:bg-slate-900 border-t lg:border-t-0 lg:border-r border-slate-200 dark:border-slate-800 z-50 transition-colors duration-300">
+        <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 flex justify-between items-center px-4 py-2 lg:static lg:h-screen lg:w-64 lg:flex-col lg:justify-start lg:border-r lg:border-t-0 lg:p-4 transition-all duration-300">
 
-            {/* Logo (Desktop Only) */}
-            <div className="hidden lg:flex items-center justify-center py-6">
-                <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                    <UtensilsCrossed className="h-6 w-6" />
+            {/* Logo area - Desktop only */}
+            <div className="hidden lg:flex items-center gap-3 mb-8 px-2">
+                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                    <Receipt className="text-white h-5 w-5" />
+                </div>
+                <div>
+                    <h1 className="font-bold text-xl text-slate-800 dark:text-white">RestoHub</h1>
+                    <p className="text-xs text-slate-500">Admin Portal</p>
                 </div>
             </div>
 
-            {/* Navigation Links - Horizontal on Mobile, Vertical on Desktop */}
-            <div className="flex lg:flex-col items-center justify-around lg:justify-start w-full h-full lg:flex-1 px-2 py-2 lg:py-0 lg:px-0 overflow-x-auto lg:overflow-x-visible">
-                <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'dashboard'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <LayoutDashboard className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.dashboard}</span>
-                </button>
+            {/* Navigation Items */}
+            <div className="flex flex-row lg:flex-col w-full lg:w-auto justify-around lg:justify-start lg:gap-2 flex-1">
+                {navItems.map((item) => (
+                    <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id)}
+                        className={`flex flex-col lg:flex-row items-center justify-center lg:justify-start p-2 lg:px-4 lg:py-3 rounded-xl transition-all ${activeTab === item.id
+                                ? 'text-emerald-600 dark:text-emerald-400 lg:bg-emerald-50 lg:dark:bg-emerald-900/20'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-emerald-500 lg:hover:bg-slate-50 lg:dark:hover:bg-slate-800'
+                            }`}
+                    >
+                        <item.icon className={`h-6 w-6 lg:h-5 lg:w-5 ${activeTab === item.id ? 'fill-current' : ''}`} />
+                        <span className="text-[10px] lg:text-sm lg:ml-3 font-medium mt-1 lg:mt-0">
+                            {/* Detailed Translation Logic */}
+                            {language === 'id' && item.id === 'dashboard' ? 'Dasbor' :
+                                language === 'id' && item.id === 'orders' ? 'Pesanan' :
+                                    language === 'id' && item.id === 'menu' ? 'Menu' :
+                                        language === 'id' && item.id === 'categories' ? 'Kategori' :
+                                            language === 'id' && item.id === 'analytics' ? 'Analitik' :
+                                                language === 'id' && item.id === 'payments' ? 'Pembayaran' :
+                                                    language === 'id' && item.id === 'staff' ? 'Staf' :
+                                                        item.label}
+                        </span>
+                    </button>
+                ))}
 
-                <button
-                    onClick={() => setActiveTab('orders')}
-                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'orders'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Receipt className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.orders}</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('menu')}
-                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'menu'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <UtensilsCrossed className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.menu}</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('payments')}
-                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'payments'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Wallet className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.payments}</span>
-                </button>
-
-                {/* Hide less important items on mobile to save space */}
-                <button
-                    onClick={() => setActiveTab('analytics')}
-                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'analytics'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Package className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[10px] lg:text-xs mt-1 font-medium">Analytics</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('categories')}
-                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'categories'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Package className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.categories}</span>
-                </button>
-
+                {/* Settings Tab - Hidden on mobile bottom bar if space is tight, typically moved to menu */}
                 <button
                     onClick={() => setActiveTab('settings')}
-                    className={`flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'settings'
+                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'settings'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -151,31 +122,55 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                     <span className="text-[10px] lg:text-xs mt-1 font-medium">{t.settings}</span>
                 </button>
 
-                <button
-                    onClick={() => setActiveTab('staff')}
-                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[60px] lg:min-w-0 ${activeTab === 'staff'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <UserIcon className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[10px] lg:text-xs mt-1 font-medium">Staff</span>
-                </button>
+                {/* Mobile Menu Trigger for Bottom Actions */}
+                <div className="lg:hidden flex flex-col items-center justify-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="flex flex-col items-center justify-center p-2 text-slate-500 hover:text-emerald-500">
+                                <MoreHorizontal className="h-6 w-6" />
+                                <span className="text-[10px] font-medium mt-1">Menu</span>
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56 mb-2">
+                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="flex items-center gap-2">
+                                <UserIcon className="h-4 w-4" />
+                                <span>{user?.name || 'Admin'}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                                {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                                <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={onToggleLanguage}>
+                                <span className="font-bold w-4 mr-2 text-center">{language === 'en' ? 'ID' : 'EN'}</span>
+                                <span>{language === 'en' ? 'Switch to ID' : 'Switch to EN'}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={onLogout} className="text-red-500 focus:text-red-500">
+                                <LogOut className="h-4 w-4 mr-2" />
+                                <span>{t?.logout || 'Logout'}</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
-            {/* Bottom Actions */}
-            <div className="flex flex-row lg:flex-col items-center justify-around lg:justify-center gap-2 lg:gap-6 mt-2 lg:mt-auto pt-2 lg:pt-0 border-t border-slate-200 dark:border-slate-800 lg:border-t-0 w-full px-2 lg:px-0">
-                <div className="flex gap-2 lg:flex-col items-center">
+            {/* Desktop Bottom Actions (Profile, Theme, etc) - Visible on Large Screens */}
+            <div className="hidden lg:flex flex-col gap-4 mt-auto pt-4 border-t border-slate-200 dark:border-slate-800 px-2">
+
+                <div className="flex items-center justify-between">
                     <button
-                        className="p-2 lg:p-3 text-slate-400 hover:text-yellow-500 transition-colors"
+                        className="p-2 text-slate-400 hover:text-yellow-500 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                         title="Toggle Theme"
                     >
-                        {theme === 'dark' ? <Sun className="h-5 w-5 lg:h-6 lg:w-6" /> : <Moon className="h-5 w-5 lg:h-6 lg:w-6" />}
+                        {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </button>
+
                     {onToggleLanguage && (
                         <button
-                            className="p-2 lg:p-3 text-slate-400 hover:text-emerald-500 transition-colors font-bold text-xs"
+                            className="p-2 text-slate-400 hover:text-emerald-500 transition-colors font-bold text-xs rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                             onClick={onToggleLanguage}
                             title="Toggle Language"
                         >
@@ -184,26 +179,24 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                     )}
                 </div>
 
-                <div className="flex items-center gap-3 lg:flex-col lg:gap-2 relative w-full lg:w-auto justify-center">
-                    {/* Profile Info */}
-                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-transparent hover:border-emerald-500 transition-colors shrink-0 flex items-center justify-center bg-emerald-100 text-emerald-600 font-bold text-xs lg:text-sm">
+                <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0">
                         {user?.name?.charAt(0) || 'A'}
                     </div>
-
-                    <div className="hidden lg:flex flex-col text-center">
-                        <span className="text-sm font-semibold truncate max-w-[100px]">{user?.name || 'Admin'}</span>
-                        <span className="text-xs text-slate-500 truncate max-w-[100px]">{user?.role || 'Role'}</span>
+                    <div className="flex flex-col overflow-hidden">
+                        <span className="text-sm font-semibold truncate">{user?.name || 'Admin'}</span>
+                        <span className="text-xs text-slate-500 truncate">{user?.role || 'Role'}</span>
                     </div>
-
-                    <button
-                        onClick={onLogout}
-                        className="flex items-center justify-center p-2 lg:py-2 lg:px-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium border border-transparent lg:border-red-100 dark:lg:border-red-900/20 w-auto lg:w-full lg:mt-2"
-                        title="Logout"
-                    >
-                        <LogOut className="h-5 w-5 lg:h-4 lg:w-4" />
-                        <span className="hidden xl:inline ml-2">{t?.logout || 'Logout'}</span>
-                    </button>
                 </div>
+
+                <button
+                    onClick={onLogout}
+                    className="flex items-center justify-center p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium border border-red-100 dark:border-red-900/20 w-full"
+                    title="Logout"
+                >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <span>{t?.logout || 'Logout'}</span>
+                </button>
             </div>
         </nav>
     )
