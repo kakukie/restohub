@@ -99,7 +99,8 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, restaurantId, createdAt, updatedAt, category, ...updates } = body
+    // Fix: Exclude category object and other non-scalar fields that Prisma might reject in 'data'
+    const { id, restaurantId, createdAt, updatedAt, category, categoryName, ...updates } = body
 
     if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 

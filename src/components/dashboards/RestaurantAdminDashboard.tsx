@@ -1268,7 +1268,7 @@ export default function RestaurantAdminDashboard() {
                     setPaymentMethodForm(method)
                     setPaymentMethodDialogOpen(true)
                 }}
-                onDelete={handleDeletePaymentMethod}
+                onDelete={(id) => handleDeletePaymentMethod(id)}
             />
             <div className="mt-6">
                 <Button onClick={() => {
@@ -1291,6 +1291,8 @@ export default function RestaurantAdminDashboard() {
                 setActiveTab={setActiveTab}
                 user={user}
                 onLogout={logout}
+                language={language as 'en' | 'id'}
+                onToggleLanguage={() => setLanguage(language === 'en' ? 'id' : 'en')}
             />
 
             <main className="w-full lg:ml-24 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
@@ -1647,9 +1649,11 @@ export default function RestaurantAdminDashboard() {
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-500">Type:</span>
-                                <Badge variant="outline">{viewOrder.tableNumber ? 'Dine In' : 'Take Away'}</Badge>
+                                <Badge variant="outline">
+                                    {(!viewOrder.tableNumber || viewOrder.tableNumber === 'TAKEAWAY') ? 'Take Away' : 'Dine In'}
+                                </Badge>
                             </div>
-                            {viewOrder.tableNumber && (
+                            {viewOrder.tableNumber && viewOrder.tableNumber !== 'TAKEAWAY' && (
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-gray-500">Table:</span>
                                     <span className="font-medium">{viewOrder.tableNumber}</span>
