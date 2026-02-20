@@ -101,13 +101,20 @@ export async function GET(request: NextRequest) {
             .slice(0, 5)
 
         // Aggregate Top Payment Methods
-        const paymentMap = new Map<string, number>()
+        const paymentMap = new Map<string, { name: string, count: number, revenue: number }>()
+
         validOrders.forEach(o => {
-            const method = o.payment?.method?.type || 'CASH' // Default or unknown
-            paymentMap.set(method, (paymentMap.get(method) || 0) + 1)
+            const methodType = o.payment?.method?.type || 'CASH'
+            // Use existing entry or create new
+            const existing = paymentMap.get(methodType) || { name: methodType, count: 0, revenue: 0 }
+
+            existing.count += 1
+            existing.revenue += (o.totalAmount || 0)
+
+            paymentMap.set(methodType, existing)
         })
-        const topPaymentMethods = Array.from(paymentMap.entries())
-            .map(([method, count]) => ({ method, count }))
+
+        const topPaymentMethods = Array.from(paymentMap.values())
             .sort((a, b) => b.count - a.count)
             .slice(0, 5)
 

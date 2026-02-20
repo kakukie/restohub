@@ -511,10 +511,11 @@ export default function RestaurantAdminDashboard() {
         }
 
         try {
-            const url = editingMenuItem ? `/api/menu-items` : '/api/menu-items'
-            const method = editingMenuItem ? 'PUT' : 'POST'
-            const body = editingMenuItem
-                ? { ...menuItemForm, id: editingMenuItem.id, restaurantId: user?.restaurantId }
+            const isEdit = !!editingMenuItem || !!(menuItemForm as any).id
+            const url = isEdit ? `/api/menu-items` : '/api/menu-items'
+            const method = isEdit ? 'PUT' : 'POST'
+            const body = isEdit
+                ? { ...menuItemForm, id: editingMenuItem?.id || (menuItemForm as any).id, restaurantId: user?.restaurantId }
                 : { ...menuItemForm, restaurantId: user?.restaurantId }
 
             const res = await fetch(url, {
