@@ -56,7 +56,8 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
         { id: 'orders', icon: Receipt, label: 'Orders' },
         { id: 'menu', icon: Package, label: 'Menu' },
         { id: 'categories', icon: UtensilsCrossed, label: 'Categories' }, // Added explicit Category tab
-        { id: 'analytics', icon: Wallet, label: 'Finance' }, // Mapped 'payments' to Analytics/Finance
+        { id: 'analytics', icon: Wallet, label: 'Analytics' },
+        { id: 'payments', icon: Receipt, label: 'Payments' }, // Added Payments tab
         { id: 'settings', icon: Settings, label: 'Settings' },
     ]
 

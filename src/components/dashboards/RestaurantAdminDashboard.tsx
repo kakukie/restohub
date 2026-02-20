@@ -106,6 +106,7 @@ export default function RestaurantAdminDashboard() {
 
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
+    const [loadingRestaurant, setLoadingRestaurant] = useState(true) // Add loading state
 
     // --- DATA FETCHING (Copied from Old) ---
     // ... (Refer to Old file for loadRestaurantDetails, loadMenuData, loadOrderData)
@@ -113,10 +114,12 @@ export default function RestaurantAdminDashboard() {
     const loadRestaurantDetails = useCallback(async () => {
         if (!user?.restaurantId) {
             console.log('❌ No restaurantId found in user:', user)
+            setLoadingRestaurant(false)
             return
         }
         console.log('✅ Loading restaurant details for:', user.restaurantId)
         setRestaurantId(user.restaurantId)
+        setLoadingRestaurant(true)
         try {
             const res = await fetch(`/api/restaurants/${user.restaurantId}`)
             const data = await res.json()
@@ -135,6 +138,8 @@ export default function RestaurantAdminDashboard() {
         } catch (error) {
             console.error("❌ Failed to load details", error)
             toast({ title: 'Error', description: 'Failed to load restaurant data', variant: 'destructive' })
+        } finally {
+            setLoadingRestaurant(false)
         }
     }, [user?.restaurantId])
 
@@ -1316,10 +1321,14 @@ export default function RestaurantAdminDashboard() {
     const renderSettingsContent = () => (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Restaurant Settings</h2>
-            <RestaurantSettingsForm
-                restaurantId={user?.restaurantId || ''}
-                initialData={currentRestaurant}
-            />
+            {loadingRestaurant ? (
+                <div className="flex justify-center p-12"><RefreshCw className="h-8 w-8 animate-spin text-emerald-500" /></div>
+            ) : (
+                <RestaurantSettingsForm
+                    restaurantId={user?.restaurantId || ''}
+                    initialData={currentRestaurant}
+                />
+            )}
         </div>
     )
 
@@ -1374,8 +1383,8 @@ export default function RestaurantAdminDashboard() {
 
             <main className="w-full lg:ml-24 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
                 <Header
-                    restaurantName={currentRestaurant?.name}
-                    userName={user?.name}
+                    restaurantName={currentRestaurant?.name || ''}
+                    userName={user?.name || ''}
                     onShowQR={() => setQrCodeDialogOpen(true)}
                     onAddItem={() => {
                         setEditingMenuItem(null)
