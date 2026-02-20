@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true, // Fix for Docker/Localhost image loading issues
   },
+  turbopack: {},
 };
 
 const withPWA = require("@ducanh2912/next-pwa").default({

@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Minus, Plus, ShoppingCart, ShoppingBag, Search, Info, Clock, MapPin, Phone, Star, User, Home, LayoutGrid, CheckCircle, CreditCard, ChevronDown, ChevronUp, Loader2, ArrowLeft, Trash2, QrCode, Download, Flame, ThumbsUp, Utensils, Coffee, Cake, Cookie } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
-import Image from 'next/image'
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Menu } from 'lucide-react'
@@ -340,7 +339,7 @@ export default function PublicMenuPage() {
                 {/* Banner Image */}
                 <div className="h-48 md:h-64 bg-gray-200 relative">
                     {restaurant.banner ? (
-                        <Image src={restaurant.banner} alt="Banner" fill className="object-cover" />
+                        <img src={restaurant.banner} alt="Banner" className="w-full h-full object-cover" />
                     ) : (
                         // Fallback Pattern
                         <div className={`w-full h-full bg-gradient-to-r ${currentTheme.gradient} opacity-90 relative overflow-hidden`}>
@@ -453,7 +452,7 @@ export default function PublicMenuPage() {
                                 <Card key={item.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleAddToCart(item)}>
                                     <div className="aspect-[4/3] bg-gray-200 relative overflow-hidden">
                                         {item.image ? (
-                                            <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center text-gray-400"><Utensils className="h-8 w-8 opacity-20" /></div>
                                         )}
@@ -501,7 +500,7 @@ export default function PublicMenuPage() {
                             <div key={item.id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex gap-3">
                                 <div className="w-24 h-24 bg-gray-100 rounded-lg relative overflow-hidden flex-shrink-0">
                                     {item.image ? (
-                                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center text-gray-400"><Utensils className="h-6 w-6 opacity-20" /></div>
                                     )}
@@ -650,7 +649,7 @@ export default function PublicMenuPage() {
                                             <>
                                                 {qrImage ? (
                                                     <div className="relative w-48 h-48 mb-3">
-                                                        <Image src={qrImage} alt={`QR ${selectedPaymentMethod}`} fill className="object-contain" />
+                                                        <img src={qrImage} alt={`QR ${selectedPaymentMethod}`} className="w-48 h-48 object-contain" />
                                                     </div>
                                                 ) : (
                                                     <div className="bg-gray-100 w-48 h-48 flex items-center justify-center mb-3 rounded">
