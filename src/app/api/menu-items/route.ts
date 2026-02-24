@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
       description,
       isAvailable,
       image,
+      isBestSeller,
       category,     // Exclude
       categoryName, // Exclude
       createdAt,    // Exclude
@@ -97,6 +98,7 @@ export async function POST(request: NextRequest) {
         description,
         isAvailable: isAvailable ?? true,
         image,
+        isBestSeller: Boolean(isBestSeller),
         displayOrder: count + 1
       }
     })

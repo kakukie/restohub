@@ -65,7 +65,10 @@ export async function GET(request: NextRequest) {
         })
 
         // Fix: Only count COMPLETED orders for all stats (Revenue, Count, Charts)
-        const validOrders = orders.filter(o => o.status === 'COMPLETED')
+        // Fix: Count [CONFIRMED, PREPARING, READY, COMPLETED] orders for all stats (Revenue, Count, Charts)
+        // so daily/monthly metrics aren't empty when there are active orders
+        const validStatuses = ['CONFIRMED', 'PREPARING', 'READY', 'COMPLETED']
+        const validOrders = orders.filter(o => validStatuses.includes(o.status))
         const cancelledOrders = orders.filter(o => o.status === 'CANCELLED')
 
         // 2. Aggregate Stats

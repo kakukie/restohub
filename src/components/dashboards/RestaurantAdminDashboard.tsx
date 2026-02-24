@@ -2,7 +2,7 @@
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -54,6 +54,7 @@ export default function RestaurantAdminDashboard() {
 
     // --- STATE MANAGEMENT (Copied from Old) ---
     const [activeTab, setActiveTab] = useState('dashboard') // 'dashboard' | 'orders' | 'menu' | 'settings' | 'categories' | 'analytics'
+    const prevPendingCount = useRef<number>(0)
     const [categories, setCategories] = useState<Category[]>([])
     const [menuItems, setMenuItems] = useState<MenuItem[]>([])
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
@@ -214,6 +215,32 @@ export default function RestaurantAdminDashboard() {
             }, 0)
     }, [orders])
 
+    // --- AUDIO NOTIFICATION ---
+    useEffect(() => {
+        const pendingCount = orders.filter(o => o.status === 'PENDING').length;
+        if (pendingCount > prevPendingCount.current) {
+            // Play notification sound
+            try {
+                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.1); // C6
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+            } catch (e) {
+                console.error("Audio play failed:", e);
+            }
+        }
+        prevPendingCount.current = pendingCount;
+    }, [orders])
+
     // --- HANDLERS ---
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
@@ -244,25 +271,50 @@ export default function RestaurantAdminDashboard() {
 
 
     const handlePrintOrder = (order: any) => {
-        // Simple print implementation
         const printWindow = window.open('', '_blank')
         if (printWindow) {
+            const logoHtml = currentRestaurant?.logoUrl
+                ? `<div style="text-align: center; margin-bottom: 10px;"><img src="${currentRestaurant.logoUrl}" style="max-height: 50px; border-radius: 8px;" /></div>`
+                : '';
+
             printWindow.document.write(`
                 <html>
-                <head><title>Order #${order.orderNumber}</title></head>
+                <head>
+                    <title>Order #${order.orderNumber}</title>
+                    <style>
+                        body { font-family: monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
+                        h1, h2, h3, p { margin: 5px 0; text-align: center; }
+                        hr { border: 1px dashed #ccc; margin: 10px 0; }
+                        .item { display: flex; justify-content: space-between; }
+                        .total { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2em; }
+                    </style>
+                </head>
                 <body>
-                    <h1>Order #${order.orderNumber}</h1>
+                    ${logoHtml}
+                    <h2>${currentRestaurant?.name || 'Restaurant'}</h2>
+                    <h3>Order #${order.orderNumber}</h3>
                     <p>Customer: ${order.customerName}</p>
-                    <p>Table: ${order.tableNumber || 'Takeaway'}</p>
+                    <p>Table: ${order.tableNumber || (order.orderType === 'TAKEAWAY' ? 'Takeaway' : 'Delivery')}</p>
                     <hr/>
-                    ${order.items.map((item: any) => `<p>${item.quantity}x ${item.menuItemName} - Rp ${item.price * item.quantity}</p>`).join('')}
+                    ${order.items.map((item: any) => `
+                        <div class="item">
+                            <span>${item.quantity}x ${item.menuItemName}</span>
+                            <span>Rp ${item.price * item.quantity}</span>
+                        </div>
+                    `).join('')}
                     <hr/>
-                    <h3>Total: Rp ${order.totalAmount}</h3>
+                    <div class="total">
+                        <span>Total:</span>
+                        <span>Rp ${order.totalAmount}</span>
+                    </div>
+                    <hr/>
+                    <p style="margin-top: 20px;">Terima Kasih</p>
+                    <p>Thank you for your order!</p>
                 </body>
                 </html>
             `)
             printWindow.document.close()
-            printWindow.print()
+            setTimeout(() => { printWindow.print() }, 200) // Small delay for logo load
         }
     }
 
@@ -340,6 +392,33 @@ export default function RestaurantAdminDashboard() {
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to delete category", variant: "destructive" })
+        }
+    }
+
+    const handleToggleMenuItem = async (id: string, isAvailable: boolean) => {
+        // Optimistic UI update
+        const originalItem = menuItems.find(m => m.id === id);
+        if (originalItem) {
+            setMenuItems(items => items.map(item => item.id === id ? { ...item, isAvailable } : item));
+        }
+
+        try {
+            const res = await fetch(`/api/menu-items`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, isAvailable })
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to update status");
+            }
+            toast({ title: "Updated", description: `Menu item is now ${isAvailable ? 'available' : 'disabled'}` });
+        } catch (error) {
+            // Revert
+            if (originalItem) {
+                setMenuItems(items => items.map(item => item.id === id ? { ...item, isAvailable: originalItem.isAvailable } : item));
+            }
+            toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
         }
     }
 
@@ -856,9 +935,15 @@ export default function RestaurantAdminDashboard() {
                                                 {item.stock !== null && item.stock !== undefined ? item.stock : '-'}
                                             </td>
                                             <td className="p-3">
-                                                <Badge variant={item.isAvailable ? 'default' : 'secondary'} className="text-xs">
-                                                    {item.isAvailable ? 'Available' : 'Unavailable'}
-                                                </Badge>
+                                                <div className="flex items-center space-x-2">
+                                                    <Switch
+                                                        checked={item.isAvailable}
+                                                        onCheckedChange={(val) => handleToggleMenuItem(item.id, val)}
+                                                    />
+                                                    <span className={`text-xs font-medium ${item.isAvailable ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                                        {item.isAvailable ? 'Active' : 'Disabled'}
+                                                    </span>
+                                                </div>
                                             </td>
                                             <td className="p-3">
                                                 <div className="flex gap-2">
@@ -1315,6 +1400,7 @@ export default function RestaurantAdminDashboard() {
                 onLogout={logout}
                 language={language as 'en' | 'id'}
                 onToggleLanguage={() => setLanguage(language === 'en' ? 'id' : 'en')}
+                pendingOrderCount={orders.filter(o => o.status === 'PENDING').length}
             />
 
             <main className="w-full lg:ml-24 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">

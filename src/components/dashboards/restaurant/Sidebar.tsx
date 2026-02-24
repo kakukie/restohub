@@ -20,6 +20,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
 
 interface SidebarProps {
     activeTab: string
@@ -28,6 +29,7 @@ interface SidebarProps {
     onLogout: () => void
     language?: 'en' | 'id'
     onToggleLanguage?: () => void
+    pendingOrderCount?: number
 }
 
 const translations = {
@@ -53,7 +55,7 @@ const translations = {
     }
 }
 
-export default function Sidebar({ activeTab, setActiveTab, user, onLogout, language = 'en', onToggleLanguage }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, user, onLogout, language = 'en', onToggleLanguage, pendingOrderCount = 0 }: SidebarProps) {
     const t = translations[language]
     const { theme, setTheme } = useTheme()
 
@@ -87,13 +89,20 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
                 <button
                     onClick={() => setActiveTab('orders')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'orders'
+                    className={`relative flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'orders'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
                 >
                     <Receipt className="h-5 w-5 lg:h-6 lg:w-6" />
                     <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.orders}</span>
+                    {pendingOrderCount > 0 && (
+                        <div className="absolute top-1 right-2 lg:top-2 lg:right-6">
+                            <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-[10px] rounded-full shadow-md animate-pulse">
+                                {pendingOrderCount > 99 ? '99+' : pendingOrderCount}
+                            </Badge>
+                        </div>
+                    )}
                 </button>
 
                 <button
