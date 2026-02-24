@@ -90,6 +90,9 @@ export default function RestaurantAdminDashboard() {
     // Orders Management States
     const [orderStatusFilter, setOrderStatusFilter] = useState<string>('ALL')
     const [orderDateRange, setOrderDateRange] = useState({ start: '', end: '' })
+    const [orderSearchQuery, setOrderSearchQuery] = useState('')
+    const [orderCurrentPage, setOrderCurrentPage] = useState(1)
+    const ITEMS_PER_PAGE = 10
     const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
 
     // Reports & Analytics States
@@ -1074,10 +1077,25 @@ export default function RestaurantAdminDashboard() {
     )
 
     const renderOrdersContent = () => {
-        const filteredOrders = orders.filter(order => {
+        let filteredOrders = orders.filter(order => {
             if (orderStatusFilter !== 'ALL' && order.status !== orderStatusFilter) return false
             return true
         })
+
+        if (orderSearchQuery) {
+            const query = orderSearchQuery.toLowerCase()
+            filteredOrders = filteredOrders.filter(order =>
+                order.orderNumber.toLowerCase().includes(query) ||
+                (order.customerName && order.customerName.toLowerCase().includes(query))
+            )
+        }
+
+        // Pagination Calculations
+        const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE)
+        const currentOrders = filteredOrders.slice(
+            (orderCurrentPage - 1) * ITEMS_PER_PAGE,
+            orderCurrentPage * ITEMS_PER_PAGE
+        )
 
         return (
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -1091,7 +1109,23 @@ export default function RestaurantAdminDashboard() {
 
                 {/* Filters */}
                 <div className="flex flex-col lg:flex-row gap-4 mb-6">
-                    <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
+                    <div className="relative flex-grow lg:max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                            placeholder="Search by order number or name..."
+                            value={orderSearchQuery}
+                            onChange={(e) => {
+                                setOrderSearchQuery(e.target.value)
+                                setOrderCurrentPage(1) // Reset to page 1 on search
+                            }}
+                            className="pl-9"
+                        />
+                    </div>
+
+                    <Select value={orderStatusFilter} onValueChange={(val) => {
+                        setOrderStatusFilter(val)
+                        setOrderCurrentPage(1)
+                    }}>
                         <SelectTrigger className="w-full lg:w-48">
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
@@ -1123,12 +1157,12 @@ export default function RestaurantAdminDashboard() {
 
                 {/* Orders List */}
                 <div className="space-y-4">
-                    {filteredOrders.length === 0 ? (
+                    {currentOrders.length === 0 ? (
                         <div className="text-center py-12 text-slate-500">
-                            <p>No orders found. {orderStatusFilter !== 'ALL' || orderDateRange.start || orderDateRange.end ? 'Try adjusting your filters.' : 'Orders will appear here.'}</p>
+                            <p>No orders found. {orderStatusFilter !== 'ALL' || orderDateRange.start || orderDateRange.end || orderSearchQuery ? 'Try adjusting your filters.' : 'Orders will appear here.'}</p>
                         </div>
                     ) : (
-                        filteredOrders.map(order => (
+                        currentOrders.map(order => (
                             <Card key={order.id}>
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
@@ -1218,6 +1252,33 @@ export default function RestaurantAdminDashboard() {
                         ))
                     )}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex justify-between items-center mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
+                        <p className="text-sm text-slate-500">
+                            Showing {(orderCurrentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(orderCurrentPage * ITEMS_PER_PAGE, filteredOrders.length)} of {filteredOrders.length} orders
+                        </p>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setOrderCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={orderCurrentPage === 1}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setOrderCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={orderCurrentPage === totalPages}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </div>
         )
     }
