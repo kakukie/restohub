@@ -46,6 +46,7 @@ export interface Restaurant {
   printerSettings?: any
   slugChangeCount?: number
   maxSlugChanges?: number
+  maxBranches?: number
 }
 
 export interface PaymentMethod {
@@ -143,6 +144,7 @@ export interface Announcement {
 export interface HelpdeskSettings {
   whatsapp: string
   email: string
+  maintenanceMode?: boolean
 }
 
 interface AppState {
