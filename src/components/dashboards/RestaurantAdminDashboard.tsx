@@ -202,10 +202,17 @@ export default function RestaurantAdminDashboard() {
         }
     }
 
-    useEffect(() => {
-        loadRestaurantDetails()
-        loadOrderData()
-    }, [loadRestaurantDetails, loadOrderData])
+    // --- HELPER FUNCTIONS ---
+    const getSoldCount = useCallback((menuItemId: string) => {
+        return orders
+            .filter(o => o.status === 'COMPLETED')
+            .reduce((total, order) => {
+                const itemQtys = order.items
+                    .filter(i => i.menuItemId === menuItemId)
+                    .reduce((sum, i) => sum + i.quantity, 0)
+                return total + itemQtys
+            }, 0)
+    }, [orders])
 
     // --- HANDLERS ---
 
@@ -416,6 +423,12 @@ export default function RestaurantAdminDashboard() {
         }
     }
 
+    useEffect(() => {
+        loadRestaurantDetails()
+        loadOrderData()
+        loadReportsData()
+    }, [loadRestaurantDetails, loadOrderData, loadReportsData])
+
     // --- RENDER FUNCTIONS ---
     const handleSavePaymentMethod = async () => {
         if (!paymentMethodForm.type) return toast({ title: "Error", description: "Method type is required", variant: "destructive" })
@@ -503,7 +516,7 @@ export default function RestaurantAdminDashboard() {
                                 name: m.name,
                                 price: m.price,
                                 imageUrl: m.image,
-                                soldCount: 0
+                                soldCount: getSoldCount(m.id)
                             }))}
                     />
                 </div>

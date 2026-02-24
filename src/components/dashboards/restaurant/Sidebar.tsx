@@ -13,6 +13,13 @@ import {
     User as UserIcon
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu"
 
 interface SidebarProps {
     activeTab: string
@@ -125,7 +132,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
                 <button
                     onClick={() => setActiveTab('analytics')}
-                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'analytics'
+                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'analytics'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -157,75 +164,52 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                 </button>
             </div>
 
-            {/* Bottom Actions */}
-            <div className="hidden lg:flex flex-col items-center gap-3 mt-auto pt-4 border-t border-slate-200 dark:border-slate-800 w-full">
-                {/* Theme & Language */}
-                <div className="flex items-center gap-2 xl:gap-3 justify-center w-full">
-                    <button
-                        className="p-2 text-slate-400 hover:text-yellow-500 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                        title="Toggle Theme"
-                    >
-                        {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                    </button>
-                    {onToggleLanguage && (
-                        <button
-                            className="p-2 text-slate-400 hover:text-emerald-500 transition-colors font-bold text-xs rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-                            onClick={onToggleLanguage}
-                            title="Toggle Language"
-                        >
-                            {language === 'en' ? 'ID' : 'EN'}
+            {/* Unified Settings Dropdown (Desktop & Mobile) */}
+            <div className="flex lg:flex-col items-center gap-3 lg:mt-auto lg:pt-4 lg:border-t lg:border-slate-200 dark:lg:border-slate-800 lg:w-full shrink-0 ml-1 lg:ml-0">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors w-full focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+                            <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0">
+                                {user?.name?.charAt(0) || 'A'}
+                            </div>
+                            <div className="hidden xl:flex flex-col overflow-hidden text-left">
+                                <span className="text-sm font-semibold truncate">{user?.name || 'Admin'}</span>
+                                <span className="text-xs text-slate-500 truncate">{user?.role || 'Role'}</span>
+                            </div>
                         </button>
-                    )}
-                </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" side="top" className="w-56 mb-2 lg:mb-0 lg:ml-2">
+                        <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1 xl:hidden">
+                            <div className="flex flex-col overflow-hidden text-left py-1">
+                                <span className="text-sm font-semibold truncate">{user?.name || 'Admin'}</span>
+                                <span className="text-xs text-slate-500 truncate">{user?.role || 'Role'}</span>
+                            </div>
+                        </div>
 
-                {/* Profile */}
-                <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl w-full">
-                    <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0">
-                        {user?.name?.charAt(0) || 'A'}
-                    </div>
-                    <div className="hidden xl:flex flex-col overflow-hidden">
-                        <span className="text-sm font-semibold truncate">{user?.name || 'Admin'}</span>
-                        <span className="text-xs text-slate-500 truncate">{user?.role || 'Role'}</span>
-                    </div>
-                </div>
+                        <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer flex items-center justify-between">
+                            <div className="flex items-center">
+                                {theme === 'dark' ? <Sun className="h-4 w-4 mr-2 text-yellow-500" /> : <Moon className="h-4 w-4 mr-2 text-slate-500" />}
+                                <span>Theme</span>
+                            </div>
+                            <span className="text-xs text-slate-400 capitalize">{theme || 'System'}</span>
+                        </DropdownMenuItem>
 
-                {/* Logout */}
-                <button
-                    onClick={onLogout}
-                    className="flex items-center justify-center p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium border border-red-100 dark:border-red-900/20 w-full"
-                    title="Logout"
-                >
-                    <LogOut className="h-4 w-4 xl:mr-2" />
-                    <span className="hidden xl:inline">{t?.logout || 'Logout'}</span>
-                </button>
-            </div>
+                        {onToggleLanguage && (
+                            <DropdownMenuItem onClick={onToggleLanguage} className="cursor-pointer flex items-center justify-between">
+                                <span className="flex items-center h-4 font-medium mr-2 text-slate-500">A文</span>
+                                <span>Language</span>
+                                <span className="text-xs font-bold text-emerald-500">{language.toUpperCase()}</span>
+                            </DropdownMenuItem>
+                        )}
 
-            {/* Mobile bottom action buttons (Theme & Logout only) */}
-            <div className="flex lg:hidden items-center gap-1 shrink-0 ml-1">
-                <button
-                    className="p-2 text-slate-400 hover:text-yellow-500 transition-colors"
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    title="Toggle Theme"
-                >
-                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </button>
-                {onToggleLanguage && (
-                    <button
-                        className="p-1.5 text-slate-400 hover:text-emerald-500 transition-colors font-bold text-[10px]"
-                        onClick={onToggleLanguage}
-                        title="Toggle Language"
-                    >
-                        {language === 'en' ? 'ID' : 'EN'}
-                    </button>
-                )}
-                <button
-                    onClick={onLogout}
-                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors"
-                    title="Logout"
-                >
-                    <LogOut className="h-5 w-5" />
-                </button>
+                        <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+
+                        <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-500 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10">
+                            <LogOut className="h-4 w-4 mr-2" />
+                            <span>{t?.logout || 'Logout'}</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </nav>
     )
