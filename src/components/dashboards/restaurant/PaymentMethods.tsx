@@ -64,18 +64,18 @@ export default function PaymentMethods({ methods, onToggle, onEdit, onDelete }: 
                                 checked={method.isActive}
                                 onCheckedChange={(checked) => onToggle(method.id, checked)}
                             />
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex gap-2 transition-opacity">
                                 <button
                                     onClick={() => onEdit(method)}
-                                    className="text-slate-400 hover:text-blue-500 transition-colors"
+                                    className="text-slate-500 hover:text-blue-500 transition-colors"
                                 >
-                                    <span className="text-xs font-bold">Edit</span>
+                                    <span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Edit</span>
                                 </button>
                                 <button
                                     onClick={() => onDelete(method.id)}
-                                    className="text-slate-400 hover:text-red-500 transition-colors"
+                                    className="text-slate-500 hover:text-red-500 transition-colors"
                                 >
-                                    <span className="text-xs font-bold">Del</span>
+                                    <span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Delete</span>
                                 </button>
                             </div>
                         </div>

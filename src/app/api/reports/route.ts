@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
 
         let startDate: Date, endDate: Date
 
+        const granularity = searchParams.get('granularity') || 'day' // day, month, year
+
         if (startDateParam && endDateParam && startDateParam !== 'undefined' && endDateParam !== 'undefined') {
             const start = new Date(startDateParam)
             const end = new Date(endDateParam)
@@ -28,16 +30,25 @@ export async function GET(request: NextRequest) {
                 // Adjust end date to end of day
                 endDate.setHours(23, 59, 59, 999)
             } else {
-                // Fallback if invalid date string
                 const now = new Date()
                 startDate = new Date(now.getFullYear(), now.getMonth(), 1)
                 endDate = new Date()
             }
         } else {
-            const year = yearParam ? parseInt(yearParam) : new Date().getFullYear()
-            const month = monthParam ? parseInt(monthParam) : new Date().getMonth() + 1
-            startDate = new Date(year, month - 1, 1)
-            endDate = new Date(year, month, 0, 23, 59, 59)
+            const now = new Date()
+            const year = yearParam ? parseInt(yearParam) : now.getFullYear()
+            const month = monthParam ? parseInt(monthParam) : now.getMonth() + 1
+
+            if (granularity === 'day') {
+                startDate = new Date(year, month - 1, 1) // Start of current month
+                endDate = new Date(year, month, 0, 23, 59, 59) // End of current month
+            } else if (granularity === 'month') {
+                startDate = new Date(year, 0, 1) // Start of current year
+                endDate = new Date(year, 11, 31, 23, 59, 59) // End of current year
+            } else { // year
+                startDate = new Date(year - 4, 0, 1) // 5 years ago
+                endDate = new Date(year, 11, 31, 23, 59, 59) // End of current year
+            }
         }
 
         // Build Where Clause
@@ -122,8 +133,7 @@ export async function GET(request: NextRequest) {
             .slice(0, 5)
 
         // 3. Generate Daily Data for Chart
-        // 3. Generate Chart Data
-        const granularity = searchParams.get('granularity') || 'day' // day, month, year
+        // 3. Generate Daily Data for Chart
         const chartData: Record<string, { count: number, revenue: number }> = {}
 
         // Helper to format date key

@@ -181,6 +181,22 @@ export default function RestaurantAdminDashboard() {
         }
     }, [user?.restaurantId, orderStatusFilter, orderDateRange, setOrders])
 
+    // --- AUTO-REFRESH ORDERS ---
+    useEffect(() => {
+        // Only pool if user is on the dashboard (don't drain if not logged in)
+        if (!user?.restaurantId) return;
+
+        // Initial load
+        loadOrderData()
+
+        // Background polling every 15 seconds
+        const intervalId = setInterval(() => {
+            loadOrderData()
+        }, 15000)
+
+        return () => clearInterval(intervalId)
+    }, [loadOrderData, user?.restaurantId])
+
     const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
         setUpdatingOrderId(orderId)
         try {
@@ -219,23 +235,18 @@ export default function RestaurantAdminDashboard() {
     useEffect(() => {
         const pendingCount = orders.filter(o => o.status === 'PENDING').length;
         if (pendingCount > prevPendingCount.current) {
-            // Play notification sound
+            // Play TTS notification
             try {
-                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-                const ctx = new AudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-                osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.1); // C6
-                gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.5);
+                if ('speechSynthesis' in window) {
+                    const msg = new SpeechSynthesisUtterance("Order Masuk");
+                    msg.lang = "id-ID";
+                    msg.volume = 1;
+                    msg.rate = 1;
+                    msg.pitch = 1;
+                    window.speechSynthesis.speak(msg);
+                }
             } catch (e) {
-                console.error("Audio play failed:", e);
+                console.error("TTS play failed:", e);
             }
         }
         prevPendingCount.current = pendingCount;
