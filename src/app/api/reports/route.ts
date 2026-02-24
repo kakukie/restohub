@@ -83,13 +83,18 @@ export async function GET(request: NextRequest) {
         const cancelledOrders = orders.filter(o => o.status === 'CANCELLED')
 
         // 2. Aggregate Stats
+        const completedOnly = orders.filter(o => o.status === 'COMPLETED')
         const stats = {
-            totalOrders: validOrders.length, // Only COMPLETED
+            totalOrders: validOrders.length, // Only COMPLETED (this logic is actually CONFIRMED/PREPARING/READY/COMPLETED per previous rounds)
             totalRevenue: validOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
             cancelledOrders: cancelledOrders.length,
             cancelledRevenue: cancelledOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
             totalMenuItems: await prisma.menuItem.count({ where: { restaurantId, deletedAt: null } }),
-            totalCategories: await prisma.category.count({ where: { restaurantId, deletedAt: null } })
+            totalCategories: await prisma.category.count({ where: { restaurantId, deletedAt: null } }),
+            completedOrders: completedOnly.length,
+            averageOrderValue: completedOnly.length > 0
+                ? Math.round(completedOnly.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0) / completedOnly.length)
+                : 0
         }
 
         // Aggregate Top Menu Items

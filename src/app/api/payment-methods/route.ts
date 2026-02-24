@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { invalidateCache } from '@/lib/redis'
 
 export async function POST(request: NextRequest) {
     try {
@@ -38,6 +39,8 @@ export async function POST(request: NextRequest) {
                 isActive: isActive ?? true
             }
         })
+
+        await invalidateCache(`dashboard:${restaurantId}`) // Auto refresh for dashboard UI
 
         return NextResponse.json({
             success: true,
