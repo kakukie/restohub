@@ -181,21 +181,49 @@ export default function RestaurantAdminDashboard() {
         }
     }, [user?.restaurantId, orderStatusFilter, orderDateRange, setOrders])
 
-    // --- AUTO-REFRESH ORDERS ---
+    const loadReportsData = useCallback(async () => {
+        if (!user?.restaurantId) return
+        setLoadingReports(true)
+
+        const params = new URLSearchParams({
+            restaurantId: user.restaurantId,
+            granularity: reportGranularity
+        })
+
+        if (reportDateRange.start && reportDateRange.start !== '') params.append('startDate', reportDateRange.start)
+        if (reportDateRange.end && reportDateRange.end !== '') params.append('endDate', reportDateRange.end)
+
+        try {
+            const res = await fetch(`/api/reports?${params.toString()}`)
+            const data = await res.json()
+            if (data.success) {
+                setReportStats(data.data)
+            }
+        } catch (e) {
+            console.error("Failed to load reports", e)
+            toast({ title: "Error", description: "Failed to load report data", variant: "destructive" })
+        } finally {
+            setLoadingReports(false)
+        }
+    }, [user?.restaurantId, reportGranularity, reportDateRange])
+
+    // --- AUTO-REFRESH ORDERS & REPORTS ---
     useEffect(() => {
         // Only pool if user is on the dashboard (don't drain if not logged in)
         if (!user?.restaurantId) return;
 
         // Initial load
         loadOrderData()
+        loadReportsData()
 
         // Background polling every 15 seconds
         const intervalId = setInterval(() => {
             loadOrderData()
+            loadReportsData()
         }, 15000)
 
         return () => clearInterval(intervalId)
-    }, [loadOrderData, user?.restaurantId])
+    }, [loadOrderData, loadReportsData, user?.restaurantId])
 
     const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
         setUpdatingOrderId(orderId)
@@ -235,18 +263,27 @@ export default function RestaurantAdminDashboard() {
     useEffect(() => {
         const pendingCount = orders.filter(o => o.status === 'PENDING').length;
         if (pendingCount > prevPendingCount.current) {
-            // Play TTS notification
+            // Play alarm beep notification
             try {
-                if ('speechSynthesis' in window) {
-                    const msg = new SpeechSynthesisUtterance("Order Masuk");
-                    msg.lang = "id-ID";
-                    msg.volume = 1;
-                    msg.rate = 1;
-                    msg.pitch = 1;
-                    window.speechSynthesis.speak(msg);
-                }
+                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'square'; // harsher alarm sound
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                // Pulse 3 times rapidly
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime + 0.6);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.8);
             } catch (e) {
-                console.error("TTS play failed:", e);
+                console.error("Audio play failed:", e);
             }
         }
         prevPendingCount.current = pendingCount;
@@ -432,32 +469,6 @@ export default function RestaurantAdminDashboard() {
             toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
         }
     }
-
-    const loadReportsData = useCallback(async () => {
-        if (!user?.restaurantId) return
-        setLoadingReports(true)
-
-        const params = new URLSearchParams({
-            restaurantId: user.restaurantId,
-            granularity: reportGranularity
-        })
-
-        if (reportDateRange.start && reportDateRange.start !== '') params.append('startDate', reportDateRange.start)
-        if (reportDateRange.end && reportDateRange.end !== '') params.append('endDate', reportDateRange.end)
-
-        try {
-            const res = await fetch(`/api/reports?${params.toString()}`)
-            const data = await res.json()
-            if (data.success) {
-                setReportStats(data.data)
-            }
-        } catch (e) {
-            console.error("Failed to load reports", e)
-            toast({ title: "Error", description: "Failed to load analytics data", variant: "destructive" })
-        } finally {
-            setLoadingReports(false)
-        }
-    }, [user?.restaurantId, reportGranularity, reportDateRange])
 
     const handleExportReport = () => {
         if (!reportStats || Object.keys(reportStats).length === 0) {
@@ -1213,8 +1224,8 @@ export default function RestaurantAdminDashboard() {
 
     const renderAnalyticsContent = () => (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Reports & Analytics</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Report</h2>
                 <div className="flex gap-2">
                     <Button onClick={() => handleExportReport()} variant="outline" size="sm">
                         <Download className="h-4 w-4 mr-2" />

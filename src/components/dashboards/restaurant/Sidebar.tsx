@@ -39,7 +39,7 @@ const translations = {
         orders: "Orders",
         categories: "Categories",
         settings: "Settings",
-        analytics: "Analytics",
+        analytics: "Report",
         payments: "Payments",
         logout: "Logout"
     },
@@ -49,7 +49,7 @@ const translations = {
         orders: "Pesanan",
         categories: "Kategori",
         settings: "Pengaturan",
-        analytics: "Analitik",
+        analytics: "Laporan",
         payments: "Pembayaran",
         logout: "Keluar"
     }
