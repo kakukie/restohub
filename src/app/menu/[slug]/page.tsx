@@ -245,10 +245,10 @@ export default function PublicMenuPage() {
     if (!restaurant) return <div className="p-10 text-center">Restaurant Not Found</div>
 
     return (
-        <div className="min-h-screen bg-gray-100 pb-32">
+        <div className="min-h-screen bg-gray-100 dark:bg-[#0B0F1A] pb-32 text-slate-900 dark:text-slate-100">
 
             {/* 1. Sticky Header - Gacoan Style */}
-            <header className="sticky top-0 z-40 bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+            <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 shadow-sm border-b dark:border-slate-800 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     {/* Back Button (optional logic) */}
                     <div className="w-8 h-8 flex items-center justify-center">
@@ -257,8 +257,8 @@ export default function PublicMenuPage() {
 
                     {/* Centered Logo/Name if possible, or left aligned */}
                     <div className="flex flex-col">
-                        <h1 className="font-bold text-lg leading-tight truncate max-w-[200px]">{restaurant.name}</h1>
-                        <div className="flex items-center text-xs text-gray-500 gap-1">
+                        <h1 className="font-bold text-lg leading-tight truncate max-w-[200px] text-slate-900 dark:text-white">{restaurant.name}</h1>
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 gap-1">
                             <div className={`w-2 h-2 rounded-full ${restaurant.isActive ? 'bg-green-500' : 'bg-red-500'}`}></div>
                             {restaurant.isActive ? 'Open' : 'Closed'}
                         </div>
@@ -267,31 +267,31 @@ export default function PublicMenuPage() {
 
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-                        <Search className="h-5 w-5 text-gray-700" />
+                        <Search className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                     </Button>
                     <Sheet>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon">
-                                <Menu className="h-6 w-6 text-gray-700" />
+                                <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent>
+                        <SheetContent className="dark:bg-slate-900 dark:border-slate-800 text-slate-900 dark:text-slate-100">
                             <SheetHeader>
-                                <SheetTitle>{restaurant.name}</SheetTitle>
+                                <SheetTitle className="text-slate-900 dark:text-white">{restaurant.name}</SheetTitle>
                                 <SheetDescription>{restaurant.address}</SheetDescription>
                             </SheetHeader>
                             <div className="mt-6 space-y-4">
-                                <div className="p-4 bg-gray-50 rounded-lg">
-                                    <h3 className="font-semibold mb-2">Contact Info</h3>
-                                    <p className="text-sm text-gray-600 flex items-center gap-2">
+                                <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                                    <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">Contact Info</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2">
                                         <Phone className="h-4 w-4" /> {restaurant.phone || '-'}
                                     </p>
-                                    <p className="text-sm text-gray-600 flex items-center gap-2 mt-2">
+                                    <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2 mt-2">
                                         <MapPin className="h-4 w-4" /> {restaurant.address || '-'}
                                     </p>
                                     {/* Google Maps Embed */}
                                     {restaurant.googleMapsUrl && (
-                                        <div className="mt-4 rounded-lg overflow-hidden border h-48 w-full">
+                                        <div className="mt-4 rounded-lg overflow-hidden border dark:border-slate-700 h-48 w-full">
                                             <iframe
                                                 src={restaurant.googleMapsUrl.includes('embed')
                                                     ? restaurant.googleMapsUrl
@@ -307,7 +307,7 @@ export default function PublicMenuPage() {
                                         </div>
                                     )}
                                     {restaurant.googleMapsUrl && (
-                                        <Button variant="outline" className="w-full mt-2" onClick={() => window.open(restaurant.googleMapsUrl, '_blank')}>
+                                        <Button variant="outline" className="w-full mt-2 dark:border-slate-600" onClick={() => window.open(restaurant.googleMapsUrl, '_blank')}>
                                             <MapPin className="h-4 w-4 mr-2" /> Open in Google Maps
                                         </Button>
                                     )}
@@ -320,12 +320,12 @@ export default function PublicMenuPage() {
 
             {/* Search Bar Collapsible */}
             {isSearchOpen && (
-                <div className="bg-white px-4 pb-3 animate-in slide-in-from-top-2">
+                <div className="bg-white dark:bg-slate-900 px-4 pb-3 animate-in slide-in-from-top-2">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
                             placeholder="Search menu..."
-                            className="pl-9 bg-gray-50 border-gray-200"
+                            className="pl-9 bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-gray-400"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             autoFocus
@@ -389,16 +389,16 @@ export default function PublicMenuPage() {
 
             {/* 3. Order Type Selector */}
             <div className="px-4 mt-6">
-                <div className="bg-white p-3 rounded-lg border shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border dark:border-slate-800 shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                     onClick={() => setOrderType(orderType === 'DINE_IN' ? 'TAKEAWAY' : 'DINE_IN')}
                 >
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${orderType === 'DINE_IN' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
+                        <div className={`p-2 rounded-full ${orderType === 'DINE_IN' ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'}`}>
                             {orderType === 'DINE_IN' ? <Utensils className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
                         </div>
                         <div className="text-left">
-                            <div className="text-xs text-gray-500">Order Method</div>
-                            <div className="font-bold text-sm">{orderType === 'DINE_IN' ? 'Dine In / Makan di Tempat' : 'Takeaway / Bungkus'}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Order Method</div>
+                            <div className="font-bold text-sm text-slate-900 dark:text-white">{orderType === 'DINE_IN' ? 'Dine In / Makan di Tempat' : 'Takeaway / Bungkus'}</div>
                         </div>
                     </div>
                     <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -406,7 +406,7 @@ export default function PublicMenuPage() {
             </div>
 
             {/* 4. Sticky Category Tabs */}
-            <div className="sticky top-[60px] z-30 bg-gray-100 pt-4 pb-2">
+            <div className="sticky top-[60px] z-30 bg-gray-100 dark:bg-[#0B0F1A] pt-4 pb-2">
                 <div className="w-full overflow-x-auto whitespace-nowrap px-4 pb-2 no-scrollbar">
                     <div className="flex gap-2">
                         {categories.map(cat => {
@@ -427,7 +427,7 @@ export default function PublicMenuPage() {
                                          px-4 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2
                                          ${selectedCategory === cat
                                             ? `bg-gray-900 text-white shadow-md`
-                                            : 'bg-white text-gray-600 border hover:bg-gray-50'}
+                                            : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'}
                                      `}
                                 >
                                     <Icon className="h-4 w-4" />
@@ -444,13 +444,13 @@ export default function PublicMenuPage() {
                 {/* Best Sellers & Recommended */}
                 {selectedCategory === 'all' && searchQuery === '' && (menu.some(m => m.isBestSeller || m.isRecommended)) && (
                     <section>
-                        <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                        <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
                             <ThumbsUp className="h-5 w-5 text-orange-500 fill-orange-500" /> Recommended For You
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
                             {menu.filter(m => m.isBestSeller || m.isRecommended).map(item => (
-                                <Card key={item.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleAddToCart(item)}>
-                                    <div className="aspect-[4/3] bg-gray-200 relative overflow-hidden">
+                                <Card key={item.id} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow group cursor-pointer dark:bg-slate-900" onClick={() => handleAddToCart(item)}>
+                                    <div className="aspect-[4/3] bg-gray-200 dark:bg-slate-800 relative overflow-hidden">
                                         {item.image ? (
                                             <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                         ) : (
@@ -458,21 +458,21 @@ export default function PublicMenuPage() {
                                         )}
                                         {/* Dynamic Badge */}
                                         {item.isBestSeller && (
-                                            <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-orange-600 shadow-sm">
+                                            <div className="absolute bottom-2 left-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-orange-600 shadow-sm border dark:border-slate-800">
                                                 BEST SELLER
                                             </div>
                                         )}
                                         {!item.isBestSeller && item.isRecommended && (
-                                            <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-emerald-600 shadow-sm">
+                                            <div className="absolute bottom-2 left-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-emerald-600 shadow-sm border dark:border-slate-800">
                                                 RECOMMENDED
                                             </div>
                                         )}
                                     </div>
                                     <div className="p-3">
-                                        <h4 className="font-bold text-sm line-clamp-1">{item.name}</h4>
-                                        <p className="text-emerald-700 font-bold text-sm mt-1">Rp {item.price.toLocaleString()}</p>
+                                        <h4 className="font-bold text-sm line-clamp-1 text-slate-900 dark:text-white">{item.name}</h4>
+                                        <p className="text-emerald-700 dark:text-emerald-500 font-bold text-sm mt-1">Rp {item.price.toLocaleString()}</p>
                                         <div className="flex items-end justify-between mt-2">
-                                            <span className="text-[10px] text-gray-500">
+                                            <span className="text-[10px] text-gray-500 dark:text-gray-400">
                                                 {item.isBestSeller ? 'Most Loved' : 'Chef Pick'}
                                             </span>
                                             <div className={`h-6 w-6 rounded-full ${currentTheme.primary} flex items-center justify-center text-white`}>
@@ -490,15 +490,15 @@ export default function PublicMenuPage() {
                 <section>
                     {/* Only show header if filtered */}
                     {(selectedCategory !== 'all' || searchQuery !== '') && (
-                        <h3 className="font-bold text-lg mb-3">
+                        <h3 className="font-bold text-lg mb-3 text-slate-900 dark:text-white">
                             {searchQuery ? `Search: "${searchQuery}"` : selectedCategory}
                         </h3>
                     )}
 
                     <div className="grid grid-cols-1 gap-4">
                         {filteredMenu.map(item => (
-                            <div key={item.id} className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex gap-3">
-                                <div className="w-24 h-24 bg-gray-100 rounded-lg relative overflow-hidden flex-shrink-0">
+                            <div key={item.id} className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm flex gap-3">
+                                <div className="w-24 h-24 bg-gray-100 dark:bg-slate-800 rounded-lg relative overflow-hidden flex-shrink-0">
                                     {item.image ? (
                                         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -507,12 +507,12 @@ export default function PublicMenuPage() {
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between">
                                     <div>
-                                        <h4 className="font-bold text-base">{item.name}</h4>
-                                        <p className="text-xs text-gray-500 line-clamp-2 mt-1">{item.description || 'No description available'}</p>
+                                        <h4 className="font-bold text-base text-slate-900 dark:text-white">{item.name}</h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-1">{item.description || 'No description available'}</p>
                                     </div>
                                     <div className="flex items-center justify-between mt-2">
-                                        <span className="font-bold text-emerald-700">Rp {item.price.toLocaleString()}</span>
-                                        <Button size="sm" className={`h-8 px-4 rounded-full ${currentTheme.primary} ${currentTheme.primaryHover} shadow-sm`} onClick={() => handleAddToCart(item)}>
+                                        <span className="font-bold text-emerald-700 dark:text-emerald-500">Rp {item.price.toLocaleString()}</span>
+                                        <Button size="sm" className={`h-8 px-4 rounded-full ${currentTheme.primary} ${currentTheme.primaryHover} shadow-sm text-white`} onClick={() => handleAddToCart(item)}>
                                             Add
                                         </Button>
                                     </div>
@@ -520,7 +520,7 @@ export default function PublicMenuPage() {
                             </div>
                         ))}
                         {filteredMenu.length === 0 && (
-                            <div className="text-center py-10 text-gray-500">
+                            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
                                 No items found.
                             </div>
                         )}
@@ -593,38 +593,38 @@ export default function PublicMenuPage() {
             </Dialog>
 
             <Dialog open={checkoutDialogOpen} onOpenChange={setCheckoutDialogOpen}>
-                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto dark:bg-slate-900 dark:border-slate-800 text-slate-900 dark:text-white">
                     <DialogHeader>
-                        <DialogTitle>Complete Order</DialogTitle>
-                        <DialogDescription>{restaurant?.name}</DialogDescription>
+                        <DialogTitle className="text-slate-900 dark:text-white">Complete Order</DialogTitle>
+                        <DialogDescription className="dark:text-gray-400">{restaurant?.name}</DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-2">
-                        <div className="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
+                        <div className="p-3 bg-gray-50 dark:bg-slate-800 rounded-lg flex justify-between items-center text-slate-900 dark:text-white">
                             <span className="text-sm">Total Payment</span>
-                            <span className="font-bold text-lg text-emerald-600">Rp {cartTotal.toLocaleString()}</span>
+                            <span className="font-bold text-lg text-emerald-600 dark:text-emerald-500">Rp {cartTotal.toLocaleString()}</span>
                         </div>
 
                         <div className="space-y-3">
-                            <Label>Your Name</Label>
-                            <Input placeholder="John Doe" value={guestName} onChange={e => setGuestName(e.target.value)} />
+                            <Label className="text-slate-900 dark:text-white">Your Name</Label>
+                            <Input placeholder="John Doe" value={guestName} onChange={e => setGuestName(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
 
-                            <Label>WhatsApp Number</Label>
-                            <Input placeholder="08..." value={guestPhone} onChange={e => setGuestPhone(e.target.value)} />
+                            <Label className="text-slate-900 dark:text-white">WhatsApp Number</Label>
+                            <Input placeholder="08..." value={guestPhone} onChange={e => setGuestPhone(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
 
                             {orderType === 'DINE_IN' && (
                                 <>
-                                    <Label>Table Number</Label>
-                                    <Input placeholder="e.g. 12" value={tableNumber} onChange={e => setTableNumber(e.target.value)} />
+                                    <Label className="text-slate-900 dark:text-white">Table Number</Label>
+                                    <Input placeholder="e.g. 12" value={tableNumber} onChange={e => setTableNumber(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
                                 </>
                             )}
 
-                            <Label>Notes</Label>
-                            <Input placeholder="Extra spicy..." value={notes} onChange={e => setNotes(e.target.value)} />
+                            <Label className="text-slate-900 dark:text-white">Notes</Label>
+                            <Input placeholder="Extra spicy..." value={notes} onChange={e => setNotes(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
 
-                            <Label>Payment Method</Label>
+                            <Label className="text-slate-900 dark:text-white">Payment Method</Label>
                             <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                                <SelectTrigger>
+                                <SelectTrigger className="dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                                     <SelectValue placeholder="Select Method" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -638,8 +638,8 @@ export default function PublicMenuPage() {
 
                             {/* QR Code Logic */}
                             {selectedPaymentMethod && selectedPaymentMethod !== 'CASH' && (
-                                <div className="bg-white border rounded-lg p-4 flex flex-col items-center">
-                                    <p className="text-sm font-bold mb-2">Scan to Pay ({selectedPaymentMethod})</p>
+                                <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-lg p-4 flex flex-col items-center">
+                                    <p className="text-sm font-bold mb-2 text-slate-900 dark:text-white">Scan to Pay ({selectedPaymentMethod})</p>
 
                                     {(() => {
                                         const method = restaurant?.paymentMethods?.find((m: any) => m.type === selectedPaymentMethod)
@@ -652,16 +652,16 @@ export default function PublicMenuPage() {
                                                         <img src={qrImage} alt={`QR ${selectedPaymentMethod}`} className="w-48 h-48 object-contain" />
                                                     </div>
                                                 ) : (
-                                                    <div className="bg-gray-100 w-48 h-48 flex items-center justify-center mb-3 rounded">
-                                                        <QrCode className="h-16 w-16 text-gray-400" />
-                                                        <span className="text-xs text-center text-gray-400 absolute mt-12 px-2">
+                                                    <div className="bg-gray-100 dark:bg-slate-700 w-48 h-48 flex items-center justify-center mb-3 rounded">
+                                                        <QrCode className="h-16 w-16 text-gray-400 dark:text-gray-500" />
+                                                        <span className="text-xs text-center text-gray-400 dark:text-gray-500 absolute mt-12 px-2">
                                                             No QR for {selectedPaymentMethod}
                                                         </span>
                                                     </div>
                                                 )}
 
                                                 <div className="flex gap-2 w-full">
-                                                    <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                                                    <Button variant="outline" size="sm" className="flex-1 dark:border-slate-600 dark:hover:bg-slate-700" onClick={() => {
                                                         if (qrImage) {
                                                             const link = document.createElement('a')
                                                             link.href = qrImage
@@ -683,14 +683,14 @@ export default function PublicMenuPage() {
                             )}
 
                             {selectedPaymentMethod && selectedPaymentMethod !== 'CASH' && (
-                                <p className="text-xs text-gray-500 mt-2 text-center">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
                                     Scan using any e-wallet app.<br />
                                     Upload payment proof if required.
                                 </p>
                             )}
                         </div>
 
-                        <Button onClick={processOrder} disabled={processingPayment} className={`w-full ${currentTheme.primary} ${currentTheme.primaryHover} mt-4`}>
+                        <Button onClick={processOrder} disabled={processingPayment} className={`w-full ${currentTheme.primary} ${currentTheme.primaryHover} mt-4 text-white`}>
                             {processingPayment ? <Loader2 className="animate-spin" /> : 'Confirm Payment & Order'}
                         </Button>
                     </div>
@@ -699,14 +699,14 @@ export default function PublicMenuPage() {
 
             {/* Success Dialog */}
             <Dialog open={orderConfirmationOpen} onOpenChange={setOrderConfirmationOpen}>
-                <DialogContent>
+                <DialogContent className="dark:bg-slate-900 dark:border-slate-800 text-slate-900 dark:text-white">
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                            <CheckCircle className="h-8 w-8 text-green-600" />
+                        <div className="w-16 h-16 bg-green-100 dark:bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                         </div>
                         <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
-                        <p className="text-gray-500 mb-6">Your order #{completedOrder?.orderNumber} has been received.</p>
-                        <Button onClick={() => setOrderConfirmationOpen(false)} variant="outline">
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">Your order #{completedOrder?.orderNumber} has been received.</p>
+                        <Button onClick={() => setOrderConfirmationOpen(false)} variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800">
                             Back to Menu
                         </Button>
                     </div>
