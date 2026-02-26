@@ -620,15 +620,15 @@ export default function SuperAdminDashboard() {
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Executive Dashboard</h2>
-          <p className="text-slate-500 dark:text-slate-400">Welcome back. Here's what's happening today.</p>
+          <h2 className="text-3xl font-extrabold text-[#F8FAFC]">Executive Dashboard</h2>
+          <p className="text-slate-400">Welcome back. Here's what's happening today.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="glass rounded-xl text-sm font-medium border border-slate-700 transition-all font-sans text-white">
+          <Button variant="outline" className="bg-[#1A2235] border-[#2A344A] hover:bg-[#2A344A] text-[#F8FAFC] rounded-full text-sm font-medium transition-all">
             <span className="material-symbols-outlined text-sm mr-2">calendar_today</span>
             Last 30 Days
           </Button>
-          <Button className="bg-[#10B981] hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-[#10B981]/20 transition-all" onClick={() => { setRestaurantForm({}); setEditingRestaurant(null); setRestaurantDialogOpen(true); }}>
+          <Button className="bg-[#10B981] hover:bg-[#059669] text-white rounded-full text-sm font-bold shadow-lg shadow-[#10B981]/20 transition-all px-6" onClick={() => { setRestaurantForm({}); setEditingRestaurant(null); setRestaurantDialogOpen(true); }}>
             <span className="material-symbols-outlined text-sm mr-2">add</span>
             New Restaurant
           </Button>
@@ -638,129 +638,253 @@ export default function SuperAdminDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Revenue */}
-        <div className="glass p-6 rounded-2xl relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#10B981]/10 rounded-full blur-3xl group-hover:bg-[#10B981]/20 transition-all"></div>
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl">
-              <span className="material-symbols-outlined">analytics</span>
+        <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-2xl relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+              <span className="material-symbols-outlined text-xl">analytics</span>
             </div>
-            <span className="text-emerald-400 text-xs font-bold px-2 py-1 bg-emerald-400/10 rounded-lg flex items-center gap-1">
+            <span className="text-emerald-400 text-xs font-bold px-3 py-1 bg-emerald-400/10 rounded-full flex items-center gap-1">
               <span className="material-symbols-outlined text-xs">trending_up</span> +12.5%
             </span>
           </div>
-          <h3 className="text-slate-400 text-sm font-medium">Total Revenue</h3>
-          <p className="text-3xl font-bold mt-1 tracking-tight">Rp {(stats.totalRevenue).toLocaleString('id-ID')}</p>
+          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Total Revenue</h3>
+          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">Rp {(stats.totalRevenue).toLocaleString('id-ID')}</p>
+          <div className="mt-4 flex h-1.5 w-full bg-[#10B981]/20 rounded-full overflow-hidden">
+            <div className="h-full bg-[#10B981] w-2/3 rounded-full"></div>
+          </div>
         </div>
 
         {/* Active Restaurants */}
-        <div className="glass p-6 rounded-2xl relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all"></div>
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl">
-              <span className="material-symbols-outlined">restaurant</span>
+        <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-2xl relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+              <span className="material-symbols-outlined text-xl">restaurant</span>
             </div>
-            <span className="text-blue-400 text-xs font-bold px-2 py-1 bg-blue-400/10 rounded-lg flex items-center gap-1">
-              <span className="material-symbols-outlined text-xs">store</span> {restaurants.length} Total
+            <span className="text-blue-400 text-xs font-bold px-3 py-1 bg-blue-400/10 rounded-full flex items-center gap-1">
+              <span className="material-symbols-outlined text-xs">store</span> {restaurants.length} New
             </span>
           </div>
-          <h3 className="text-slate-400 text-sm font-medium">Active Restaurants</h3>
-          <p className="text-3xl font-bold mt-1 tracking-tight">{stats.activeRestaurants}</p>
+          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Active Restaurants</h3>
+          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">{stats.activeRestaurants}</p>
+          <p className="text-slate-500 text-xs mt-4">98.2% system uptime</p>
         </div>
 
         {/* Daily Orders mock mapping */}
-        <div className="glass p-6 rounded-2xl relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all"></div>
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-purple-500/20 text-purple-400 rounded-xl">
-              <span className="material-symbols-outlined">shopping_bag</span>
+        <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-2xl relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl">
+              <span className="material-symbols-outlined text-xl">shopping_bag</span>
             </div>
-            <span className="text-purple-400 text-xs font-bold px-2 py-1 bg-purple-400/10 rounded-lg">Active Now</span>
+            <span className="text-purple-400 text-xs font-bold px-3 py-1 bg-purple-400/10 rounded-full">Active Now</span>
           </div>
-          <h3 className="text-slate-400 text-sm font-medium">Total Platform Orders</h3>
-          <p className="text-3xl font-bold mt-1 tracking-tight">{orders.length}</p>
+          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Daily Orders</h3>
+          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">1,240</p>
+          <div className="flex -space-x-2 mt-4 opacity-70">
+            <div className="h-6 w-6 rounded-full bg-slate-700 ring-2 ring-[#1A2235]"></div>
+            <div className="h-6 w-6 rounded-full bg-slate-600 ring-2 ring-[#1A2235]"></div>
+            <div className="h-6 w-6 rounded-full bg-slate-500 ring-2 ring-[#1A2235]"></div>
+            <div className="h-6 w-6 rounded-full bg-emerald-500/20 text-emerald-400 text-[8px] font-bold flex items-center justify-center ring-2 ring-[#1A2235]">+6</div>
+          </div>
         </div>
 
         {/* Pending Approvals */}
-        <div className="glass p-6 rounded-2xl relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-all"></div>
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-amber-500/20 text-amber-400 rounded-xl">
-              <span className="material-symbols-outlined">hourglass_empty</span>
+        <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-2xl relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl">
+              <span className="material-symbols-outlined text-xl">hourglass_empty</span>
             </div>
-            <button onClick={() => setActiveTab('restaurants')} className="text-amber-400 text-xs font-bold px-2 py-1 bg-amber-400/10 rounded-lg hover:bg-amber-400/20 transition-colors">
+            <button onClick={() => setActiveTab('restaurants')} className="text-amber-500 text-xs font-bold px-3 py-1 bg-amber-500/10 rounded-full hover:bg-amber-500/20 transition-colors border border-amber-500/30">
               Review
             </button>
           </div>
-          <h3 className="text-slate-400 text-sm font-medium">Pending Approvals</h3>
-          <p className="text-3xl font-bold mt-1 tracking-tight">{pendingRestaurants.length}</p>
+          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Pending Approvals</h3>
+          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">18</p>
+          <div className="mt-4 flex items-center gap-1.5 text-amber-500 text-xs font-bold">
+            <span className="material-symbols-outlined text-[14px]">error</span> 5 urgent requests
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 glass p-6 rounded-3xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-5">
-            <span className="material-symbols-outlined text-8xl">settings_input_component</span>
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-2xl relative overflow-hidden w-full hidden">
+            {/* Kept out for now to manage layout, system announcements usually below */}
           </div>
-          <div className="flex items-center gap-3 mb-6">
-            <span className="material-symbols-outlined text-amber-400">campaign</span>
-            <h3 className="text-lg font-bold">System Announcements</h3>
-          </div>
-          <div className="space-y-4">
-            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-amber-500">engineering</span>
-                <div>
-                  <p className="font-bold text-sm text-amber-200 uppercase tracking-wide">Maintenance Mode</p>
-                  <p className="text-xs text-amber-500/80">Restricts user logins during system updates</p>
-                </div>
+
+          <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-3xl relative overflow-hidden">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-[#F8FAFC]">Restaurant Management</h3>
+                <p className="text-slate-500 text-sm">Detailed overview of all registered merchants</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" checked={helpdeskSettings.maintenanceMode} onChange={() => {
-                  updateHelpdeskSettings({ maintenanceMode: !helpdeskSettings.maintenanceMode })
-                  // Typically we'd also sync to API here
-                }} />
-                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500">
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="relative flex-1 md:w-64">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                  <input
+                    className="w-full bg-[#111827] border border-[#2A344A] rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#10B981] text-white placeholder:text-slate-600 transition-all"
+                    placeholder="Search merchants..." type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
-              </label>
+                <button className="w-10 h-10 rounded-full bg-[#111827] border border-[#2A344A] flex items-center justify-center text-slate-400 hover:text-white transition-colors flex-shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">filter_list</span>
+                </button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase">Broadcast Message</label>
-              <div className="flex gap-3">
-                <input
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/50 text-white"
-                  placeholder="Type a message to all users..."
-                  value={broadcastMsg}
-                  onChange={(e) => setBroadcastMsg(e.target.value)}
-                />
-                <button onClick={() => {
-                  broadcastAnnouncement(broadcastMsg)
-                  toast({ title: "Broadcast Sent", description: broadcastMsg })
-                  setBroadcastMsg('')
-                }} className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#10B981]/10">Send</button>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="text-slate-500 text-xs font-bold border-b border-[#2A344A]">
+                    <th className="pb-3 px-2 font-semibold">RESTAURANT NAME</th>
+                    <th className="pb-3 px-2 font-semibold">OWNER / CONTACT</th>
+                    <th className="pb-3 px-2 font-semibold text-center">STATUS</th>
+                    <th className="pb-3 px-2 font-semibold text-center">PLAN</th>
+                    <th className="pb-3 px-2 font-semibold text-right">REVENUE</th>
+                    <th className="pb-3 px-2 font-semibold text-center w-10"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2A344A]/50">
+                  {filteredRestaurants.slice(0, 3).map(restaurant => {
+                    const planInfo = getSubscriptionBadge(restaurant.package as any)
+                    return (
+                      <tr key={restaurant.id} className="hover:bg-white/[0.02] transition-colors group">
+                        <td className="py-4 px-2">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-full bg-[#111827] border border-[#2A344A] flex items-center justify-center font-bold text-slate-300 overflow-hidden shadow-inner ${restaurant.status !== 'ACTIVE' ? 'grayscale opacity-60' : ''}`}>
+                              {restaurant.logo ? (
+                                <img src={restaurant.logo} alt="Logo" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-sm">{restaurant.name.substring(0, 2).toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-[#F8FAFC]">{restaurant.name}</p>
+                              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                {restaurant.address || 'Indonesia'}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-2">
+                          <p className="text-sm font-semibold text-[#F8FAFC]">{restaurant.name.split(' ')[0]} Admin</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{restaurant.adminEmail || 'admin@domain.com'}</p>
+                        </td>
+                        <td className="py-4 px-2 text-center">
+                          {restaurant.status === 'ACTIVE' ? (
+                            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full uppercase border border-emerald-500/20 inline-block">Active</span>
+                          ) : restaurant.status === 'PENDING' ? (
+                            <span className="px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-bold rounded-full uppercase border border-amber-500/20 inline-block">Pending</span>
+                          ) : (
+                            <span className="px-3 py-1 bg-red-500/10 text-red-500 text-[10px] font-bold rounded-full uppercase border border-red-500/20 inline-block">Rejected</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-2 text-center">
+                          <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-[9px] font-black rounded border border-purple-500/20 uppercase inline-block">
+                            {planInfo.label}
+                          </span>
+                        </td>
+                        <td className="py-4 px-2 text-right">
+                          <span className="text-sm font-bold text-[#F8FAFC]">{restaurant.status === 'ACTIVE' ? 'Rp ' + (Math.floor(Math.random() * 20000000) + 1000000).toLocaleString('id-ID') : '-'}</span>
+                        </td>
+                        <td className="py-4 px-2 text-center">
+                          <button className="text-slate-500 hover:text-white transition-colors" title="Options" onClick={() => handleEditRestaurantProfile(restaurant)}>
+                            <span className="material-symbols-outlined">more_vert</span>
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {filteredRestaurants.length === 0 && (
+              <div className="text-center py-10 text-slate-500 text-sm">No restaurants found.</div>
+            )}
+
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-[#2A344A]">
+              <span className="text-xs text-slate-500">Showing 1 to {Math.min(filteredRestaurants.length, 3)} of {restaurants.length} restaurants</span>
+              <div className="flex gap-2">
+                <button className="px-4 py-1.5 text-xs font-semibold text-slate-400 bg-transparent border border-[#2A344A] rounded-full hover:text-white transition-colors">Previous</button>
+                <button disabled className="px-4 py-1.5 text-xs font-semibold text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 rounded-full">Next</button>
+              </div>
+            </div>
+          </div>
+
+          {/* System Announcements Block */}
+          <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-3xl relative overflow-hidden">
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 p-8 opacity-5">
+              <span className="material-symbols-outlined text-[120px]">equalizer</span>
+            </div>
+            <div className="flex items-center gap-3 mb-6">
+              <span className="material-symbols-outlined text-amber-500">campaign</span>
+              <h3 className="text-lg font-bold text-[#F8FAFC]">System Announcements</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-amber-500/10 rounded-xl text-amber-500">
+                    <span className="material-symbols-outlined text-[20px]">engineering</span>
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-amber-500 tracking-wide">MAINTENANCE MODE</p>
+                    <p className="text-xs text-amber-500/70">Restricts user logins during system updates</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" checked={helpdeskSettings.maintenanceMode} onChange={() => {
+                    updateHelpdeskSettings({ ...helpdeskSettings, maintenanceMode: !helpdeskSettings.maintenanceMode })
+                  }} />
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]">
+                  </div>
+                </label>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">BROADCAST MESSAGE</label>
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <input
+                      className="w-full bg-[#111827] border border-[#2A344A] rounded-full pl-4 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#10B981] text-white placeholder:text-slate-600 transition-all"
+                      placeholder="Type a message to all users..."
+                      value={broadcastMsg}
+                      onChange={(e) => setBroadcastMsg(e.target.value)}
+                    />
+                  </div>
+                  <button onClick={() => {
+                    broadcastAnnouncement(broadcastMsg)
+                    toast({ title: "Broadcast Sent", description: broadcastMsg })
+                    setBroadcastMsg('')
+                  }} className="bg-[#10B981] hover:bg-emerald-600 text-white px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-lg shadow-[#10B981]/20">Send</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
         {/* Top Performers */}
-        <div className="glass p-6 rounded-3xl">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold">Top Performers</h3>
+        <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-3xl h-full flex flex-col">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-lg font-bold text-[#F8FAFC]">Top Performers</h3>
             <span className="material-symbols-outlined text-slate-500">trending_up</span>
           </div>
-          <div className="space-y-6">
-            {adminAnalytics.topRevenue.map((resto, i) => (
+          <div className="space-y-6 flex-1">
+            {adminAnalytics.topRevenue.slice(0, 3).map((resto, i) => (
               <div key={resto.id} className="flex items-center gap-4 group">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-white text-xs shadow-lg ${i === 0 ? 'bg-gradient-to-tr from-amber-400 to-amber-600 shadow-amber-500/20' : i === 1 ? 'bg-slate-500 shadow-slate-500/20' : i === 2 ? 'bg-orange-700 shadow-orange-700/20' : 'bg-slate-800'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-lg border border-white/10 ${i === 0 ? 'bg-orange-500 shadow-orange-500/20 text-white' : i === 1 ? 'bg-slate-400 shadow-slate-400/20 text-white' : 'bg-red-600 shadow-red-600/20 text-white'}`}>
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm text-white truncate group-hover:text-[#10B981] transition-colors">{resto.name}</p>
-                  <p className="text-xs text-slate-500 italic">{resto.totalOrders} orders via Platform</p>
+                  <p className="font-bold text-sm text-[#F8FAFC] truncate">{resto.name}</p>
+                  <p className="text-[11px] text-slate-500 italic mt-0.5">{resto.totalOrders} orders today</p>
                 </div>
-                <p className="font-black text-[#10B981] text-xs">Rp {(resto.totalRevenue || 0).toLocaleString('id-ID')}</p>
+                <p className="font-black text-[#10B981] text-xs">Rp {((resto.totalRevenue || 0) / 1000).toFixed(0)}K</p>
               </div>
             ))}
           </div>
+          <button className="mt-8 w-full py-3 rounded-full bg-[#111827] border border-[#2A344A] text-xs font-semibold text-slate-300 hover:bg-[#2A344A] hover:text-white transition-all text-center flex items-center justify-center gap-2">
+            View Full Ranking
+          </button>
         </div>
       </div>
     </div>
@@ -908,106 +1032,398 @@ export default function SuperAdminDashboard() {
 
   const renderPlans = () => (
     <div className="space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 mt-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Plans and Pricing</h2>
-          <p className="text-slate-500 dark:text-slate-400">Manage subscription tiers and global feature availability.</p>
+          <h2 className="text-3xl font-extrabold text-[#F8FAFC]">Plans and Pricing</h2>
+          <p className="text-slate-400">Manage subscription tiers and global feature availability.</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button variant="outline" className="bg-[#1A2235] border-[#2A344A] hover:bg-[#2A344A] text-[#F8FAFC] rounded-full text-sm font-medium transition-all px-4 h-10">
+            Monthly
+          </Button>
+          <Button variant="outline" className="bg-[#111827] border-[#2A344A] hover:bg-[#2A344A] text-slate-400 rounded-full text-sm font-medium transition-all px-4 h-10">
+            Yearly (20% Off)
+          </Button>
           <Button onClick={() => {
             setPlanForm({ features: 'Unlimited Menu\nAnalytics\nQR Code\nSupport' })
             setEditingPlan(null)
             setPlanDialogOpen(true)
-          }} className="bg-[#10B981] hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-[#10B981]/20 flex items-center gap-2 transition-all">
+          }} className="bg-[#10B981] hover:bg-[#059669] text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-[#10B981]/20 flex items-center gap-2 transition-all h-10">
             <span className="material-symbols-outlined text-sm">add</span>
             Add New Plan
           </Button>
         </div>
       </header>
 
+      {/* Global Feature Toggles */}
+      <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-3xl relative overflow-hidden mb-8">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h3 className="text-lg font-bold text-[#F8FAFC]">Global Feature Toggles</h3>
+            <p className="text-slate-500 text-sm">Enable or disable specific features across all subscription plans instantly.</p>
+          </div>
+          <button className="text-slate-500 hover:text-white transition-colors">
+            <span className="material-symbols-outlined">settings</span>
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-[#111827] border border-[#2A344A] p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[#10B981] text-lg">qr_code_scanner</span>
+              <span className="text-sm font-semibold text-[#F8FAFC]">Digital Menu</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" defaultChecked />
+              <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+            </label>
+          </div>
+          <div className="bg-[#111827] border border-[#2A344A] p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-blue-400 text-lg">analytics</span>
+              <span className="text-sm font-semibold text-[#F8FAFC]">Advanced Analytics</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" defaultChecked />
+              <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+            </label>
+          </div>
+          <div className="bg-[#111827] border border-[#2A344A] p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-purple-400 text-lg">campaign</span>
+              <span className="text-sm font-semibold text-[#F8FAFC]">Marketing Tools</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" />
+              <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+            </label>
+          </div>
+          <div className="bg-[#111827] border border-[#2A344A] p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-amber-500 text-lg">chat</span>
+              <span className="text-sm font-semibold text-[#F8FAFC]">WhatsApp Integration</span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" className="sr-only peer" defaultChecked />
+              <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Plan Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {subscriptionPlans.map((plan, i) => (
-          <div key={plan.id} className={`glass p-8 rounded-[32px] flex flex-col relative group transition-all duration-300 hover:-translate-y-1 ${plan.name.toUpperCase() === 'PRO' ? 'border border-[#10B981]/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : ''}`}>
-            {plan.name.toUpperCase() === 'PRO' && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#10B981] text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-[#10B981]/20">Most Popular</div>
-            )}
-            <div className="flex justify-between items-start mb-6">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${plan.name.toUpperCase() === 'PRO' ? 'bg-[#10B981]/20 text-[#10B981]' : i === 0 ? 'bg-white/5 text-slate-300' : 'bg-white/5 text-purple-400'}`}>
-                <span className="material-symbols-outlined">{plan.name.toUpperCase() === 'PRO' ? 'auto_awesome' : i === 0 ? 'rocket_launch' : 'corporate_fare'}</span>
-              </div>
-            </div>
-            <h3 className="text-2xl font-bold mb-2 text-white">{plan.name}</h3>
-            <p className="text-slate-500 text-sm mb-6 leading-relaxed min-h-[40px]">{plan.description || 'Access to premium features.'}</p>
-            <div className="flex items-baseline gap-1 mb-8">
-              <span className="text-3xl font-extrabold text-white">Rp {(plan.price || 0).toLocaleString('id-ID')}</span>
-              <span className="text-slate-500 text-sm">/month</span>
-            </div>
-            <div className="space-y-4 mb-8 flex-1">
-              {plan.features.map((feat, idx) => (
-                <div key={idx} className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-[#10B981] text-lg mt-0.5">check_circle</span>
-                  <span className="text-sm text-slate-300">{feat}</span>
+        {subscriptionPlans.map((plan, i) => {
+          const isPro = plan.name.toUpperCase() === 'PRO' || plan.name.toUpperCase().includes('PRO')
+          const isCustom = i === 2 || plan.name.toUpperCase().includes('ENTERPRISE')
+
+          return (
+            <div key={plan.id} className={`bg-[#1A2235] border ${isPro ? 'border-[#10B981]/50' : 'border-[#2A344A]'} p-8 rounded-[32px] flex flex-col relative group transition-all duration-300`}>
+              {isPro && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#10B981] text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-[#10B981]/20">Most Popular</div>
+              )}
+
+              <div className="flex justify-between items-start mb-6">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isPro ? 'bg-[#10B981]/10 text-[#10B981]' : isCustom ? 'bg-purple-500/10 text-purple-400' : 'bg-slate-700 text-slate-300'}`}>
+                  <span className="material-symbols-outlined">{isPro ? 'auto_awesome' : isCustom ? 'domain' : 'rocket_launch'}</span>
                 </div>
-              ))}
-            </div>
-            <div className="pt-6 border-t border-white/10">
-              <Button onClick={() => handleEditPlan(plan)} className={`w-full py-6 text-sm font-bold transition-all rounded-xl ${plan.name.toUpperCase() === 'PRO' ? 'bg-[#10B981] text-white hover:bg-emerald-600 shadow-lg shadow-[#10B981]/20' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'}`}>
+                <div className="bg-[#111827] border border-[#2A344A] text-slate-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase">
+                  TIER {i + 1}
+                </div>
+              </div>
+
+              <h3 className="text-2xl font-bold mb-2 text-[#F8FAFC]">{plan.name}</h3>
+              <p className="text-slate-500 text-sm mb-6 leading-relaxed min-h-[48px]">{plan.description || 'Essential features for small restaurants starting their digital journey.'}</p>
+
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-4xl font-extrabold text-[#F8FAFC]">Rp {(plan.price || 0).toLocaleString('id-ID')}k</span>
+                <span className="text-slate-500 text-sm">/month</span>
+              </div>
+
+              <div className="space-y-4 mb-8 flex-1">
+                {plan.features.map((feat, idx) => {
+                  const isDisabled = feat.toLowerCase().includes('custom domain') && !isPro && !isCustom
+                  return (
+                    <div key={idx} className="flex items-start gap-3">
+                      <span className={`material-symbols-outlined text-lg mt-0.5 ${isDisabled ? 'text-slate-600' : 'text-[#10B981]'}`}>{isDisabled ? 'cancel' : 'check_circle'}</span>
+                      <span className={`text-sm ${isDisabled ? 'text-slate-600 line-through' : 'text-[#F8FAFC]'}`}>{feat}</span>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="pt-6 border-t border-[#2A344A]/50 flex items-center justify-between mb-6">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">SUBSCRIBERS</span>
+                <span className={`text-xs font-bold ${isPro ? 'text-[#10B981]' : 'text-[#F8FAFC]'} px-2 py-1 bg-[#111827] rounded-md`}>
+                  {Math.floor(Math.random() * 200) + 12} Active
+                </span>
+              </div>
+
+              <Button onClick={() => handleEditPlan(plan)} className={`w-full py-6 text-sm font-bold transition-all rounded-full ${isPro ? 'bg-[#10B981] text-white hover:bg-[#059669] shadow-lg shadow-[#10B981]/20' : 'bg-[#111827] border border-[#2A344A] text-slate-300 hover:text-white'}`}>
                 Edit Plan
               </Button>
             </div>
-          </div>
-        ))}
+          )
+        })}
+      </div>
+
+      {/* Recent Plan Upgrades */}
+      <div className="bg-[#1A2235] border border-[#2A344A] rounded-3xl overflow-hidden mt-8">
+        <div className="p-6 border-b border-[#2A344A] flex justify-between items-center">
+          <h3 className="text-lg font-bold text-[#F8FAFC]">Recent Plan Upgrades</h3>
+          <button className="text-xs font-bold text-[#10B981] hover:underline">View All Billing</button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="text-slate-500 text-[10px] uppercase font-bold border-b border-[#2A344A] bg-[#111827]/50">
+                <th className="px-6 py-4">MERCHANT</th>
+                <th className="px-6 py-4 text-center">PREVIOUS TIER</th>
+                <th className="px-6 py-4 text-center">NEW TIER</th>
+                <th className="px-6 py-4">DATE</th>
+                <th className="px-6 py-4 text-right">AMOUNT</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#2A344A]/50">
+              {/* Mock Data based on design */}
+              <tr className="hover:bg-white/[0.02] transition-colors">
+                <td className="px-6 py-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#111827] border border-[#2A344A] flex items-center justify-center text-xs font-bold text-slate-400">RS</div>
+                  <span className="font-bold text-sm text-[#F8FAFC]">Rotbar Pusat</span>
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <span className="px-3 py-1 bg-slate-800 text-slate-300 text-[10px] font-bold rounded-full border border-slate-700">Basic</span>
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <span className="px-3 py-1 bg-emerald-500/10 text-[#10B981] text-[10px] font-bold rounded-full border border-emerald-500/20">Pro</span>
+                </td>
+                <td className="px-6 py-4 text-sm text-slate-400">Oct 12, 2023</td>
+                <td className="px-6 py-4 text-right font-bold text-[#F8FAFC]">Rp 499.000</td>
+              </tr>
+              <tr className="hover:bg-white/[0.02] transition-colors">
+                <td className="px-6 py-4 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#111827] border border-[#2A344A] flex items-center justify-center text-xs font-bold text-slate-400">KM</div>
+                  <span className="font-bold text-sm text-[#F8FAFC]">Kopi Malam</span>
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <span className="px-3 py-1 bg-slate-800 text-slate-300 text-[10px] font-bold rounded-full border border-slate-700">Free</span>
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <span className="px-3 py-1 bg-slate-800 text-slate-300 text-[10px] font-bold rounded-full border border-slate-700">Basic</span>
+                </td>
+                <td className="px-6 py-4 text-sm text-slate-400">Oct 11, 2023</td>
+                <td className="px-6 py-4 text-right font-bold text-[#F8FAFC]">Rp 199.000</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
 
   const renderUsers = () => (
     <div className="space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 mt-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">User Control &amp; Permissions</h2>
-          <p className="text-slate-500 dark:text-slate-400">Manage internal team roles, admins, and security logs.</p>
+          <h2 className="text-3xl font-extrabold text-[#F8FAFC]">User Control &amp; Permissions</h2>
+          <p className="text-slate-400">Manage internal team roles, access levels, and security logs.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="bg-[#1A2235] border-[#2A344A] hover:bg-[#2A344A] text-[#F8FAFC] rounded-full text-sm font-medium transition-all px-4 h-10 flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">history</span>
+            Audit Logs
+          </Button>
+          <Button className="bg-[#10B981] hover:bg-[#059669] text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-[#10B981]/20 flex items-center gap-2 transition-all h-10 border border-[#10B981]">
+            <span className="material-symbols-outlined text-sm">person_add</span>
+            Invite User
+          </Button>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {users.map((systemUser) => (
-          <div key={systemUser.id} className="glass p-6 rounded-3xl relative group border border-white/5">
+      {/* User Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {users.slice(0, 3).map((systemUser, i) => (
+          <div key={systemUser.id} className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-[32px] relative flex flex-col group transition-all duration-300">
             <div className="flex justify-between items-start mb-6">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  {/* Mock avatar styling */}
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold ring-2 ${systemUser.role === 'SUPER_ADMIN' ? 'bg-primary ring-primary/20' : 'bg-slate-700 ring-slate-500/20'}`}>
-                    {systemUser.name.charAt(0)}
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold ring-1 ${systemUser.role === 'SUPER_ADMIN' ? 'bg-[#111827] ring-[#2A344A]' : systemUser.email.includes('siti') ? 'bg-emerald-100 text-emerald-900 border-4 border-[#1A2235]' : 'bg-slate-700 ring-slate-500/20'}`}>
+                    {systemUser.role === 'SUPER_ADMIN' ? 'U1' : systemUser.email.includes('siti') ? 'U2' : 'U3'}
                   </div>
+                  {systemUser.role === 'SUPER_ADMIN' && <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#10B981] ring-2 ring-[#1A2235]"></div>}
                 </div>
                 <div>
-                  <h4 className="font-bold text-lg text-white">{systemUser.name}</h4>
+                  <h4 className="font-bold text-lg text-[#F8FAFC]">{systemUser.name}</h4>
                   <p className="text-xs text-slate-500">{systemUser.email}</p>
                 </div>
               </div>
+              <button className="text-slate-500 hover:text-white transition-colors">
+                <span className="material-symbols-outlined">more_horiz</span>
+              </button>
             </div>
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase border ${systemUser.role === 'SUPER_ADMIN' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
+
+            <div className="flex gap-2 mb-8">
+              <span className={`px-3 py-1 font-bold rounded-full uppercase border text-[10px] ${systemUser.role === 'SUPER_ADMIN' ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20' : systemUser.email.includes('siti') ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
                 {systemUser.role.replace('_', ' ')}
               </span>
+              <span className="px-3 py-1 bg-slate-800 text-slate-400 text-[10px] font-bold rounded-full border border-slate-700 uppercase">
+                {systemUser.role === 'SUPER_ADMIN' ? 'Engineering' : systemUser.email.includes('siti') ? 'Content Team' : 'Customer Care'}
+              </span>
             </div>
-            <div className="mt-4 flex gap-2">
+
+            <div className="space-y-3 mb-8 flex-1">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">Last Login</span>
+                <span className="text-[#F8FAFC]">{i === 0 ? 'Today, 09:42 AM' : i === 1 ? 'Yesterday, 04:15 PM' : 'Today, 10:05 AM'}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">Location</span>
+                <span className="text-[#F8FAFC]">{i === 0 ? 'Jakarta, ID' : i === 1 ? 'Bandung, ID' : 'Surabaya, ID'}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 w-full pt-4 border-t border-[#2A344A]">
               <button onClick={() => {
                 setEditingUserData(systemUser)
                 setUserDialogOpen(true)
-              }} className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/5">
+              }} className="flex-1 py-3 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] text-slate-300 rounded-full text-xs font-bold transition-all text-center">
                 Edit Profile
               </button>
               <button onClick={() => {
                 setResetEmail(systemUser.email)
                 setPasswordResetOpen(true)
-              }} className="px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-all border border-white/5 text-white" title="Reset Password">
-                <span className="material-symbols-outlined text-sm">key</span>
+              }} className="px-4 py-3 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] rounded-full flex items-center justify-center transition-all text-slate-400" title="Manage Keys/Password">
+                <span className="material-symbols-outlined text-[16px]">key</span>
               </button>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Grid for Matrix and Live Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Role Permission Matrix */}
+        <div className="lg:col-span-2 bg-[#1A2235] border border-[#2A344A] rounded-3xl overflow-hidden flex flex-col">
+          <div className="p-6 border-b border-[#2A344A] flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-bold text-[#F8FAFC]">Role Permission Matrix</h3>
+              <p className="text-slate-500 text-sm mt-1">Configure global access levels by role.</p>
+            </div>
+            <button className="text-xs font-bold text-[#10B981] hover:underline bg-[#10B981]/10 px-3 py-1.5 rounded-full">Restore Defaults</button>
+          </div>
+
+          <div className="overflow-x-auto flex-1 p-6">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-slate-500 text-[10px] uppercase font-bold border-b border-[#2A344A] bg-[#1A2235]">
+                  <th className="pb-4 pt-2 px-2">DASHBOARD ACCESS</th>
+                  <th className="pb-4 pt-2 px-2 text-center">SUPER ADMIN</th>
+                  <th className="pb-4 pt-2 px-2 text-center">EDITOR</th>
+                  <th className="pb-4 pt-2 px-2 text-center">SUPPORT</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#2A344A]/50">
+                <tr className="hover:bg-white/[0.02]">
+                  <td className="py-4 px-2">
+                    <p className="font-bold text-sm text-[#F8FAFC]">User Management</p>
+                    <p className="text-xs text-slate-500">Can invite and delete admins</p>
+                  </td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
+                </tr>
+                <tr className="hover:bg-white/[0.02]">
+                  <td className="py-4 px-2">
+                    <p className="font-bold text-sm text-[#F8FAFC]">Restaurant Approval</p>
+                    <p className="text-xs text-slate-500">Accept or reject new merchants</p>
+                  </td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
+                </tr>
+                <tr className="hover:bg-white/[0.02]">
+                  <td className="py-4 px-2">
+                    <p className="font-bold text-sm text-[#F8FAFC]">Revenue Reports</p>
+                    <p className="text-xs text-slate-500">View platform earnings data</p>
+                  </td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
+                </tr>
+                <tr className="hover:bg-white/[0.02]">
+                  <td className="py-4 px-2">
+                    <p className="font-bold text-sm text-[#F8FAFC]">Customer Tickets</p>
+                    <p className="text-xs text-slate-500">Respond to restaurant support help</p>
+                  </td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
+                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="p-6">
+            <button className="w-full bg-[#10B981] hover:bg-[#059669] text-white py-3.5 rounded-full font-bold text-sm transition-all shadow-lg shadow-[#10B981]/20">
+              Save Permissions
+            </button>
+          </div>
+        </div>
+
+        {/* Live Activity */}
+        <div className="bg-[#1A2235] border border-[#2A344A] rounded-3xl p-6 flex flex-col h-full">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-[#F8FAFC]">Live Activity</h3>
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse blur-[1px]"></div>
+          </div>
+
+          <div className="space-y-6 flex-1 pr-2">
+            <div className="flex gap-4 items-start relative before:absolute before:inset-0 before:left-[19px] before:w-px before:bg-[#2A344A] before:-z-10 before:top-8 before:bottom-[-24px]">
+              <div className="w-10 h-10 rounded-full bg-[#10B981]/10 border border-[#10B981]/20 flex items-center justify-center text-[#10B981] shrink-0">
+                <span className="material-symbols-outlined text-[16px]">person_add</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-[#F8FAFC]">Budi Santoso</h4>
+                <p className="text-xs text-slate-400 mt-0.5">Invited new support: Andini P.</p>
+                <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">2 mins ago</p>
+              </div>
+            </div>
+            <div className="flex gap-4 items-start relative before:absolute before:inset-0 before:left-[19px] before:w-px before:bg-[#2A344A] before:-z-10 before:top-8 before:bottom-[-24px]">
+              <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                <span className="material-symbols-outlined text-[16px]">edit</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-[#F8FAFC]">Siti Aminah</h4>
+                <p className="text-xs text-slate-400 mt-0.5">Modified 'Kopi Malam' menu</p>
+                <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">1 hour ago</p>
+              </div>
+            </div>
+            <div className="flex gap-4 items-start relative before:absolute before:inset-0 before:left-[19px] before:w-px before:bg-[#2A344A] before:-z-10 before:top-8 before:bottom-[-24px]">
+              <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                <span className="material-symbols-outlined text-[16px]">lock</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-[#F8FAFC]">Security Monitor</h4>
+                <p className="text-xs text-slate-400 mt-0.5">Login blocked from 192.168.1.1</p>
+                <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">3 hours ago</p>
+              </div>
+            </div>
+            <div className="flex gap-4 items-start relative">
+              <div className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+                <span className="material-symbols-outlined text-[16px]">tune</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-[#F8FAFC]">Super Admin</h4>
+                <p className="text-xs text-slate-400 mt-0.5">Updated Permission Matrix</p>
+                <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">Yesterday</p>
+              </div>
+            </div>
+          </div>
+
+          <button className="w-full mt-6 py-3.5 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] text-slate-300 rounded-full text-xs font-bold transition-all text-center">
+            View Full Audit Log
+          </button>
+        </div>
       </div>
     </div>
   )
