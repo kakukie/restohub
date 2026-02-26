@@ -1210,10 +1210,10 @@ export default function SuperAdminDashboard() {
         {activeTab === 'settings' && renderSettings()}
 
         <Dialog open={passwordResetOpen} onOpenChange={setPasswordResetOpen}>
-          <DialogContent>
+          <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white">
             <DialogHeader>
               <DialogTitle>Reset User Password</DialogTitle>
-              <DialogDescription>Enter user email and new password</DialogDescription>
+              <DialogDescription className="dark:text-slate-400">Enter user email and new password</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -1250,53 +1250,56 @@ export default function SuperAdminDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* Restaurant Edit Dialog */}
         <Dialog open={restaurantDialogOpen} onOpenChange={setRestaurantDialogOpen}>
-          <DialogContent className="max-h-[95vh] flex flex-col">
+          <DialogContent className="max-h-[95vh] flex flex-col dark:bg-slate-900 dark:border-slate-800 dark:text-white">
             <DialogHeader>
               <DialogTitle>{editingRestaurant ? 'Edit Restaurant' : 'Add New Restaurant'}</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="dark:text-slate-400">
                 {editingRestaurant ? 'Update restaurant details' : 'Create a new restaurant profile'}
               </DialogDescription>
             </DialogHeader>
             <ScrollArea className="h-[65vh] pr-4">
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Restaurant Name</Label>
+                  <Label className="dark:text-white">Restaurant Name</Label>
                   <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                     value={restaurantForm.name || ''}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, name: e.target.value })}
                     placeholder="e.g. Warung Nusantara"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description</Label>
+                  <Label className="dark:text-white">Description</Label>
                   <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                     value={restaurantForm.description || ''}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, description: e.target.value })}
                     placeholder="Brief description"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Slug (Auto-generated)</Label>
+                  <Label className="dark:text-white">Slug (Auto-generated)</Label>
                   <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 cursor-not-allowed bg-gray-100"
                     value={restaurantForm.slug || ''}
                     disabled={true}
-                    className="bg-gray-100 text-gray-500 cursor-not-allowed"
                     placeholder="Auto-generated"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Address</Label>
+                  <Label className="dark:text-white">Address</Label>
                   <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                     value={restaurantForm.address || ''}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, address: e.target.value })}
                     placeholder="Full address"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Phone</Label>
+                  <Label className="dark:text-white">Phone</Label>
                   <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                     value={restaurantForm.phone || ''}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, phone: e.target.value })}
                     placeholder="Contact number"
@@ -1304,8 +1307,9 @@ export default function SuperAdminDashboard() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Max Menu Items (0 = Unlimited)</Label>
+                    <Label className="dark:text-white">Max Menu Items (0 = Unlimited)</Label>
                     <Input
+                      className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                       type="number"
                       value={restaurantForm.maxMenuItems || ''}
                       onChange={(e) => setRestaurantForm({ ...restaurantForm, maxMenuItems: parseInt(e.target.value) || 0 })}
@@ -1313,8 +1317,9 @@ export default function SuperAdminDashboard() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Max Admins (0 = Unlimited)</Label>
+                    <Label className="dark:text-white">Max Admins (0 = Unlimited)</Label>
                     <Input
+                      className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                       type="number"
                       value={restaurantForm.maxAdmins || ''}
                       onChange={(e) => setRestaurantForm({ ...restaurantForm, maxAdmins: parseInt(e.target.value) || 0 })}
@@ -1322,8 +1327,9 @@ export default function SuperAdminDashboard() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Max Staff (0 = Unlimited)</Label>
+                    <Label className="dark:text-white">Max Staff (0 = Unlimited)</Label>
                     <Input
+                      className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                       type="number"
                       value={restaurantForm.maxStaff || ''}
                       onChange={(e) => setRestaurantForm({ ...restaurantForm, maxStaff: parseInt(e.target.value) || 0 })}
@@ -1331,8 +1337,9 @@ export default function SuperAdminDashboard() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Max Categories (0 = Unlimited)</Label>
+                    <Label className="dark:text-white">Max Categories (0 = Unlimited)</Label>
                     <Input
+                      className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                       type="number"
                       value={restaurantForm.maxCategories || ''}
                       onChange={(e) => setRestaurantForm({ ...restaurantForm, maxCategories: parseInt(e.target.value) || 0 })}
@@ -1344,16 +1351,17 @@ export default function SuperAdminDashboard() {
                   <input
                     type="checkbox"
                     id="allowBranches"
-                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-slate-700 dark:bg-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white"
                     checked={restaurantForm.allowBranches || false}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, allowBranches: e.target.checked })}
                   />
-                  <Label htmlFor="allowBranches" className="cursor-pointer">Allow Multi-Branch?</Label>
+                  <Label htmlFor="allowBranches" className="cursor-pointer dark:text-white">Allow Multi-Branch?</Label>
                 </div>
                 {restaurantForm.allowBranches && (
                   <div className="space-y-2 ml-6">
-                    <Label>Max Branches (0 = Unlimited)</Label>
+                    <Label className="dark:text-white">Max Branches (0 = Unlimited)</Label>
                     <Input
+                      className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                       type="number"
                       value={restaurantForm.maxBranches || 0}
                       onChange={(e) => setRestaurantForm({ ...restaurantForm, maxBranches: parseInt(e.target.value) || 0 })}
@@ -1365,47 +1373,50 @@ export default function SuperAdminDashboard() {
                   <input
                     type="checkbox"
                     id="allowMaps"
-                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-slate-700 dark:bg-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white"
                     checked={restaurantForm.allowMaps || false}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, allowMaps: e.target.checked })}
                   />
-                  <Label htmlFor="allowMaps" className="cursor-pointer">Allow Google Maps?</Label>
+                  <Label htmlFor="allowMaps" className="cursor-pointer dark:text-white">Allow Google Maps?</Label>
                 </div>
                 <div className="flex items-center space-x-2 py-2">
                   <input
                     type="checkbox"
                     id="enableAnalytics"
-                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-slate-700 dark:bg-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white"
                     checked={restaurantForm.enableAnalytics || false}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, enableAnalytics: e.target.checked })}
                   />
-                  <Label htmlFor="enableAnalytics" className="cursor-pointer">Enable Advanced Analytics?</Label>
+                  <Label htmlFor="enableAnalytics" className="cursor-pointer dark:text-white">Enable Advanced Analytics?</Label>
                 </div>
                 <div className="space-y-2">
-                  <Label>Max Categories (0 = Unlimited)</Label>
+                  <Label className="dark:text-white">Max Categories (0 = Unlimited)</Label>
                   <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                     type="number"
                     value={restaurantForm.maxCategories ?? 10}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, maxCategories: parseInt(e.target.value) })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Max Slug Changes</Label>
+                  <Label className="dark:text-white">Max Slug Changes</Label>
                   <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                     type="number"
                     value={restaurantForm.maxSlugChanges ?? 3}
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, maxSlugChanges: parseInt(e.target.value) })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Restaurant Logo</Label>
+                  <Label className="dark:text-white">Restaurant Logo</Label>
                   <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
                     type="file"
                     accept="image/*"
                     onChange={(e) => handleImageUpload(e, (base64) => setRestaurantForm({ ...restaurantForm, logo: base64 }))}
                   />
                   {restaurantForm.logo && (
-                    <div className="mt-2 w-20 h-20 border rounded overflow-hidden relative">
+                    <div className="mt-2 w-20 h-20 border dark:border-slate-700 rounded overflow-hidden relative">
                       <Image src={restaurantForm.logo} alt="Preview" fill className="object-cover" />
                     </div>
                   )}
@@ -1413,7 +1424,7 @@ export default function SuperAdminDashboard() {
               </div>
             </ScrollArea>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setRestaurantDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800 dark:text-white" onClick={() => setRestaurantDialogOpen(false)}>Cancel</Button>
               <Button onClick={handleSaveRestaurant}>{editingRestaurant ? 'Update' : 'Create'}</Button>
             </DialogFooter>
           </DialogContent>
@@ -1421,35 +1432,35 @@ export default function SuperAdminDashboard() {
 
         {/* Subscription Edit Dialog */}
         <Dialog open={subscriptionDialogOpen} onOpenChange={setSubscriptionDialogOpen}>
-          <DialogContent>
+          <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white">
             <DialogHeader>
               <DialogTitle>Edit Subscription Plan</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="dark:text-slate-400">
                 Change subscription plan for {editingSubscription?.name}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Select Plan</Label>
+                <Label className="dark:text-white">Select Plan</Label>
                 <Select value={newSubscriptionType} onValueChange={(val) => setNewSubscriptionType(val as any)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                     <SelectValue placeholder="Select a plan" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                     {subscriptionPlans.map(plan => (
-                      <SelectItem key={plan.id} value={plan.id}>
+                      <SelectItem key={plan.id} value={plan.id} className="dark:focus:bg-slate-700">
                         {plan.name} - Rp {plan.price.toLocaleString('id-ID')}/month
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="text-sm text-gray-500">
-                Current Plan: <span className="font-semibold">{editingSubscription?.package}</span>
+              <div className="text-sm text-gray-500 dark:text-slate-400">
+                Current Plan: <span className="font-semibold text-slate-900 dark:text-white">{editingSubscription?.package}</span>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setSubscriptionDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800 dark:text-white" onClick={() => setSubscriptionDialogOpen(false)}>Cancel</Button>
               <Button onClick={handleUpdateSubscription}>Update Plan</Button>
             </DialogFooter>
           </DialogContent>
@@ -1457,47 +1468,52 @@ export default function SuperAdminDashboard() {
 
         {/* Plan Edit Dialog */}
         <Dialog open={planDialogOpen} onOpenChange={setPlanDialogOpen}>
-          <DialogContent>
+          <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white">
             <DialogHeader>
               <DialogTitle>Edit Plan: {editingPlan?.name}</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="dark:text-slate-400">
                 Modify subscription plan details
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Plan Name</Label>
+                <Label className="dark:text-white">Plan Name</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   value={planForm.name || ''}
                   onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Price (Rp)</Label>
+                <Label className="dark:text-white">Price (Rp)</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   type="number"
                   value={planForm.price || ''}
                   onChange={(e) => setPlanForm({ ...planForm, price: Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Menu Limit</Label>
+                <Label className="dark:text-white">Menu Limit</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   type="number"
                   value={planForm.menuLimit || ''}
                   onChange={(e) => setPlanForm({ ...planForm, menuLimit: Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Description</Label>
+                <Label className="dark:text-white">Description</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   value={planForm.description || ''}
                   onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Category Limit</Label>
+                <Label className="dark:text-white">Category Limit</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   type="number"
                   value={planForm.maxCategories || ''}
                   onChange={(e) => setPlanForm({ ...planForm, maxCategories: Number(e.target.value) })}
@@ -1505,9 +1521,9 @@ export default function SuperAdminDashboard() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Features (One per line)</Label>
+                <Label className="dark:text-white">Features (One per line)</Label>
                 <textarea
-                  className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-[100px] w-full rounded-md border border-input dark:border-slate-700 dark:bg-slate-800 bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-slate-900 dark:text-white"
                   value={typeof planForm.features === 'string' ? planForm.features : ''}
                   onChange={(e) => setPlanForm({ ...planForm, features: e.target.value })}
                   placeholder="50 Menu Items&#10;Basic Analytics&#10;Email Support"
@@ -1515,7 +1531,7 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setPlanDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800 dark:text-white" onClick={() => setPlanDialogOpen(false)}>Cancel</Button>
               <Button onClick={handleSavePlan}>Save Plan</Button>
             </DialogFooter>
           </DialogContent>
@@ -1523,47 +1539,50 @@ export default function SuperAdminDashboard() {
 
         {/* User Edit Dialog */}
         <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
-          <DialogContent>
+          <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white">
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="dark:text-slate-400">
                 Update user details
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Name</Label>
+                <Label className="dark:text-white">Name</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   value={editingUserData?.name || ''}
                   onChange={(e) => setEditingUserData(prev => prev ? { ...prev, name: e.target.value } : null)}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label className="dark:text-white">Email</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   value={editingUserData?.email || ''}
                   onChange={(e) => setEditingUserData(prev => prev ? { ...prev, email: e.target.value } : null)}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label className="dark:text-white">Role</Label>
                 <Select
                   value={editingUserData?.role || ''}
                   onValueChange={(val) => setEditingUserData(prev => prev ? { ...prev, role: val } : null)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:bg-slate-800 dark:border-slate-700 dark:text-white">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-                    <SelectItem value="RESTAURANT_ADMIN">Restaurant Admin</SelectItem>
-                    <SelectItem value="CUSTOMER">Customer</SelectItem>
+                  <SelectContent className="dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                    <SelectItem value="SUPER_ADMIN" className="dark:focus:bg-slate-700">Super Admin</SelectItem>
+                    <SelectItem value="RESTAURANT_ADMIN" className="dark:focus:bg-slate-700">Restaurant Admin</SelectItem>
+                    <SelectItem value="CUSTOMER" className="dark:focus:bg-slate-700">Customer</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>New Password (leave blank to keep current)</Label>
+                <Label className="dark:text-white">New Password (leave blank to keep current)</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   type="password"
                   placeholder="Enter new password"
                   value={editingUserData?.password || ''}
@@ -1572,7 +1591,7 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setUserDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800 dark:text-white" onClick={() => setUserDialogOpen(false)}>Cancel</Button>
               <Button onClick={async () => {
                 if (editingUserData) {
                   try {
@@ -1613,16 +1632,16 @@ export default function SuperAdminDashboard() {
 
         {/* Notification Dialog */}
         <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
-          <DialogContent>
+          <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white">
             <DialogHeader>
               <DialogTitle>Update Status & Notify</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="dark:text-slate-400">
                 Send a notification to <b>{selectedRestoForAction?.name}</b> regarding this status change ({selectedRestoForAction?.status}).
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Notification Channel</Label>
+                <Label className="dark:text-white">Notification Channel</Label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1630,7 +1649,7 @@ export default function SuperAdminDashboard() {
                       name="channel"
                       checked={notificationChannel === 'EMAIL'}
                       onChange={() => setNotificationChannel('EMAIL')}
-                      className="w-4 h-4 text-emerald-600"
+                      className="w-4 h-4 text-emerald-600 dark:bg-slate-800 dark:border-slate-700"
                     />
                     <span>Email</span>
                   </label>
@@ -1640,23 +1659,23 @@ export default function SuperAdminDashboard() {
                       name="channel"
                       checked={notificationChannel === 'WHATSAPP'}
                       onChange={() => setNotificationChannel('WHATSAPP')}
-                      className="w-4 h-4 text-emerald-600"
+                      className="w-4 h-4 text-emerald-600 dark:bg-slate-800 dark:border-slate-700"
                     />
                     <span>WhatsApp</span>
                   </label>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Message</Label>
+                <Label className="dark:text-white">Message</Label>
                 <textarea
-                  className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="flex min-h-[100px] w-full rounded-md border border-input dark:border-slate-700 dark:bg-slate-800 bg-background px-3 py-2 text-sm text-slate-900 dark:text-white"
                   value={notificationMessage}
                   onChange={(e) => setNotificationMessage(e.target.value)}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setNotificationDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800 dark:text-white" onClick={() => setNotificationDialogOpen(false)}>Cancel</Button>
               <Button onClick={confirmStatusUpdate}>Send & Update</Button>
             </DialogFooter>
           </DialogContent>
@@ -1664,23 +1683,25 @@ export default function SuperAdminDashboard() {
 
 
         <Dialog open={passwordResetOpen} onOpenChange={setPasswordResetOpen}>
-          <DialogContent>
+          <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white">
             <DialogHeader>
               <DialogTitle>Reset User Password</DialogTitle>
-              <DialogDescription>Enter user email and new password</DialogDescription>
+              <DialogDescription className="dark:text-slate-400">Enter user email and new password</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>User Email</Label>
+                <Label className="dark:text-white">User Email</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   placeholder="user@example.com"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label>New Password</Label>
+                <Label className="dark:text-white">New Password</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   type="password"
                   placeholder="Min 6 characters"
                   value={newPassword}
@@ -1688,8 +1709,9 @@ export default function SuperAdminDashboard() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Confirm Password</Label>
+                <Label className="dark:text-white">Confirm Password</Label>
                 <Input
+                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                   type="password"
                   placeholder="Confirm password"
                   value={confirmPassword}
@@ -1698,7 +1720,7 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setPasswordResetOpen(false)}>Cancel</Button>
+              <Button variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800 dark:text-white" onClick={() => setPasswordResetOpen(false)}>Cancel</Button>
               <Button onClick={handlePasswordReset}>Reset Password</Button>
             </DialogFooter>
           </DialogContent>
