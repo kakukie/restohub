@@ -92,8 +92,8 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                     if (isMobile) setIsMobileMenuOpen(false)
                 }}
                 className={`flex flex-col lg:flex-row items-center justify-center lg:justify-start py-2 px-1 sm:px-2 lg:py-3 lg:px-4 w-full rounded-xl transition-all ${isActive
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     } relative`}
             >
                 <div className="relative">
@@ -167,8 +167,8 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                                             setIsMobileMenuOpen(false)
                                         }}
                                         className={`flex flex-col items-center justify-center py-4 px-2 rounded-2xl transition-all border ${isActive
-                                                ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-emerald-500/50'
+                                            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-emerald-500/50'
                                             }`}
                                     >
                                         <Icon className="h-6 w-6 mb-2" />
@@ -176,6 +176,53 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                                     </button>
                                 )
                             })}
+                        </div>
+
+                        {/* Mobile Profile & Settings */}
+                        <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors w-full focus:outline-none ring-1 ring-slate-200 dark:ring-slate-700">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg shrink-0">
+                                            {user?.name?.charAt(0) || 'A'}
+                                        </div>
+                                        <div className="flex flex-col overflow-hidden text-left flex-grow">
+                                            <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user?.name || 'Admin'}</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.role || 'Role'}</span>
+                                        </div>
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="center" side="top" className="w-[calc(100vw-32px)] mb-2">
+                                    <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer flex items-center justify-between py-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800">
+                                                {theme === 'dark' ? <Sun className="h-4 w-4 text-yellow-500" /> : <Moon className="h-4 w-4 text-slate-500" />}
+                                            </div>
+                                            <span className="font-medium">Theme</span>
+                                        </div>
+                                        <span className="text-xs text-slate-400 capitalize bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{theme || 'System'}</span>
+                                    </DropdownMenuItem>
+
+                                    {onToggleLanguage && (
+                                        <DropdownMenuItem onClick={onToggleLanguage} className="cursor-pointer flex items-center justify-between py-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800">
+                                                    <span className="font-bold text-xs w-4 text-center">A文</span>
+                                                </div>
+                                                <span className="font-medium">Language</span>
+                                            </div>
+                                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">{language.toUpperCase()}</span>
+                                        </DropdownMenuItem>
+                                    )}
+
+                                    <DropdownMenuSeparator className="my-1" />
+
+                                    <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-rose-500 focus:text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-500/10 py-3">
+                                        <LogOut className="h-4 w-4 mr-3" />
+                                        <span className="font-medium">{t?.logout || 'Logout'}</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </SheetContent>
                 </Sheet>
