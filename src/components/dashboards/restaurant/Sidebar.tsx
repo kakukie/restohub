@@ -74,11 +74,11 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
             </div>
 
             {/* Navigation Items */}
-            <div className="flex flex-row lg:flex-col w-full lg:w-auto justify-around lg:justify-start lg:gap-1 overflow-x-auto">
+            <div className="flex flex-row lg:flex-col w-full lg:w-auto justify-start lg:gap-1 overflow-x-auto hide-scrollbar">
 
                 <button
                     onClick={() => setActiveTab('dashboard')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'dashboard'
+                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'dashboard'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -89,7 +89,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
                 <button
                     onClick={() => setActiveTab('orders')}
-                    className={`relative flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'orders'
+                    className={`relative flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'orders'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -107,7 +107,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
                 <button
                     onClick={() => setActiveTab('menu')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'menu'
+                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'menu'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -118,7 +118,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
                 <button
                     onClick={() => setActiveTab('payments')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'payments'
+                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'payments'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -127,10 +127,10 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                     <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.payments}</span>
                 </button>
 
-                {/* Items hidden on very small screens, visible on sm+ */}
+                {/* Items hidden previously on very small screens, now visible with shrink-0 */}
                 <button
                     onClick={() => setActiveTab('categories')}
-                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'categories'
+                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'categories'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -141,7 +141,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
                 <button
                     onClick={() => setActiveTab('analytics')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'analytics'
+                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'analytics'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -152,7 +152,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
                 <button
                     onClick={() => setActiveTab('settings')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'settings'
+                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'settings'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
@@ -163,7 +163,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
                 <button
                     onClick={() => setActiveTab('staff')}
-                    className={`hidden sm:flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 ${activeTab === 'staff'
+                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'staff'
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
