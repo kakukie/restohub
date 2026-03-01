@@ -59,7 +59,7 @@ export default function RecentOrders({ orders, onViewOrder, onPrintOrder, onRefr
                 )}
 
                 {recentOrders.map((order) => {
-                    const isDineIn = !!order.tableNumber
+                    const isDineIn = !!order.tableNumber && order.tableNumber !== 'TAKEAWAY'
                     return (
                         <div
                             key={order.id}
@@ -78,7 +78,7 @@ export default function RecentOrders({ orders, onViewOrder, onPrintOrder, onRefr
                                             </span>
                                         </div>
                                         <p className="text-xs text-slate-500 mt-1">
-                                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {order.customerName} • {isDineIn ? 'Dine In' : 'Take Away'}
+                                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {order.customerName} • {isDineIn ? `Dine In (Table ${order.tableNumber})` : 'Take Away'}
                                         </p>
                                     </div>
                                 </div>
