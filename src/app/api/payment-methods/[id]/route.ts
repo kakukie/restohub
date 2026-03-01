@@ -10,11 +10,12 @@ export async function PUT(
     try {
         const { id } = await params
         const body = await request.json()
-        const { accountNumber, accountName, isActive } = body
+        const { accountNumber, accountName, isActive, qrCode } = body
 
         const updateData: any = {}
         if (accountNumber !== undefined) updateData.accountNumber = accountNumber || null
         if (accountName !== undefined) updateData.accountName = accountName || null
+        if (qrCode !== undefined) updateData.qrCode = qrCode || null
         if (isActive !== undefined) updateData.isActive = isActive
 
         const updated = await prisma.paymentMethod.update({

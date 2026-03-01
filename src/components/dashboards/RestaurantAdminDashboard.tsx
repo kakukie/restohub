@@ -580,8 +580,8 @@ export default function RestaurantAdminDashboard() {
     const renderDashboardContent = () => (
         <>
             <StatsGrid stats={{
-                totalOrders: orders.length,
-                revenue: orders.reduce((acc, o) => acc + o.totalAmount, 0),
+                totalOrders: orders.filter(o => o.status !== 'CANCELLED').length,
+                revenue: orders.filter(o => o.status === 'COMPLETED').reduce((acc, o) => acc + o.totalAmount, 0),
                 totalCategories: categories.length,
                 cancelledOrders: orders.filter(o => o.status === 'CANCELLED').length
             }} />
@@ -1237,6 +1237,20 @@ export default function RestaurantAdminDashboard() {
                                                 disabled={updatingOrderId === order.id}
                                             >
                                                 Complete
+                                            </Button>
+                                        )}
+                                        {['PENDING', 'CONFIRMED', 'PREPARING'].includes(order.status) && (
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                onClick={() => {
+                                                    if (confirm('Are you sure you want to cancel this order?')) {
+                                                        handleUpdateOrderStatus(order.id, 'CANCELLED')
+                                                    }
+                                                }}
+                                                disabled={updatingOrderId === order.id}
+                                            >
+                                                Cancel
                                             </Button>
                                         )}
                                         <Button

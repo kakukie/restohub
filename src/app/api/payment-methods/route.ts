@@ -5,7 +5,7 @@ import { invalidateCache } from '@/lib/redis'
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { restaurantId, type, accountName, accountNumber, isActive } = body
+        const { restaurantId, type, accountName, accountNumber, isActive, qrCode } = body
 
         if (!restaurantId || !type) {
             return NextResponse.json(
@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
                 type,
                 accountName,
                 accountNumber,
+                qrCode,
                 isActive: isActive ?? true
             }
         })
