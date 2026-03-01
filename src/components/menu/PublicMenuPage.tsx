@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Search, ShoppingCart, Plus, Minus, Star, Store, Clock } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from '@/hooks/use-toast'
+import { useAppStore } from '@/store/app-store'
 
 interface MenuItem {
   id: string
@@ -52,6 +53,7 @@ export default function PublicMenuPage() {
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false)
   const [tableNumber, setTableNumber] = useState('')
   const [notes, setNotes] = useState('')
+  const { helpdeskSettings } = useAppStore()
 
   // Get restaurant ID from URL
   useEffect(() => {
@@ -547,7 +549,7 @@ export default function PublicMenuPage() {
       <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm mt-auto">
         <div className="container mx-auto px-4 py-4">
           <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-            © 2024 RestoHub. Digital Restaurant Platform
+            © 2024 {helpdeskSettings?.platformName || 'RestoHub'}. Digital Restaurant Platform
           </p>
         </div>
       </footer>

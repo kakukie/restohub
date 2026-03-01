@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Store, CheckCircle, Smartphone, QrCode, Zap, Shield, Users, TrendingUp, Clock } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from '@/hooks/use-toast'
+import { useAppStore } from '@/store/app-store'
 
 interface SubscriptionPlan {
   id: 'BASIC' | 'PRO' | 'ENTERPRISE'
@@ -56,6 +57,7 @@ const subscriptionPlansMock: SubscriptionPlan[] = [
 // Fetch plans from API
 export default function LandingPage() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
+  const { helpdeskSettings } = useAppStore()
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -131,7 +133,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-center gap-3 mb-6">
             <Store className="h-12 w-12 text-orange-600" />
             <h1 className="text-5xl font-bold text-gray-900 dark:text-white">
-              RestoHub
+              {helpdeskSettings?.platformName || 'RestoHub'}
             </h1>
           </div>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -149,7 +151,7 @@ export default function LandingPage() {
                 <DialogHeader>
                   <DialogTitle>Daftar Restoran Anda</DialogTitle>
                   <DialogDescription>
-                    Isi data restoran Anda untuk memulai menggunakan RestoHub
+                    Isi data restoran Anda untuk memulai menggunakan {helpdeskSettings?.platformName || 'RestoHub'}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -401,7 +403,7 @@ export default function LandingPage() {
                 Siap Digitalisasi Restoran Anda?
               </h2>
               <p className="text-xl mb-8 opacity-90">
-                Bergabung dengan ribuan restoran lainnya yang telah sukses dengan RestoHub
+                Bergabung dengan ribuan restoran lainnya yang telah sukses dengan {helpdeskSettings?.platformName || 'RestoHub'}
               </p>
               <Button
                 size="lg"
@@ -420,7 +422,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              © 2024 RestoHub. Platform Digital Restaurant Indonesia
+              © 2024 {helpdeskSettings?.platformName || 'RestoHub'}. Platform Digital Restaurant Indonesia
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
               <Shield className="h-4 w-4" />

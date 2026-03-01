@@ -6,14 +6,16 @@ import prisma from '@/lib/prisma'
 export async function GET(request: NextRequest) {
     try {
         const settings = await prisma.systemSetting.findMany()
-        const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {})
+        const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {} as Record<string, string>)
 
         // Return default values if not set
         return NextResponse.json({
             success: true,
             data: {
                 whatsapp: settingsMap['helpdesk_whatsapp'] || '6281234567890',
-                email: settingsMap['helpdesk_email'] || 'support@meenuin.biz.id'
+                email: settingsMap['helpdesk_email'] || 'support@meenuin.biz.id',
+                maintenanceMode: settingsMap['maintenance_mode'] === 'true',
+                platformName: settingsMap['platform_name'] || 'RestoHub'
             }
         })
     } catch (error) {
@@ -26,9 +28,9 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         const body = await request.json()
-        const { whatsapp, email } = body
+        const { whatsapp, email, maintenanceMode, platformName } = body
 
-        if (whatsapp) {
+        if (whatsapp !== undefined) {
             await prisma.systemSetting.upsert({
                 where: { key: 'helpdesk_whatsapp' },
                 update: { value: whatsapp },
@@ -36,11 +38,27 @@ export async function PUT(request: NextRequest) {
             })
         }
 
-        if (email) {
+        if (email !== undefined) {
             await prisma.systemSetting.upsert({
                 where: { key: 'helpdesk_email' },
                 update: { value: email },
                 create: { key: 'helpdesk_email', value: email }
+            })
+        }
+
+        if (maintenanceMode !== undefined) {
+            await prisma.systemSetting.upsert({
+                where: { key: 'maintenance_mode' },
+                update: { value: String(maintenanceMode) },
+                create: { key: 'maintenance_mode', value: String(maintenanceMode) }
+            })
+        }
+
+        if (platformName !== undefined) {
+            await prisma.systemSetting.upsert({
+                where: { key: 'platform_name' },
+                update: { value: platformName },
+                create: { key: 'platform_name', value: platformName }
             })
         }
 

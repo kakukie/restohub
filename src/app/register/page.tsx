@@ -16,7 +16,7 @@ import { toast } from '@/hooks/use-toast'
 
 export default function Register() {
     const router = useRouter()
-    const { addRestaurant } = useAppStore()
+    const { addRestaurant, helpdeskSettings } = useAppStore()
     const [loading, setLoading] = useState(false)
     const [captchaVerified, setCaptchaVerified] = useState(false)
 
@@ -76,6 +76,8 @@ export default function Register() {
                 package: formData.package as any,
                 rating: 5.0, // New restaurants start high!
                 adminEmail: formData.adminEmail,
+                status: 'PENDING',
+                slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
                 // In a real app we'd create the User account here too
             }
 
@@ -105,7 +107,7 @@ export default function Register() {
                 <div className="container mx-auto flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2">
                         <UtensilsCrossed className="h-8 w-8 text-orange-600" />
-                        <span className="text-xl font-bold">RestoHub</span>
+                        <span className="text-xl font-bold">{helpdeskSettings?.platformName || 'RestoHub'}</span>
                     </Link>
                 </div>
             </header>
@@ -115,7 +117,7 @@ export default function Register() {
                     {/* Left Side: Info */}
                     <div className="md:w-5/12 bg-orange-600 p-8 text-white flex flex-col justify-center">
                         <Store className="h-16 w-16 mb-6 opacity-90" />
-                        <h2 className="text-3xl font-bold mb-4">Partner with RestoHub</h2>
+                        <h2 className="text-3xl font-bold mb-4">Partner with {helpdeskSettings?.platformName || 'RestoHub'}</h2>
                         <p className="mb-6 opacity-90">Join thousands of restaurants growing their business with our digital platform.</p>
 
                         <div className="space-y-4">

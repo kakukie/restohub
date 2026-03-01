@@ -145,6 +145,7 @@ export interface HelpdeskSettings {
   whatsapp: string
   email: string
   maintenanceMode?: boolean
+  platformName?: string
 }
 
 interface AppState {

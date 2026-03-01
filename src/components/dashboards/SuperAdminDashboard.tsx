@@ -648,43 +648,37 @@ export default function SuperAdminDashboard() {
             </span>
           </div>
           <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Total Revenue</h3>
-          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">Rp {(stats.totalRevenue).toLocaleString('id-ID')}</p>
-          <div className="mt-4 flex h-1.5 w-full bg-[#10B981]/20 rounded-full overflow-hidden">
-            <div className="h-full bg-[#10B981] w-2/3 rounded-full"></div>
+          <p className="text-2xl font-black text-[#F8FAFC]">Rp {(stats.totalRevenue / 1000000).toFixed(1)}M</p>
+        </div>
+
+        {/* Total Orders */}
+        <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-2xl relative overflow-hidden group">
+          <div className="flex justify-between items-start mb-6">
+            <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+              <span className="material-symbols-outlined text-xl">receipt_long</span>
+            </div>
+            <span className="text-blue-400 text-xs font-bold px-3 py-1 bg-blue-400/10 rounded-full flex items-center gap-1">
+              <span className="material-symbols-outlined text-xs">trending_up</span> +8.2%
+            </span>
           </div>
+          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Daily Orders</h3>
+          <p className="text-2xl font-black text-[#F8FAFC]">
+            {orders.filter(o => new Date(o.createdAt).toDateString() === new Date().toDateString()).length || 0}
+          </p>
         </div>
 
         {/* Active Restaurants */}
         <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-2xl relative overflow-hidden group">
           <div className="flex justify-between items-start mb-6">
-            <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
-              <span className="material-symbols-outlined text-xl">restaurant</span>
+            <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
+              <span className="material-symbols-outlined text-xl">store</span>
             </div>
-            <span className="text-blue-400 text-xs font-bold px-3 py-1 bg-blue-400/10 rounded-full flex items-center gap-1">
-              <span className="material-symbols-outlined text-xs">store</span> {restaurants.length} New
+            <span className="text-indigo-400 text-xs font-bold px-3 py-1 bg-indigo-400/10 rounded-full flex items-center gap-1">
+              <span className="material-symbols-outlined text-xs">storefront</span> +2
             </span>
           </div>
           <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Active Restaurants</h3>
-          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">{stats.activeRestaurants}</p>
-          <p className="text-slate-500 text-xs mt-4">98.2% system uptime</p>
-        </div>
-
-        {/* Daily Orders mock mapping */}
-        <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-2xl relative overflow-hidden group">
-          <div className="flex justify-between items-start mb-6">
-            <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl">
-              <span className="material-symbols-outlined text-xl">shopping_bag</span>
-            </div>
-            <span className="text-purple-400 text-xs font-bold px-3 py-1 bg-purple-400/10 rounded-full">Active Now</span>
-          </div>
-          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Daily Orders</h3>
-          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">1,240</p>
-          <div className="flex -space-x-2 mt-4 opacity-70">
-            <div className="h-6 w-6 rounded-full bg-slate-700 ring-2 ring-[#1A2235]"></div>
-            <div className="h-6 w-6 rounded-full bg-slate-600 ring-2 ring-[#1A2235]"></div>
-            <div className="h-6 w-6 rounded-full bg-slate-500 ring-2 ring-[#1A2235]"></div>
-            <div className="h-6 w-6 rounded-full bg-emerald-500/20 text-emerald-400 text-[8px] font-bold flex items-center justify-center ring-2 ring-[#1A2235]">+6</div>
-          </div>
+          <p className="text-2xl font-black text-[#F8FAFC]">{stats.activeRestaurants} <span className="text-sm font-normal text-slate-500">of {stats.totalRestaurants}</span></p>
         </div>
 
         {/* Pending Approvals */}
@@ -1241,190 +1235,75 @@ export default function SuperAdminDashboard() {
 
       {/* User Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.slice(0, 3).map((systemUser, i) => (
-          <div key={systemUser.id} className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-[32px] relative flex flex-col group transition-all duration-300">
-            <div className="flex justify-between items-start mb-6">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold ring-1 ${systemUser.role === 'SUPER_ADMIN' ? 'bg-[#111827] ring-[#2A344A]' : systemUser.email.includes('siti') ? 'bg-emerald-100 text-emerald-900 border-4 border-[#1A2235]' : 'bg-slate-700 ring-slate-500/20'}`}>
-                    {systemUser.role === 'SUPER_ADMIN' ? 'U1' : systemUser.email.includes('siti') ? 'U2' : 'U3'}
+        {users.map((systemUser, i) => {
+          // Find if this user is attached to a restaurant
+          const userRestaurant = restaurants.find(r => r.adminEmail?.toLowerCase() === systemUser.email.toLowerCase())
+
+          return (
+            <div key={systemUser.id} className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-[32px] relative flex flex-col group transition-all duration-300">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold ring-1 ${systemUser.role === 'SUPER_ADMIN' ? 'bg-[#111827] ring-[#2A344A]' : 'bg-slate-700 ring-slate-500/20'}`}>
+                      {systemUser.role === 'SUPER_ADMIN' ? 'SA' : systemUser.name.charAt(0).toUpperCase()}
+                    </div>
+                    {systemUser.role === 'SUPER_ADMIN' && <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#10B981] ring-2 ring-[#1A2235]"></div>}
                   </div>
-                  {systemUser.role === 'SUPER_ADMIN' && <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#10B981] ring-2 ring-[#1A2235]"></div>}
+                  <div>
+                    <h4 className="font-bold text-lg text-[#F8FAFC]">{systemUser.name}</h4>
+                    <p className="text-xs text-slate-500">{systemUser.email}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-lg text-[#F8FAFC]">{systemUser.name}</h4>
-                  <p className="text-xs text-slate-500">{systemUser.email}</p>
+                <button className="text-slate-500 hover:text-white transition-colors">
+                  <span className="material-symbols-outlined">more_horiz</span>
+                </button>
+              </div>
+
+              <div className="flex gap-2 mb-8">
+                <span className={`px-3 py-1 font-bold rounded-full uppercase border text-[10px] ${systemUser.role === 'SUPER_ADMIN' ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
+                  {systemUser.role.replace('_', ' ')}
+                </span>
+                {userRestaurant && (
+                  <span className={`px-3 py-1 text-[10px] font-bold rounded-full border uppercase ${userRestaurant.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                    userRestaurant.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                      'bg-red-500/10 text-red-500 border-red-500/20'
+                    }`}>
+                    {userRestaurant.name} ({userRestaurant.status})
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-3 mb-8 flex-1">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-500">Created At</span>
+                  <span className="text-[#F8FAFC]">Today</span>
                 </div>
               </div>
-              <button className="text-slate-500 hover:text-white transition-colors">
-                <span className="material-symbols-outlined">more_horiz</span>
-              </button>
-            </div>
 
-            <div className="flex gap-2 mb-8">
-              <span className={`px-3 py-1 font-bold rounded-full uppercase border text-[10px] ${systemUser.role === 'SUPER_ADMIN' ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20' : systemUser.email.includes('siti') ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
-                {systemUser.role.replace('_', ' ')}
-              </span>
-              <span className="px-3 py-1 bg-slate-800 text-slate-400 text-[10px] font-bold rounded-full border border-slate-700 uppercase">
-                {systemUser.role === 'SUPER_ADMIN' ? 'Engineering' : systemUser.email.includes('siti') ? 'Content Team' : 'Customer Care'}
-              </span>
-            </div>
-
-            <div className="space-y-3 mb-8 flex-1">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500">Last Login</span>
-                <span className="text-[#F8FAFC]">{i === 0 ? 'Today, 09:42 AM' : i === 1 ? 'Yesterday, 04:15 PM' : 'Today, 10:05 AM'}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500">Location</span>
-                <span className="text-[#F8FAFC]">{i === 0 ? 'Jakarta, ID' : i === 1 ? 'Bandung, ID' : 'Surabaya, ID'}</span>
+              <div className="flex gap-2 w-full pt-4 border-t border-[#2A344A]">
+                <button onClick={() => {
+                  setEditingUserData(systemUser)
+                  setUserDialogOpen(true)
+                }} className="flex-1 py-3 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] text-slate-300 rounded-full text-xs font-bold transition-all text-center">
+                  Edit Profile
+                </button>
+                <button onClick={() => {
+                  setResetEmail(systemUser.email)
+                  setPasswordResetOpen(true)
+                }} className="px-4 py-3 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] rounded-full flex items-center justify-center transition-all text-slate-400" title="Manage Keys/Password">
+                  <span className="material-symbols-outlined text-[16px]">key</span>
+                </button>
               </div>
             </div>
-
-            <div className="flex gap-2 w-full pt-4 border-t border-[#2A344A]">
-              <button onClick={() => {
-                setEditingUserData(systemUser)
-                setUserDialogOpen(true)
-              }} className="flex-1 py-3 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] text-slate-300 rounded-full text-xs font-bold transition-all text-center">
-                Edit Profile
-              </button>
-              <button onClick={() => {
-                setResetEmail(systemUser.email)
-                setPasswordResetOpen(true)
-              }} className="px-4 py-3 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] rounded-full flex items-center justify-center transition-all text-slate-400" title="Manage Keys/Password">
-                <span className="material-symbols-outlined text-[16px]">key</span>
-              </button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      {/* Grid for Matrix and Live Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Role Permission Matrix */}
-        <div className="lg:col-span-2 bg-[#1A2235] border border-[#2A344A] rounded-3xl overflow-hidden flex flex-col">
-          <div className="p-6 border-b border-[#2A344A] flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-bold text-[#F8FAFC]">Role Permission Matrix</h3>
-              <p className="text-slate-500 text-sm mt-1">Configure global access levels by role.</p>
-            </div>
-            <button className="text-xs font-bold text-[#10B981] hover:underline bg-[#10B981]/10 px-3 py-1.5 rounded-full">Restore Defaults</button>
-          </div>
-
-          <div className="overflow-x-auto flex-1 p-6">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="text-slate-500 text-[10px] uppercase font-bold border-b border-[#2A344A] bg-[#1A2235]">
-                  <th className="pb-4 pt-2 px-2">DASHBOARD ACCESS</th>
-                  <th className="pb-4 pt-2 px-2 text-center">SUPER ADMIN</th>
-                  <th className="pb-4 pt-2 px-2 text-center">EDITOR</th>
-                  <th className="pb-4 pt-2 px-2 text-center">SUPPORT</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#2A344A]/50">
-                <tr className="hover:bg-white/[0.02]">
-                  <td className="py-4 px-2">
-                    <p className="font-bold text-sm text-[#F8FAFC]">User Management</p>
-                    <p className="text-xs text-slate-500">Can invite and delete admins</p>
-                  </td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
-                </tr>
-                <tr className="hover:bg-white/[0.02]">
-                  <td className="py-4 px-2">
-                    <p className="font-bold text-sm text-[#F8FAFC]">Restaurant Approval</p>
-                    <p className="text-xs text-slate-500">Accept or reject new merchants</p>
-                  </td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
-                </tr>
-                <tr className="hover:bg-white/[0.02]">
-                  <td className="py-4 px-2">
-                    <p className="font-bold text-sm text-[#F8FAFC]">Revenue Reports</p>
-                    <p className="text-xs text-slate-500">View platform earnings data</p>
-                  </td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-slate-600 bg-slate-800 rounded-full p-1 text-[16px] border border-slate-700">cancel</span></td>
-                </tr>
-                <tr className="hover:bg-white/[0.02]">
-                  <td className="py-4 px-2">
-                    <p className="font-bold text-sm text-[#F8FAFC]">Customer Tickets</p>
-                    <p className="text-xs text-slate-500">Respond to restaurant support help</p>
-                  </td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
-                  <td className="py-4 px-2 text-center"><span className="material-symbols-outlined text-[#10B981] bg-[#10B981]/10 rounded-full p-1 text-[16px]">check_circle</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="p-6">
-            <button className="w-full bg-[#10B981] hover:bg-[#059669] text-white py-3.5 rounded-full font-bold text-sm transition-all shadow-lg shadow-[#10B981]/20">
-              Save Permissions
-            </button>
-          </div>
-        </div>
-
-        {/* Live Activity */}
-        <div className="bg-[#1A2235] border border-[#2A344A] rounded-3xl p-6 flex flex-col h-full">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-[#F8FAFC]">Live Activity</h3>
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse blur-[1px]"></div>
-          </div>
-
-          <div className="space-y-6 flex-1 pr-2">
-            <div className="flex gap-4 items-start relative before:absolute before:inset-0 before:left-[19px] before:w-px before:bg-[#2A344A] before:-z-10 before:top-8 before:bottom-[-24px]">
-              <div className="w-10 h-10 rounded-full bg-[#10B981]/10 border border-[#10B981]/20 flex items-center justify-center text-[#10B981] shrink-0">
-                <span className="material-symbols-outlined text-[16px]">person_add</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-[#F8FAFC]">Budi Santoso</h4>
-                <p className="text-xs text-slate-400 mt-0.5">Invited new support: Andini P.</p>
-                <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">2 mins ago</p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start relative before:absolute before:inset-0 before:left-[19px] before:w-px before:bg-[#2A344A] before:-z-10 before:top-8 before:bottom-[-24px]">
-              <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                <span className="material-symbols-outlined text-[16px]">edit</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-[#F8FAFC]">Siti Aminah</h4>
-                <p className="text-xs text-slate-400 mt-0.5">Modified 'Kopi Malam' menu</p>
-                <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">1 hour ago</p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start relative before:absolute before:inset-0 before:left-[19px] before:w-px before:bg-[#2A344A] before:-z-10 before:top-8 before:bottom-[-24px]">
-              <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
-                <span className="material-symbols-outlined text-[16px]">lock</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-[#F8FAFC]">Security Monitor</h4>
-                <p className="text-xs text-slate-400 mt-0.5">Login blocked from 192.168.1.1</p>
-                <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">3 hours ago</p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start relative">
-              <div className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
-                <span className="material-symbols-outlined text-[16px]">tune</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-[#F8FAFC]">Super Admin</h4>
-                <p className="text-xs text-slate-400 mt-0.5">Updated Permission Matrix</p>
-                <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">Yesterday</p>
-              </div>
-            </div>
-          </div>
-
-          <button className="w-full mt-6 py-3.5 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] text-slate-300 rounded-full text-xs font-bold transition-all text-center">
-            View Full Audit Log
-          </button>
-        </div>
-      </div>
+      <p className="text-xs text-slate-400 mt-0.5">Updated Permission Matrix</p>
+      <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">Yesterday</p>
+      <button className="w-full mt-6 py-3.5 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] text-slate-300 rounded-full text-xs font-bold transition-all text-center">
+        View Full Audit Log
+      </button>
     </div>
   )
 
@@ -1458,7 +1337,22 @@ export default function SuperAdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-400">Platform Name</label>
-                <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/50 text-slate-100" type="text" defaultValue="RestoHub SaaS" disabled />
+                <input
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/50 text-slate-100"
+                  type="text"
+                  value={helpdeskSettings?.platformName || ''}
+                  onChange={async (e) => {
+                    const val = e.target.value
+                    updateHelpdeskSettings({ ...helpdeskSettings, platformName: val })
+                    try {
+                      await fetch('/api/settings', {
+                        method: 'PUT',
+                        body: JSON.stringify({ platformName: val })
+                      })
+                    } catch (err) { console.error(err) }
+                  }}
+                  placeholder="RestoHub SaaS"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-400">Support Email</label>
@@ -1480,26 +1374,24 @@ export default function SuperAdminDashboard() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
-                <div>
-                  <p className="font-bold text-sm text-white">Maintenance Mode</p>
-                  <p className="text-xs text-slate-500">Restricts user logins for updates</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" checked={helpdeskSettings.maintenanceMode} onChange={async () => {
-                    const newMode = !helpdeskSettings.maintenanceMode
-                    updateHelpdeskSettings({ ...helpdeskSettings, maintenanceMode: newMode })
-                    try {
-                      await fetch('/api/settings', {
-                        method: 'PUT',
-                        body: JSON.stringify({ maintenanceMode: newMode })
-                      })
-                    } catch (err) { console.error(err) }
-                  }} />
-                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                </label>
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+              <div>
+                <p className="font-bold text-sm text-white">Maintenance Mode</p>
+                <p className="text-xs text-slate-500">Restricts user logins for updates</p>
               </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" className="sr-only peer" checked={helpdeskSettings.maintenanceMode} onChange={async () => {
+                  const newMode = !helpdeskSettings.maintenanceMode
+                  updateHelpdeskSettings({ ...helpdeskSettings, maintenanceMode: newMode })
+                  try {
+                    await fetch('/api/settings', {
+                      method: 'PUT',
+                      body: JSON.stringify({ maintenanceMode: newMode })
+                    })
+                  } catch (err) { console.error(err) }
+                }} />
+                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
             </div>
           </div>
         </section>
@@ -1577,7 +1469,7 @@ export default function SuperAdminDashboard() {
               <span className="material-symbols-outlined text-white">shield_person</span>
             </div>
             <div>
-              <h1 className="font-extrabold text-xl tracking-tight text-white">Meenuin<span className="text-[#10B981]">.</span></h1>
+              <h1 className="font-extrabold text-xl tracking-tight text-white">{helpdeskSettings.platformName || 'RestoHub'}<span className="text-[#10B981]">.</span></h1>
               <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Super Admin</p>
             </div>
           </div>

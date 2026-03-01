@@ -11,7 +11,8 @@ import {
     LogOut,
     UtensilsCrossed,
     User as UserIcon,
-    Menu
+    Menu,
+    ChevronDown
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import {
@@ -24,6 +25,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet"
 import { useState } from 'react'
+import { useAppStore } from '@/store/app-store'
 
 interface SidebarProps {
     activeTab: string
@@ -66,6 +68,9 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
     const t = translations[language]
     const { theme, setTheme } = useTheme()
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
+
+    const { helpdeskSettings } = useAppStore()
 
     const mainNavItems = [
         { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
@@ -89,7 +94,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
             <button
                 onClick={() => {
                     setActiveTab(item.id)
-                    if (isMobile) setIsMobileMenuOpen(false)
+                    if (isMobile) setIsMoreMenuOpen(false)
                 }}
                 className={`flex flex-col lg:flex-row items-center justify-center lg:justify-start py-2 px-1 sm:px-2 lg:py-3 lg:px-4 w-full rounded-xl transition-all ${isActive
                     ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
@@ -117,12 +122,9 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
         <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 flex flex-col lg:static lg:h-screen lg:w-64 lg:border-r lg:border-t-0 pb-safe lg:pb-0">
             {/* Desktop Logo Area */}
             <div className="hidden lg:flex items-center gap-3 p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20">
-                    <Receipt className="text-white h-6 w-6" />
-                </div>
-                <div>
-                    <h1 className="font-bold text-xl text-slate-900 dark:text-white leading-tight">RestoHub</h1>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium tracking-wide uppercase">Admin Portal</p>
+                <div className="flex items-center justify-between w-full h-[60px] cursor-pointer hover:bg-slate-100 dark:hover:bg-[#1A2235] rounded-xl px-4 transition-colors group">
+                    <h1 className="font-bold text-xl text-slate-900 dark:text-white leading-tight">{helpdeskSettings?.platformName || 'RestoHub'}</h1>
+                    <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
                 </div>
             </div>
 
