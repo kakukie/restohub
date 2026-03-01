@@ -10,7 +10,8 @@ import {
     Sun,
     LogOut,
     UtensilsCrossed,
-    User as UserIcon
+    User as UserIcon,
+    Menu
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import {
@@ -21,6 +22,8 @@ import {
     DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from "@/components/ui/sheet"
+import { useState } from 'react'
 
 interface SidebarProps {
     activeTab: string
@@ -41,7 +44,9 @@ const translations = {
         settings: "Settings",
         analytics: "Report",
         payments: "Payments",
-        logout: "Logout"
+        logout: "Logout",
+        staff: "Staff",
+        more: "More"
     },
     id: {
         dashboard: "Dasbor",
@@ -51,171 +56,173 @@ const translations = {
         settings: "Pengaturan",
         analytics: "Laporan",
         payments: "Pembayaran",
-        logout: "Keluar"
+        logout: "Keluar",
+        staff: "Staf",
+        more: "Lainnya"
     }
 }
 
 export default function Sidebar({ activeTab, setActiveTab, user, onLogout, language = 'en', onToggleLanguage, pendingOrderCount = 0 }: SidebarProps) {
     const t = translations[language]
     const { theme, setTheme } = useTheme()
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-    return (
-        <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 flex items-center justify-between px-2 py-1 sm:px-4 sm:py-2 lg:static lg:h-screen lg:w-20 xl:w-64 lg:flex-col lg:justify-start lg:border-r lg:border-t-0 lg:p-4 transition-all duration-300">
+    const mainNavItems = [
+        { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
+        { id: 'orders', label: t.orders, icon: Receipt, badge: pendingOrderCount },
+        { id: 'menu', label: t.menu, icon: UtensilsCrossed },
+        { id: 'payments', label: t.payments, icon: Wallet },
+    ]
 
-            {/* Logo area - Desktop only */}
-            <div className="hidden lg:flex items-center gap-3 mb-8 px-2">
-                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center shrink-0">
-                    <Receipt className="text-white h-5 w-5" />
-                </div>
-                <div className="hidden xl:block">
-                    <h1 className="font-bold text-xl text-slate-800 dark:text-white">RestoHub</h1>
-                    <p className="text-xs text-slate-500">Admin Portal</p>
-                </div>
-            </div>
+    const moreNavItems = [
+        { id: 'categories', label: t.categories, icon: Package },
+        { id: 'analytics', label: t.analytics, icon: Package },
+        { id: 'settings', label: t.settings, icon: Settings },
+        { id: 'staff', label: t.staff, icon: UserIcon },
+    ]
 
-            {/* Navigation Items */}
-            <div className="flex flex-row lg:flex-col w-full lg:w-auto justify-start lg:gap-1 overflow-x-auto hide-scrollbar">
+    const NavItem = ({ item, isMobile = false }: { item: any, isMobile?: boolean }) => {
+        const Icon = item.icon
+        const isActive = activeTab === item.id
 
-                <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'dashboard'
+        return (
+            <button
+                onClick={() => {
+                    setActiveTab(item.id)
+                    if (isMobile) setIsMobileMenuOpen(false)
+                }}
+                className={`flex flex-col lg:flex-row items-center justify-center lg:justify-start py-2 px-1 sm:px-2 lg:py-3 lg:px-4 w-full rounded-xl transition-all ${isActive
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <LayoutDashboard className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.dashboard}</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('orders')}
-                    className={`relative flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'orders'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Receipt className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.orders}</span>
-                    {pendingOrderCount > 0 && (
-                        <div className="absolute top-1 right-2 lg:top-2 lg:right-6">
-                            <Badge variant="destructive" className="h-5 w-5 flex items-center justify-center p-0 text-[10px] rounded-full shadow-md animate-pulse">
-                                {pendingOrderCount > 99 ? '99+' : pendingOrderCount}
+                    } relative`}
+            >
+                <div className="relative">
+                    <Icon className="h-5 w-5 lg:h-6 lg:w-6 lg:mr-3" />
+                    {item.badge > 0 && (
+                        <div className="absolute -top-1 -right-2 lg:top-0 lg:-right-3">
+                            <Badge variant="destructive" className="h-[18px] w-[18px] flex items-center justify-center p-0 text-[10px] rounded-full shadow-md animate-pulse">
+                                {item.badge > 99 ? '99+' : item.badge}
                             </Badge>
                         </div>
                     )}
-                </button>
+                </div>
+                <span className={`text-[10px] sm:text-[11px] mt-1 lg:mt-0 lg:text-sm font-medium ${isMobile ? 'block' : 'hidden lg:block'}`}>
+                    {item.label}
+                </span>
+            </button>
+        )
+    }
 
-                <button
-                    onClick={() => setActiveTab('menu')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'menu'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <UtensilsCrossed className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.menu}</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('payments')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'payments'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Wallet className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.payments}</span>
-                </button>
-
-                {/* Items hidden previously on very small screens, now visible with shrink-0 */}
-                <button
-                    onClick={() => setActiveTab('categories')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'categories'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Package className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.categories}</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('analytics')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'analytics'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Package className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.analytics}</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('settings')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'settings'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <Settings className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">{t.settings}</span>
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('staff')}
-                    className={`flex flex-col items-center justify-center py-2 px-2 sm:px-3 lg:py-3 lg:px-2 lg:w-full rounded-xl transition-all min-w-[48px] lg:min-w-0 shrink-0 ${activeTab === 'staff'
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                >
-                    <UserIcon className="h-5 w-5 lg:h-6 lg:w-6" />
-                    <span className="text-[9px] sm:text-[10px] lg:text-xs mt-1 font-medium">Staff</span>
-                </button>
+    return (
+        <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-50 flex flex-col lg:static lg:h-screen lg:w-64 lg:border-r lg:border-t-0 pb-safe lg:pb-0">
+            {/* Desktop Logo Area */}
+            <div className="hidden lg:flex items-center gap-3 p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20">
+                    <Receipt className="text-white h-6 w-6" />
+                </div>
+                <div>
+                    <h1 className="font-bold text-xl text-slate-900 dark:text-white leading-tight">RestoHub</h1>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium tracking-wide uppercase">Admin Portal</p>
+                </div>
             </div>
 
-            {/* Unified Settings Dropdown (Desktop & Mobile) */}
-            <div className="flex lg:flex-col items-center gap-3 lg:mt-auto lg:pt-4 lg:border-t lg:border-slate-200 dark:lg:border-slate-800 lg:w-full shrink-0 ml-1 lg:ml-0">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex flex-col gap-2 p-4 flex-grow overflow-y-auto hide-scrollbar">
+                {mainNavItems.map(item => <NavItem key={item.id} item={item} />)}
+                <div className="my-2 border-t border-slate-100 dark:border-slate-800" />
+                {moreNavItems.map(item => <NavItem key={item.id} item={item} />)}
+            </div>
+
+            {/* Mobile Navigation Bar */}
+            <div className="lg:hidden flex justify-around items-end w-full px-1 sm:px-2 py-1 sm:py-2">
+                {mainNavItems.map(item => <NavItem key={item.id} item={{ ...item, badge: item.badge > 0 ? item.badge : 0 }} isMobile />)}
+
+                {/* More Sheet Trigger */}
+                <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                    <SheetTrigger asChild>
+                        <button className="flex flex-col items-center justify-center py-2 px-1 sm:px-2 w-full rounded-xl transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 relative">
+                            <Menu className="h-5 w-5" />
+                            <span className="text-[10px] sm:text-[11px] mt-1 font-medium">{t.more}</span>
+                        </button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="h-[auto] max-h-[85vh] rounded-t-3xl border-t border-slate-200 dark:border-slate-800 px-4 pb-8 pt-6">
+                        <SheetTitle className="sr-only">{t.more} Navigation</SheetTitle>
+                        <SheetHeader className="mb-6 text-left">
+                            <div className="text-xl font-bold flex items-center gap-2">
+                                <div className="p-2 bg-emerald-100 dark:bg-emerald-500/20 rounded-lg text-emerald-600">
+                                    <Menu className="h-5 w-5" />
+                                </div>
+                                {t.more}
+                            </div>
+                        </SheetHeader>
+                        <div className="grid grid-cols-2 gap-3">
+                            {moreNavItems.map(item => {
+                                const Icon = item.icon
+                                const isActive = activeTab === item.id
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => {
+                                            setActiveTab(item.id)
+                                            setIsMobileMenuOpen(false)
+                                        }}
+                                        className={`flex flex-col items-center justify-center py-4 px-2 rounded-2xl transition-all border ${isActive
+                                                ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-emerald-500/50'
+                                            }`}
+                                    >
+                                        <Icon className="h-6 w-6 mb-2" />
+                                        <span className="text-xs font-semibold">{item.label}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </SheetContent>
+                </Sheet>
+            </div>
+
+            {/* Unified Settings Dropdown (Desktop & Mobile Profile Area) */}
+            <div className="hidden lg:block p-4 mt-auto border-t border-slate-100 dark:border-slate-800 shrink-0">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors w-full focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
-                            <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0">
+                        <button className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors w-full focus:outline-none ring-1 ring-slate-200 dark:ring-slate-700">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg shrink-0">
                                 {user?.name?.charAt(0) || 'A'}
                             </div>
-                            <div className="hidden xl:flex flex-col overflow-hidden text-left">
-                                <span className="text-sm font-semibold truncate">{user?.name || 'Admin'}</span>
-                                <span className="text-xs text-slate-500 truncate">{user?.role || 'Role'}</span>
+                            <div className="flex flex-col overflow-hidden text-left flex-grow">
+                                <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user?.name || 'Admin'}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.role || 'Role'}</span>
                             </div>
                         </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" side="top" className="w-56 mb-2 lg:mb-0 lg:ml-2">
-                        <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1 xl:hidden">
-                            <div className="flex flex-col overflow-hidden text-left py-1">
-                                <span className="text-sm font-semibold truncate">{user?.name || 'Admin'}</span>
-                                <span className="text-xs text-slate-500 truncate">{user?.role || 'Role'}</span>
+                    <DropdownMenuContent align="end" side="top" className="w-60 mb-2">
+                        <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer flex items-center justify-between py-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800">
+                                    {theme === 'dark' ? <Sun className="h-4 w-4 text-yellow-500" /> : <Moon className="h-4 w-4 text-slate-500" />}
+                                </div>
+                                <span className="font-medium">Theme</span>
                             </div>
-                        </div>
-
-                        <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer flex items-center justify-between">
-                            <div className="flex items-center">
-                                {theme === 'dark' ? <Sun className="h-4 w-4 mr-2 text-yellow-500" /> : <Moon className="h-4 w-4 mr-2 text-slate-500" />}
-                                <span>Theme</span>
-                            </div>
-                            <span className="text-xs text-slate-400 capitalize">{theme || 'System'}</span>
+                            <span className="text-xs text-slate-400 capitalize bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{theme || 'System'}</span>
                         </DropdownMenuItem>
 
                         {onToggleLanguage && (
-                            <DropdownMenuItem onClick={onToggleLanguage} className="cursor-pointer flex items-center justify-between">
-                                <span className="flex items-center h-4 font-medium mr-2 text-slate-500">A文</span>
-                                <span>Language</span>
-                                <span className="text-xs font-bold text-emerald-500">{language.toUpperCase()}</span>
+                            <DropdownMenuItem onClick={onToggleLanguage} className="cursor-pointer flex items-center justify-between py-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-1.5 rounded-md bg-slate-100 dark:bg-slate-800">
+                                        <span className="font-bold text-xs w-4 text-center">A文</span>
+                                    </div>
+                                    <span className="font-medium">Language</span>
+                                </div>
+                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">{language.toUpperCase()}</span>
                             </DropdownMenuItem>
                         )}
 
-                        <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                        <DropdownMenuSeparator className="my-1" />
 
-                        <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-500 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10">
-                            <LogOut className="h-4 w-4 mr-2" />
-                            <span>{t?.logout || 'Logout'}</span>
+                        <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-rose-500 focus:text-rose-600 focus:bg-rose-50 dark:focus:bg-rose-500/10 py-3">
+                            <LogOut className="h-4 w-4 mr-3" />
+                            <span className="font-medium">{t?.logout || 'Logout'}</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
