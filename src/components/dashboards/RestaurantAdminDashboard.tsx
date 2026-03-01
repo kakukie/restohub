@@ -896,8 +896,8 @@ export default function RestaurantAdminDashboard() {
 
                 {/* Table View */}
                 {menuViewMode === 'table' && (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
+                    <div className="overflow-x-auto pb-4">
+                        <table className="w-full min-w-[800px] lg:min-w-full">
                             <thead className="bg-slate-50 dark:bg-slate-800">
                                 <tr>
                                     <th className="p-3 text-left">
@@ -1532,7 +1532,7 @@ export default function RestaurantAdminDashboard() {
 
             {/* Payment Method Dialog (Global) */}
             <Dialog open={paymentMethodDialogOpen} onOpenChange={setPaymentMethodDialogOpen}>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{paymentMethodForm.id ? 'Edit Payment Method' : 'Add Payment Method'}</DialogTitle>
                         <DialogDescription>Configure payment details</DialogDescription>
@@ -1633,7 +1633,7 @@ export default function RestaurantAdminDashboard() {
 
             {/* Category Dialog */}
             <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
                         <DialogDescription>
@@ -1680,7 +1680,7 @@ export default function RestaurantAdminDashboard() {
 
             {/* Add/Edit Menu Item Dialog */}
             <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
-                <DialogContent>
+                <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{editingMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
                         <DialogDescription>
