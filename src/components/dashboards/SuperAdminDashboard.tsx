@@ -1107,8 +1107,8 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Plan Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {subscriptionPlans.map((plan, i) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        {subscriptionPlans.slice(0, 2).map((plan, i) => {
           const isPro = plan.name.toUpperCase() === 'PRO' || plan.name.toUpperCase().includes('PRO')
           const isCustom = i === 2 || plan.name.toUpperCase().includes('ENTERPRISE')
 

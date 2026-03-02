@@ -239,7 +239,7 @@ export default function LandingPage() {
 
       <section className="py-24 bg-white dark:bg-[#020617]" id="kontak">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-12">Hubungi Kami</h2>
+          <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-12">{textData.contactTitle || 'Hubungi Kami'}</h2>
           <div className="flex flex-col md:flex-row justify-center gap-8 max-w-4xl mx-auto">
             {/* Direct Contact Info */}
             <div
@@ -247,9 +247,9 @@ export default function LandingPage() {
               <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm mb-6">
                 <span className="material-symbols-outlined text-[#00a669] text-4xl">phone_iphone</span>
               </div>
-              <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">WhatsApp / Telepon</h4>
+              <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{textData.contactWhatsappText || 'WhatsApp / Telepon'}</h4>
               <p className="text-slate-600 dark:text-slate-400 font-semibold text-xl mb-2">{mounted && helpdeskSettings?.whatsapp ? helpdeskSettings.whatsapp : '088294945050'}</p>
-              <p className="text-sm text-slate-500 mb-8">Senin - Jumat, 09:00 - 17:00</p>
+              <p className="text-sm text-slate-500 mb-8">{textData.contactWhatsappDesc || 'CS kami siap menjawab semua pertanyaan Anda.'}</p>
               <a href={`https://wa.me/${(mounted && helpdeskSettings?.whatsapp ? helpdeskSettings.whatsapp : '088294945050').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full px-6 py-4 bg-[#00a669] text-white hover:bg-emerald-600 font-bold rounded-2xl transition-colors shadow-lg shadow-[#00a669]/20">Chat WhatsApp</a>
             </div>
             <div
@@ -257,9 +257,9 @@ export default function LandingPage() {
               <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm mb-6">
                 <span className="material-symbols-outlined text-[#00a669] text-4xl">mail</span>
               </div>
-              <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Email</h4>
+              <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{textData.contactEmailText || 'Email'}</h4>
               <p className="text-slate-600 dark:text-slate-400 font-semibold text-xl mb-2">{mounted && helpdeskSettings?.email ? helpdeskSettings.email : 'support@meenuin.biz.id'}</p>
-              <p className="text-sm text-slate-500 mb-8">Kami akan membalas dalam 1x24 jam</p>
+              <p className="text-sm text-slate-500 mb-8">{textData.contactEmailDesc || 'Punya pertanyaan spesifik? Email kami kapan saja.'}</p>
               <a href={`mailto:${mounted && helpdeskSettings?.email ? helpdeskSettings.email : 'support@meenuin.biz.id'}`} className="w-full px-6 py-4 bg-[#00a669] text-white hover:bg-emerald-600 font-bold rounded-2xl transition-colors shadow-lg shadow-[#00a669]/20">Kirim Email</a>
             </div>
           </div>

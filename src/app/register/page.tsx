@@ -120,6 +120,12 @@ export default function Register() {
                     <div className="flex items-center gap-6">
                         <a className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#00a669] transition-colors"
                             href="#">Bantuan</a>
+                        <button
+                            className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 transition-all focus:outline-none"
+                            onClick={toggleDarkMode}>
+                            <span className="material-symbols-rounded text-sm dark:hidden">dark_mode</span>
+                            <span className="material-symbols-rounded text-sm hidden dark:block">light_mode</span>
+                        </button>
                         <Link className="text-sm font-semibold bg-green-50 dark:bg-slate-800 text-[#00a669] px-5 py-2.5 rounded-full hover:bg-green-100 transition-all"
                             href="/login">Sudah punya akun? Login</Link>
                     </div>
@@ -384,19 +390,9 @@ export default function Register() {
             </main >
             <footer className="mt-20 py-12 border-t border-slate-200 dark:border-slate-800">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-8">
-                    <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="/#harga">Harga</a>
-                    <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="/#kontak">Kontak</a>
                     <div className="flex flex-col items-center gap-4">
                         <p className="text-sm text-slate-400 dark:text-slate-500">© {new Date().getFullYear()} {platformName} Technology. All rights reserved.
                         </p>
-                        <div className="flex items-center gap-3">
-                            <button
-                                className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 transition-all"
-                                onClick={toggleDarkMode}>
-                                <span className="material-symbols-rounded text-sm dark:hidden">dark_mode</span>
-                                <span className="material-symbols-rounded text-sm hidden dark:block">light_mode</span>
-                            </button>
-                        </div>
                     </div>
                 </div>
             </footer>

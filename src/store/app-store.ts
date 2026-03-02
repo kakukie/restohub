@@ -156,6 +156,11 @@ export interface LandingPageData {
   feature3Desc: string
   pricingTitle: string
   pricingDescription: string
+  contactTitle?: string
+  contactWhatsappText?: string
+  contactWhatsappDesc?: string
+  contactEmailText?: string
+  contactEmailDesc?: string
 }
 
 export interface HelpdeskSettings {

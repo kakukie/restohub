@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
                 // Return latest message per restaurant for the admin inbox view
                 // Since prisma doesn't support distinct on relations easily with latest, we can fetch all and group, or just fetch recent active chats
                 const allMessages = await prisma.helpdeskMessage.findMany({
-                    orderBy: { createdAt: 'desc' },
+                    orderBy: { createdAt: 'asc' },
                     include: { restaurant: { select: { name: true } } }
                 })
                 return NextResponse.json({ success: true, messages: allMessages })

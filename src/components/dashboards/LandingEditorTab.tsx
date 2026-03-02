@@ -27,7 +27,12 @@ export default function LandingEditorTab() {
             feature3Title: 'Kitchen Display',
             feature3Desc: 'Monitor pesanan di dapur secara real-time. Tidak ada lagi pesanan yang terlewat atau salah catat.',
             pricingTitle: 'Simple, Transparent Pricing',
-            pricingDescription: 'Pilih paket yang paling sesuai untuk restoran Anda. Tanpa biaya tersembunyi, batalkan kapan saja.'
+            pricingDescription: 'Pilih paket yang paling sesuai untuk restoran Anda. Tanpa biaya tersembunyi, batalkan kapan saja.',
+            contactTitle: 'Hubungi Kami',
+            contactWhatsappText: 'Tanya via WhatsApp',
+            contactWhatsappDesc: 'CS kami siap menjawab semua pertanyaan Anda.',
+            contactEmailText: 'Kirim Email',
+            contactEmailDesc: 'Punya pertanyaan spesifik? Email kami kapan saja.'
         }
     )
 
@@ -175,6 +180,43 @@ export default function LandingEditorTab() {
                                 onChange={handleChange}
                                 className="bg-[#111827] border-[#2A344A] text-white focus:border-[#10B981]"
                             />
+                        </div>
+                    </div>
+
+                    {/* Contact Section Edit */}
+                    <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-3xl space-y-6">
+                        <div className="flex items-center gap-3 border-b border-[#2A344A] pb-4">
+                            <span className="material-symbols-outlined text-emerald-400">contact_support</span>
+                            <h3 className="text-lg font-bold text-[#F8FAFC]">Contact Section</h3>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-slate-300">Contact Section Title</Label>
+                            <Input
+                                name="contactTitle"
+                                value={formData.contactTitle || ''}
+                                onChange={handleChange}
+                                className="bg-[#111827] border-[#2A344A] text-white focus:border-[#10B981]"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-slate-300 text-xs">WhatsApp View Text</Label>
+                                <Input name="contactWhatsappText" value={formData.contactWhatsappText || ''} onChange={handleChange} className="bg-[#111827] border-[#2A344A] text-white h-9" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-slate-300 text-xs">WhatsApp Description</Label>
+                                <Input name="contactWhatsappDesc" value={formData.contactWhatsappDesc || ''} onChange={handleChange} className="bg-[#111827] border-[#2A344A] text-white h-9" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-slate-300 text-xs">Email View Text</Label>
+                                <Input name="contactEmailText" value={formData.contactEmailText || ''} onChange={handleChange} className="bg-[#111827] border-[#2A344A] text-white h-9" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-slate-300 text-xs">Email Description</Label>
+                                <Input name="contactEmailDesc" value={formData.contactEmailDesc || ''} onChange={handleChange} className="bg-[#111827] border-[#2A344A] text-white h-9" />
+                            </div>
                         </div>
                     </div>
                 </div>
