@@ -322,9 +322,13 @@ export const useAppStore = create<AppState>()(
           const data = await res.json()
           if (data.success) {
             set({ user: data.user })
+          } else {
+            // Explicitly clear stale user state if validation fails
+            set({ user: null })
           }
         } catch (error) {
           console.error('Session check failed', error)
+          set({ user: null })
         } finally {
           set({ isInitialized: true })
         }

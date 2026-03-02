@@ -7,74 +7,109 @@ import { Button } from '@/components/ui/button'
 export type HelpdeskMessage = {
     id: string
     restaurantId: string
-    restaurantName: string
+    restaurantName?: string
     senderRole: 'SUPER_ADMIN' | 'RESTAURANT_ADMIN'
-    senderName: string
     message: string
-    timestamp: string
-    isRead: boolean
+    attachment?: string | null
+    createdAt: string
+    readAt?: string | null
+    restaurant?: { name: string }
 }
 
 export default function HelpdeskChat({ role }: { role: 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' }) {
     const { user, restaurants, helpdeskSettings } = useAppStore()
     const [messages, setMessages] = useState<HelpdeskMessage[]>([])
     const [inputText, setInputText] = useState('')
+    const [isSending, setIsSending] = useState(false)
     const [activeRestaurantId, setActiveRestaurantId] = useState<string | null>(null)
+    const [uploadingAttachment, setUploadingAttachment] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
-    // Load messages from localStorage on mount
-    useEffect(() => {
-        const savedMessages = localStorage.getItem('helpdesk_messages')
-        if (savedMessages) {
-            setMessages(JSON.parse(savedMessages))
+    const fetchMessages = async () => {
+        try {
+            const res = await fetch('/api/helpdesk')
+            const data = await res.json()
+            if (data.success) {
+                setMessages(data.messages)
+            }
+        } catch (error) {
+            console.error('Failed to fetch messages', error)
         }
+    }
+
+    useEffect(() => {
+        fetchMessages()
+        const interval = setInterval(fetchMessages, 5000) // Poll every 5s
+        return () => clearInterval(interval)
     }, [])
 
-    // Auto-scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages, activeRestaurantId])
 
-    // Save messages to localStorage on change
-    const saveMessages = (newMessages: HelpdeskMessage[]) => {
-        setMessages(newMessages)
-        localStorage.setItem('helpdesk_messages', JSON.stringify(newMessages))
-    }
-
-    const handleSendMessage = (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!inputText.trim() || !user) return
+    const handleSendMessage = async (e: React.FormEvent, attachmentUrl?: string) => {
+        e?.preventDefault()
+        if ((!inputText.trim() && !attachmentUrl) || !user) return
 
         let targetRestoId = ''
-        let targetRestoName = ''
-
         if (role === 'RESTAURANT_ADMIN') {
-            targetRestoId = user.restaurantId || 'unknown'
-            const resto = restaurants.find(r => r.id === targetRestoId)
-            targetRestoName = resto?.name || user.name
+            targetRestoId = user.restaurantId || ''
         } else {
-            if (!activeRestaurantId) return
-            targetRestoId = activeRestaurantId
-            const resto = restaurants.find(r => r.id === activeRestaurantId)
-            targetRestoName = resto?.name || 'Restaurant'
+            targetRestoId = activeRestaurantId || ''
         }
 
-        const newMessage: HelpdeskMessage = {
-            id: crypto.randomUUID(),
-            restaurantId: targetRestoId,
-            restaurantName: targetRestoName,
-            senderRole: role,
-            senderName: role === 'SUPER_ADMIN' ? 'Support Agent' : user.name,
-            message: inputText.trim(),
-            timestamp: new Date().toISOString(),
-            isRead: false
-        }
+        if (!targetRestoId) return
 
-        saveMessages([...messages, newMessage])
-        setInputText('')
+        setIsSending(true)
+        try {
+            const res = await fetch('/api/helpdesk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    restaurantId: targetRestoId,
+                    message: inputText.trim(),
+                    attachment: attachmentUrl
+                })
+            })
+            const data = await res.json()
+            if (data.success) {
+                setMessages(prev => [...prev, data.message])
+                setInputText('')
+            }
+        } catch (error) {
+            console.error('Send message error', error)
+        } finally {
+            setIsSending(false)
+        }
     }
 
-    // Filter messages based on role
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setUploadingAttachment(true)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+
+            const data = await res.json()
+            if (data.url) {
+                await handleSendMessage(undefined as any, data.url)
+            }
+        } catch (error) {
+            console.error('Upload failed', error)
+        } finally {
+            setUploadingAttachment(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+        }
+    }
+
     const currentChatMessages = messages.filter(m => {
         if (role === 'RESTAURANT_ADMIN') {
             return m.restaurantId === user?.restaurantId
@@ -82,26 +117,20 @@ export default function HelpdeskChat({ role }: { role: 'SUPER_ADMIN' | 'RESTAURA
         return m.restaurantId === activeRestaurantId
     })
 
-    // Get unique restaurants that have messaged
     const chatSessions = role === 'SUPER_ADMIN' ? Array.from(new Set(messages.map(m => m.restaurantId))).map(id => {
-        const lastMsg = messages.filter(m => m.restaurantId === id).pop()
-        const resto = restaurants.find(r => r.id === id)
+        const restoMessages = messages.filter(m => m.restaurantId === id)
+        const lastMsg = restoMessages[restoMessages.length - 1]
         return {
             restaurantId: id,
-            restaurantName: resto?.name || lastMsg?.restaurantName || 'Unknown Merchant',
-            lastMessage: lastMsg?.message,
-            timestamp: lastMsg?.timestamp,
-            unreadCount: messages.filter(m => m.restaurantId === id && m.senderRole === 'RESTAURANT_ADMIN' && !m.isRead).length
+            restaurantName: lastMsg?.restaurant?.name || 'Unknown Merchant',
+            lastMessage: lastMsg?.message || (lastMsg?.attachment ? 'Sent an attachment' : ''),
+            timestamp: lastMsg?.createdAt,
+            unreadCount: 0 // Optional: implement actual read/unread later
         }
     }).sort((a, b) => new Date(b.timestamp || '').getTime() - new Date(a.timestamp || '').getTime()) : []
 
     const markAsRead = (restoId: string) => {
-        if (role === 'SUPER_ADMIN') {
-            const updated = messages.map(m =>
-                (m.restaurantId === restoId && m.senderRole === 'RESTAURANT_ADMIN') ? { ...m, isRead: true } : m
-            )
-            saveMessages(updated)
-        }
+        // Optional placeholder for future read receipts
     }
 
     return (
@@ -208,15 +237,27 @@ export default function HelpdeskChat({ role }: { role: 'SUPER_ADMIN' | 'RESTAURA
                                             <div className="flex items-end gap-2 max-w-[70%]">
                                                 {!isMe && (
                                                     <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${msg.senderRole === 'SUPER_ADMIN' ? 'bg-[#00a669] text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
-                                                        {msg.senderRole === 'SUPER_ADMIN' ? 'S' : msg.senderName.charAt(0).toUpperCase()}
+                                                        {msg.senderRole === 'SUPER_ADMIN' ? 'S' : 'R'}
                                                     </div>
                                                 )}
                                                 <div className={`px-4 py-3 text-sm shadow-sm ${isMe ? 'bg-[#00a669] text-white rounded-[1.5rem] rounded-br-[0.5rem]' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-slate-700 rounded-[1.5rem] rounded-bl-[0.5rem]'}`}>
-                                                    {msg.message}
+                                                    {msg.message && <p>{msg.message}</p>}
+                                                    {msg.attachment && (
+                                                        <a href={msg.attachment} target="_blank" rel="noopener noreferrer" className="block mt-2">
+                                                            {msg.attachment.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                                                                <img src={msg.attachment} alt="Attachment" className="max-w-[200px] rounded-lg border border-white/20" />
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 bg-black/10 dark:bg-white/10 p-2 rounded-lg text-xs">
+                                                                    <span className="material-symbols-outlined text-[16px]">attach_file</span>
+                                                                    View Attachment
+                                                                </div>
+                                                            )}
+                                                        </a>
+                                                    )}
                                                 </div>
                                             </div>
                                             <span className="text-[10px] text-slate-400 mt-1 px-10">
-                                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
                                     )
@@ -230,7 +271,22 @@ export default function HelpdeskChat({ role }: { role: 'SUPER_ADMIN' | 'RESTAURA
                 {/* Chat Input */}
                 {(!((role === 'SUPER_ADMIN' && !activeRestaurantId))) && (
                     <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 relative z-20">
-                        <form onSubmit={handleSendMessage} className="flex gap-2 relative">
+                        <form onSubmit={handleSendMessage} className="flex gap-2 relative items-center">
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept="image/*,.pdf,.doc,.docx"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploadingAttachment || isSending}
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">{uploadingAttachment ? 'hourglass_empty' : 'attach_file'}</span>
+                            </button>
                             <input
                                 type="text"
                                 value={inputText}
@@ -240,7 +296,7 @@ export default function HelpdeskChat({ role }: { role: 'SUPER_ADMIN' | 'RESTAURA
                             />
                             <button
                                 type="submit"
-                                disabled={!inputText.trim()}
+                                disabled={(!inputText.trim() && !uploadingAttachment) || isSending}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#00a669] text-white rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <span className="material-symbols-outlined text-[16px] -ml-0.5">send</span>

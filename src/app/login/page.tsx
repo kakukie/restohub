@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { toast } from '@/hooks/use-toast'
 
 export default function RestaurantAdminLoginPage() {
-    const { setUser, user, helpdeskSettings } = useAppStore()
+    const { setUser, user, isInitialized, helpdeskSettings } = useAppStore()
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [mounted, setMounted] = useState(false)
@@ -27,8 +27,8 @@ export default function RestaurantAdminLoginPage() {
     }, [])
 
     useEffect(() => {
-        // If already logged in, redirect to appropriate dashboard
-        if (user) {
+        // If already logged in and session is verified, redirect to appropriate dashboard
+        if (isInitialized && user) {
             if (user.role === 'SUPER_ADMIN') {
                 router.push('/admin')
             } else if (user.role === 'RESTAURANT_ADMIN') {
@@ -36,7 +36,7 @@ export default function RestaurantAdminLoginPage() {
             }
             // Do NOT redirect to '/' for unknown roles — stay on login page
         }
-    }, [user, router])
+    }, [user, isInitialized, router])
 
     const generateCaptcha = () => {
         setCaptchaNum1(Math.floor(Math.random() * 10) + 1)

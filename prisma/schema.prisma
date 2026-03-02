@@ -104,6 +104,7 @@ model Restaurant {
   menuItems      MenuItem[]
   paymentMethods PaymentMethod[]
   orders         Order[]
+  helpdeskMessages HelpdeskMessage[]
   deletedAt      DateTime? // Soft Delete for Restaurant
 }
 
@@ -255,4 +256,15 @@ model Announcement {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model HelpdeskMessage {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  senderRole   UserRole
+  message      String
+  attachment   String?
+  readAt       DateTime?
+  createdAt    DateTime   @default(now())
 }
