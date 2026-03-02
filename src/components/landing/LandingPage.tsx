@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/app-store'
+import PhoneMockup3D from './PhoneMockup3D'
 import Link from 'next/link'
 
 interface SubscriptionPlan {
@@ -39,8 +40,10 @@ const subscriptionPlansMock: SubscriptionPlan[] = [
 export default function LandingPage() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
   const { helpdeskSettings } = useAppStore()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const fetchPlans = async () => {
       try {
         const res = await fetch('/api/subscription-plans')
@@ -61,7 +64,23 @@ export default function LandingPage() {
     document.documentElement.classList.toggle('dark')
   }
 
-  const platformName = helpdeskSettings?.platformName || 'Meenuin'
+  const platformName = mounted && helpdeskSettings?.platformName ? helpdeskSettings.platformName : 'Meenuin'
+  const textData = mounted && helpdeskSettings?.landingPageData ? helpdeskSettings.landingPageData : {
+    heroTitle: 'Modern Menu Ecosystem',
+    heroSubtitle: 'Update v3.2: Mobile Experience Optimized',
+    heroDescription: 'Berikan pengalaman bersantap yang tak terlupakan dengan menu digital interaktif. Kelola pesanan dengan mulus di berbagai perangkat.',
+    statsMerchants: '500+',
+    statsOrders: '120k+',
+    statsUptime: '99.9%',
+    feature1Title: 'QR Menu',
+    feature1Desc: 'Pelanggan bisa langsung scan dan pesan dari meja tanpa perlu menunggu pelayan datang membawa menu fisik.',
+    feature2Title: 'QRIS Pay',
+    feature2Desc: 'Pembayaran otomatis terintegrasi. Pelanggan bisa bayar langsung setelah pesan menggunakan QRIS favorit mereka.',
+    feature3Title: 'Kitchen Display',
+    feature3Desc: 'Monitor pesanan di dapur secara real-time. Tidak ada lagi pesanan yang terlewat atau salah catat.',
+    pricingTitle: 'Simple, Transparent Pricing',
+    pricingDescription: 'Pilih paket yang paling sesuai untuk restoran Anda. Tanpa biaya tersembunyi, batalkan kapan saja.'
+  }
 
   return (
     <div className="bg-white dark:bg-[#020617] text-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen">
@@ -103,16 +122,13 @@ export default function LandingPage() {
                     className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00a669] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00a669]"></span>
                 </span>
-                Update v3.2: Mobile Experience Optimized
+                {textData.heroSubtitle}
               </div>
               <h1
-                className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
-                Modern Menu <br />
-                <span className="text-[#00a669]">Ecosystem</span>
+                className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white" dangerouslySetInnerHTML={{ __html: textData.heroTitle }}>
               </h1>
               <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-lg">
-                Berikan pengalaman bersantap yang tak terlupakan dengan menu digital interaktif. Kelola pesanan
-                dengan mulus di berbagai perangkat.
+                {textData.heroDescription}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Link href="/register"
@@ -126,76 +142,21 @@ export default function LandingPage() {
               </div>
               <div className="grid grid-cols-3 gap-8 pt-8 border-t border-slate-100 dark:border-slate-800">
                 <div>
-                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white">500+</div>
+                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white">{textData.statsMerchants}</div>
                   <div className="text-slate-500 text-sm">Merchants</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white">120k+</div>
+                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white">{textData.statsOrders}</div>
                   <div className="text-slate-500 text-sm">Orders</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white">99.9%</div>
+                  <div className="text-3xl font-extrabold text-slate-900 dark:text-white">{textData.statsUptime}</div>
                   <div className="text-slate-500 text-sm">Uptime</div>
                 </div>
               </div>
             </div>
             <div className="relative lg:h-[600px] flex items-center justify-center">
-              <div
-                className="absolute w-[450px] md:w-[600px] h-[350px] md:h-[450px] bg-slate-800 rounded-[2.5rem] border-[12px] border-slate-900 overflow-hidden -rotate-3 translate-x-[-10%] z-0 hidden md:block" style={{ boxShadow: '0 50px 100px -20px rgba(0, 0, 0, 0.12), 0 30px 60px -30px rgba(0, 0, 0, 0.15)' }}>
-                <div className="w-full h-full bg-slate-50 dark:bg-slate-900 p-6">
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
-                    <div className="flex gap-4">
-                      <div className="h-6 w-6 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
-                      <div className="h-6 w-6 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>
-                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>
-                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>
-                    <div className="col-span-2 h-32 bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>
-                    <div className="h-32 bg-[#00a669]/10 rounded-2xl"></div>
-                  </div>
-                </div>
-              </div>
-              <div
-                className="relative w-[280px] h-[560px] bg-slate-900 rounded-[3rem] border-[8px] border-slate-900 overflow-hidden rotate-2 z-10" style={{ boxShadow: '0 50px 100px -20px rgba(0, 0, 0, 0.12), 0 30px 60px -30px rgba(0, 0, 0, 0.15)' }}>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-20">
-                </div>
-                <div className="w-full h-full bg-white dark:bg-slate-900 flex flex-col">
-                  <div className="h-40 bg-[#00a669]/10 p-6 flex flex-col justify-end">
-                    <div className="w-24 h-4 bg-[#00a669]/40 rounded-full mb-2"></div>
-                    <div className="w-40 h-6 bg-[#00a669]/60 rounded-full"></div>
-                  </div>
-                  <div className="p-6 space-y-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                        <div className="w-2/3 h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                        <div className="w-2/3 h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                      </div>
-                    </div>
-                    <div
-                      className="aspect-video bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border-2 border-dashed border-[#00a669]/20 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[#00a669] text-3xl">qr_code_2</span>
-                    </div>
-                    <div className="pt-4">
-                      <div
-                        className="w-full h-12 bg-[#00a669] rounded-xl flex items-center justify-center text-white font-bold text-sm">
-                        Checkout Now
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <PhoneMockup3D />
             </div>
           </div>
         </div>
@@ -217,9 +178,8 @@ export default function LandingPage() {
                 className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-[#00a669] text-3xl">qr_code_2</span>
               </div>
-              <h4 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">QR Menu</h4>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">Pelanggan bisa langsung scan dan pesan
-                dari meja tanpa perlu menunggu pelayan datang membawa menu fisik.</p>
+              <h4 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">{textData.feature1Title}</h4>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{textData.feature1Desc}</p>
             </div>
             <div
               className="group p-8 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-[#00a669]/50 transition-all hover:shadow-2xl hover:shadow-[#00a669]/5">
@@ -227,9 +187,8 @@ export default function LandingPage() {
                 className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-[#00a669] text-3xl">payments</span>
               </div>
-              <h4 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">QRIS Pay</h4>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">Pembayaran otomatis terintegrasi.
-                Pelanggan bisa bayar langsung setelah pesan menggunakan QRIS favorit mereka.</p>
+              <h4 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">{textData.feature2Title}</h4>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{textData.feature2Desc}</p>
             </div>
             <div
               className="group p-8 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-[#00a669]/50 transition-all hover:shadow-2xl hover:shadow-[#00a669]/5">
@@ -237,9 +196,8 @@ export default function LandingPage() {
                 className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-[#00a669] text-3xl">restaurant</span>
               </div>
-              <h4 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Kitchen Display</h4>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">Monitor pesanan di dapur secara
-                real-time. Tidak ada lagi pesanan yang terlewat atau salah catat.</p>
+              <h4 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">{textData.feature3Title}</h4>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{textData.feature3Desc}</p>
             </div>
           </div>
         </div>
@@ -248,9 +206,8 @@ export default function LandingPage() {
       <section className="py-24 bg-slate-50 dark:bg-slate-950" id="harga">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-            <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white">Simple, Transparent Pricing</h2>
-            <p className="text-slate-600 dark:text-slate-400">Pilih paket yang paling sesuai untuk restoran Anda. Tanpa
-              biaya tersembunyi, batalkan kapan saja.</p>
+            <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white" dangerouslySetInnerHTML={{ __html: textData.pricingTitle }}></h2>
+            <p className="text-slate-600 dark:text-slate-400">{textData.pricingDescription}</p>
           </div>
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {plans.slice(0, 2).map((plan, idx) => (
@@ -299,7 +256,7 @@ export default function LandingPage() {
                 <span className="material-symbols-outlined text-[#00a669] text-3xl">phone_iphone</span>
               </div>
               <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">WhatsApp</h4>
-              <p className="text-slate-600 dark:text-slate-400 font-semibold text-lg">{helpdeskSettings?.whatsapp || '088294945050'}</p>
+              <p className="text-slate-600 dark:text-slate-400 font-semibold text-lg">{mounted && helpdeskSettings?.whatsapp ? helpdeskSettings.whatsapp : '088294945050'}</p>
             </div>
             <div
               className="flex-1 max-w-sm bg-emerald-50 dark:bg-emerald-900/10 p-10 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 flex flex-col items-center">

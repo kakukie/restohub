@@ -18,6 +18,7 @@ import { useAppStore, Restaurant, SubscriptionPlan } from '@/store/app-store'
 import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
+import LandingEditorTab from './LandingEditorTab'
 
 interface Stats {
   totalRestaurants: number
@@ -158,7 +159,7 @@ export default function SuperAdminDashboard() {
   const [qrCodeRestaurant, setQrCodeRestaurant] = useState<Restaurant | null>(null)
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings' | 'landing-editor'>('dashboard')
 
   // User Edit State
   const [userDialogOpen, setUserDialogOpen] = useState(false)
@@ -1490,6 +1491,10 @@ export default function SuperAdminDashboard() {
               <span className={`material-symbols-outlined text-xl ${activeTab === 'users' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>people_alt</span>
               <span>User Control</span>
             </button>
+            <button onClick={() => setActiveTab('landing-editor')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${activeTab === 'landing-editor' ? 'bg-[#10B981]/10 text-[#10B981] border-r-4 border-[#10B981] font-semibold' : 'text-slate-500 hover:text-slate-100 hover:bg-white/5'}`}>
+              <span className={`material-symbols-outlined text-xl ${activeTab === 'landing-editor' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>web</span>
+              <span>Landing Editor</span>
+            </button>
             <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${activeTab === 'settings' ? 'bg-[#10B981]/10 text-[#10B981] border-r-4 border-[#10B981] font-semibold' : 'text-slate-500 hover:text-slate-100 hover:bg-white/5'}`}>
               <span className={`material-symbols-outlined text-xl ${activeTab === 'settings' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>settings</span>
               <span>System Settings</span>
@@ -1516,6 +1521,7 @@ export default function SuperAdminDashboard() {
         {activeTab === 'plans' && renderPlans()}
         {activeTab === 'users' && renderUsers()}
         {activeTab === 'settings' && renderSettings()}
+        {activeTab === 'landing-editor' && <LandingEditorTab />}
 
         <Dialog open={passwordResetOpen} onOpenChange={setPasswordResetOpen}>
           <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white">
@@ -2041,6 +2047,7 @@ export default function SuperAdminDashboard() {
         <button onClick={() => setActiveTab('restaurants')} className={`${activeTab === 'restaurants' ? 'text-[#10B981]' : 'text-slate-500 hover:text-white'}`}><span className="material-symbols-outlined">restaurant</span></button>
         <button onClick={() => setActiveTab('plans')} className={`${activeTab === 'plans' ? 'text-[#10B981]' : 'text-slate-500 hover:text-white'}`}><span className="material-symbols-outlined">payments</span></button>
         <button onClick={() => setActiveTab('users')} className={`${activeTab === 'users' ? 'text-[#10B981]' : 'text-slate-500 hover:text-white'}`}><span className="material-symbols-outlined">people_alt</span></button>
+        <button onClick={() => setActiveTab('landing-editor')} className={`${activeTab === 'landing-editor' ? 'text-[#10B981]' : 'text-slate-500 hover:text-white'}`}><span className="material-symbols-outlined">web</span></button>
         <button onClick={() => setActiveTab('settings')} className={`${activeTab === 'settings' ? 'text-[#10B981]' : 'text-slate-500 hover:text-white'}`}><span className="material-symbols-outlined">settings</span></button>
       </div>
     </div >

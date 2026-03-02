@@ -141,11 +141,29 @@ export interface Announcement {
   createdAt: string
 }
 
+export interface LandingPageData {
+  heroTitle: string
+  heroSubtitle: string
+  heroDescription: string
+  statsMerchants: string
+  statsOrders: string
+  statsUptime: string
+  feature1Title: string
+  feature1Desc: string
+  feature2Title: string
+  feature2Desc: string
+  feature3Title: string
+  feature3Desc: string
+  pricingTitle: string
+  pricingDescription: string
+}
+
 export interface HelpdeskSettings {
   whatsapp: string
   email: string
   maintenanceMode?: boolean
   platformName?: string
+  landingPageData?: LandingPageData
 }
 
 interface AppState {
@@ -267,7 +285,24 @@ export const useAppStore = create<AppState>()(
       subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS,
       helpdeskSettings: {
         whatsapp: '088294945050',
-        email: 'support@meenuin.biz.id'
+        email: 'support@meenuin.biz.id',
+        platformName: 'Meenuin',
+        landingPageData: {
+          heroTitle: 'Modern Menu Ecosystem',
+          heroSubtitle: 'Update v3.2: Mobile Experience Optimized',
+          heroDescription: 'Berikan pengalaman bersantap yang tak terlupakan dengan menu digital interaktif. Kelola pesanan dengan mulus di berbagai perangkat.',
+          statsMerchants: '500+',
+          statsOrders: '120k+',
+          statsUptime: '99.9%',
+          feature1Title: 'QR Menu',
+          feature1Desc: 'Pelanggan bisa langsung scan dan pesan dari meja tanpa perlu menunggu pelayan datang membawa menu fisik.',
+          feature2Title: 'QRIS Pay',
+          feature2Desc: 'Pembayaran otomatis terintegrasi. Pelanggan bisa bayar langsung setelah pesan menggunakan QRIS favorit mereka.',
+          feature3Title: 'Kitchen Display',
+          feature3Desc: 'Monitor pesanan di dapur secara real-time. Tidak ada lagi pesanan yang terlewat atau salah catat.',
+          pricingTitle: 'Simple, Transparent Pricing',
+          pricingDescription: 'Pilih paket yang paling sesuai untuk restoran Anda. Tanpa biaya tersembunyi, batalkan kapan saja.'
+        }
       },
       systemAnnouncements: [],
 
@@ -463,7 +498,8 @@ export const useAppStore = create<AppState>()(
         language: state.language,
         cart: state.cart,
         user: state.user,
-        selectedRestaurant: state.selectedRestaurant
+        selectedRestaurant: state.selectedRestaurant,
+        helpdeskSettings: state.helpdeskSettings
       }),
     }
   )

@@ -23,14 +23,22 @@ export default function RestaurantAdminLoginPage() {
 
     useEffect(() => {
         setMounted(true)
-        useAppStore.persist.rehydrate()
         generateCaptcha()
+    }, [])
 
+    useEffect(() => {
         // If already logged in
         if (user) {
-            if (user.role === 'SUPER_ADMIN') router.push('/admin')
-            else if (user.role === 'RESTAURANT_ADMIN') router.push('/dashboard')
-            else router.push('/')
+            if (user.role === 'SUPER_ADMIN') {
+                router.push('/admin')
+                router.refresh()
+            } else if (user.role === 'RESTAURANT_ADMIN') {
+                router.push('/dashboard')
+                router.refresh()
+            } else {
+                router.push('/')
+                router.refresh()
+            }
         }
     }, [user, router])
 
