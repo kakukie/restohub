@@ -19,6 +19,7 @@ import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Sea
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import LandingEditorTab from './LandingEditorTab'
+import HelpdeskChat from './HelpdeskChat'
 
 interface Stats {
   totalRestaurants: number
@@ -159,7 +160,7 @@ export default function SuperAdminDashboard() {
   const [qrCodeRestaurant, setQrCodeRestaurant] = useState<Restaurant | null>(null)
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings' | 'landing-editor'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings' | 'landing-editor' | 'helpdesk'>('dashboard')
 
   // User Edit State
   const [userDialogOpen, setUserDialogOpen] = useState(false)
@@ -1495,6 +1496,10 @@ export default function SuperAdminDashboard() {
               <span className={`material-symbols-outlined text-xl ${activeTab === 'landing-editor' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>web</span>
               <span>Landing Editor</span>
             </button>
+            <button onClick={() => setActiveTab('helpdesk')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${activeTab === 'helpdesk' ? 'bg-[#10B981]/10 text-[#10B981] border-r-4 border-[#10B981] font-semibold' : 'text-slate-500 hover:text-slate-100 hover:bg-white/5'}`}>
+              <span className={`material-symbols-outlined text-xl ${activeTab === 'helpdesk' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>support_agent</span>
+              <span>Helpdesk</span>
+            </button>
             <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${activeTab === 'settings' ? 'bg-[#10B981]/10 text-[#10B981] border-r-4 border-[#10B981] font-semibold' : 'text-slate-500 hover:text-slate-100 hover:bg-white/5'}`}>
               <span className={`material-symbols-outlined text-xl ${activeTab === 'settings' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>settings</span>
               <span>System Settings</span>
@@ -1522,6 +1527,7 @@ export default function SuperAdminDashboard() {
         {activeTab === 'users' && renderUsers()}
         {activeTab === 'settings' && renderSettings()}
         {activeTab === 'landing-editor' && <LandingEditorTab />}
+        {activeTab === 'helpdesk' && <HelpdeskChat role="SUPER_ADMIN" />}
 
         <Dialog open={passwordResetOpen} onOpenChange={setPasswordResetOpen}>
           <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white">

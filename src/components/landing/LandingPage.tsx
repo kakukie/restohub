@@ -240,22 +240,71 @@ export default function LandingPage() {
       <section className="py-24 bg-white dark:bg-[#020617]" id="kontak">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-12">Hubungi Kami</h2>
-          <div className="flex flex-col md:flex-row justify-center gap-8">
-            <div
-              className="flex-1 max-w-sm bg-emerald-50 dark:bg-emerald-900/10 p-10 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 flex flex-col items-center">
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm mb-6">
-                <span className="material-symbols-outlined text-[#00a669] text-3xl">phone_iphone</span>
-              </div>
-              <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">WhatsApp</h4>
-              <p className="text-slate-600 dark:text-slate-400 font-semibold text-lg">{mounted && helpdeskSettings?.whatsapp ? helpdeskSettings.whatsapp : '088294945050'}</p>
+          <div className="flex flex-col lg:flex-row justify-center gap-8 max-w-5xl mx-auto">
+            {/* Contact Form */}
+            <div className="flex-1 bg-white dark:bg-slate-900 p-8 md:p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none text-left flex flex-col justify-center">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Kirim Pesan ke Tim Support</h3>
+              <form
+                className="space-y-5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const name = formData.get('name');
+                  const subject = formData.get('subject');
+                  const message = formData.get('message');
+                  const supportEmail = helpdeskSettings?.email || 'support@meenuin.biz.id';
+
+                  window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject as string)} - ${encodeURIComponent(name as string)}&body=${encodeURIComponent(message as string)}`;
+                  toast({ title: 'Membuka Email', description: 'Silakan kirim pesan melalui aplikasi email Anda.' });
+                }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama Lengkap</label>
+                    <input name="name" required type="text" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-[#00a669] focus:ring-1 focus:ring-[#00a669] transition-all" placeholder="Budi Santoso" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email Anda</label>
+                    <input name="email" required type="email" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-[#00a669] focus:ring-1 focus:ring-[#00a669] transition-all" placeholder="budi@domain.com" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Subjek</label>
+                  <input name="subject" required type="text" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-[#00a669] focus:ring-1 focus:ring-[#00a669] transition-all" placeholder="Pertanyaan tentang paket berlangganan" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Pesan</label>
+                  <textarea name="message" required rows={4} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-[#00a669] focus:ring-1 focus:ring-[#00a669] transition-all resize-none" placeholder="Tuliskan pertanyaan atau kendala Anda di sini..."></textarea>
+                </div>
+                <button type="submit" className="w-full bg-[#00a669] hover:bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-[#00a669]/20 flex items-center justify-center gap-2">
+                  Kirim Pesan
+                  <span className="material-symbols-outlined text-[18px]">send</span>
+                </button>
+              </form>
             </div>
-            <div
-              className="flex-1 max-w-sm bg-emerald-50 dark:bg-emerald-900/10 p-10 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 flex flex-col items-center">
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm mb-6">
-                <span className="material-symbols-outlined text-[#00a669] text-3xl">alternate_email</span>
+
+            {/* Direct Contact Info */}
+            <div className="flex flex-col gap-6 lg:w-[350px]">
+              <div
+                className="bg-emerald-50 dark:bg-emerald-900/10 p-8 rounded-[2rem] border border-emerald-100 dark:border-emerald-800 flex flex-col items-center flex-1 justify-center text-center">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm mb-4">
+                  <span className="material-symbols-outlined text-[#00a669] text-3xl">phone_iphone</span>
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">WhatsApp / Telepon</h4>
+                <p className="text-slate-600 dark:text-slate-400 font-semibold text-lg">{mounted && helpdeskSettings?.whatsapp ? helpdeskSettings.whatsapp : '088294945050'}</p>
+                <p className="text-sm text-slate-500 mt-2">Senin - Jumat, 09:00 - 17:00</p>
+                <a href={`https://wa.me/${(mounted && helpdeskSettings?.whatsapp ? helpdeskSettings.whatsapp : '088294945050').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="mt-4 px-6 py-2 bg-white dark:bg-slate-800 text-[#00a669] font-bold rounded-xl border border-emerald-100 dark:border-slate-700 hover:border-[#00a669] transition-colors shadow-sm w-full">Chat WhatsApp</a>
               </div>
-              <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Email</h4>
-              <p className="text-slate-600 dark:text-slate-400 font-semibold text-lg">support@{platformName.toLowerCase().replace(/\s+/g, '')}.biz.id</p>
+              <div
+                className="bg-emerald-50 dark:bg-emerald-900/10 p-8 rounded-[2rem] border border-emerald-100 dark:border-emerald-800 flex flex-col items-center flex-1 justify-center text-center">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm mb-4">
+                  <span className="material-symbols-outlined text-[#00a669] text-3xl">mail</span>
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Email</h4>
+                <p className="text-slate-600 dark:text-slate-400 font-semibold">{mounted && helpdeskSettings?.email ? helpdeskSettings.email : 'support@meenuin.biz.id'}</p>
+                <p className="text-sm text-slate-500 mt-2">Kami akan membalas dalam 1x24 jam</p>
+                <a href={`mailto:${mounted && helpdeskSettings?.email ? helpdeskSettings.email : 'support@meenuin.biz.id'}`} className="mt-4 px-6 py-2 bg-white dark:bg-slate-800 text-[#00a669] font-bold rounded-xl border border-emerald-100 dark:border-slate-700 hover:border-[#00a669] transition-colors shadow-sm w-full">Kirim Email</a>
+              </div>
             </div>
           </div>
         </div>

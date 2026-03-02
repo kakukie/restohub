@@ -106,8 +106,9 @@ export default function PhoneMockup3D() {
                     <div className="h-44 bg-gradient-to-br from-[#00a669] to-emerald-800 p-6 flex flex-col justify-end text-white relative">
                         <div className="absolute inset-0 bg-black opacity-10"></div>
                         <div className="relative z-10">
-                            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl mb-4 flex items-center justify-center">
-                                <span className="material-symbols-outlined">restaurant</span>
+                            {/* Meenuin Logo / Brand Icon */}
+                            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl mb-4 flex items-center justify-center border border-white/30 shadow-sm">
+                                <span className="text-[#00a669] bg-white w-8 h-8 rounded-xl flex items-center justify-center font-black text-xl leading-none">M</span>
                             </div>
                             <h4 className="font-bold text-xl mb-1 group-hover:text-emerald-200 transition-colors">Aroma Nusantara</h4>
                             <p className="text-emerald-100/80 text-xs flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">location_on</span> Jakarta Selatan</p>
@@ -117,37 +118,54 @@ export default function PhoneMockup3D() {
                     <div className="px-5 py-6 space-y-6 flex-1 overflow-y-auto no-scrollbar pb-20">
                         {/* Category Pills */}
                         <div className="flex gap-2 overflow-x-hidden">
-                            <div className="px-4 py-1.5 bg-emerald-100 dark:bg-[#00a669]/20 text-[#00a669] dark:text-[#00a669] text-xs font-bold rounded-full border border-emerald-200 dark:border-[#00a669]/40 hover:bg-emerald-200 transition-colors cursor-pointer">Makanan</div>
-                            <div className="px-4 py-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:border-[#00a669] transition-colors cursor-pointer">Minuman</div>
-                            <div className="px-4 py-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:border-[#00a669] transition-colors cursor-pointer">Snacks</div>
+                            <div className="px-4 py-1.5 bg-emerald-100 dark:bg-[#00a669]/20 text-[#00a669] dark:text-[#00a669] text-xs font-bold rounded-full border border-emerald-200 dark:border-[#00a669]/40 hover:bg-emerald-200 transition-colors cursor-pointer whitespace-nowrap">Makanan</div>
+                            <div className="px-4 py-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:border-[#00a669] transition-colors cursor-pointer whitespace-nowrap">Minuman</div>
+                            <div className="px-4 py-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:border-[#00a669] transition-colors cursor-pointer whitespace-nowrap">Snacks</div>
                         </div>
 
                         {/* Menu Items */}
                         <div className="space-y-4">
+                            {/* Item 1 */}
                             <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-[#00a669]/50 transition-all cursor-pointer">
-                                <div className="w-16 h-16 bg-slate-200 dark:bg-slate-700 rounded-xl overflow-hidden relative">
-                                    <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&q=80&w=150" alt="Pizza" className="w-full h-full object-cover" />
+                                <div className="min-w-[4rem] w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center text-white shadow-inner">
+                                    <span className="material-symbols-outlined text-3xl">restaurant</span>
                                 </div>
-                                <div className="flex-1 space-y-1.5">
-                                    <h5 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">Nasi Goreng Spesial</h5>
-                                    <p className="text-[10px] text-slate-500 line-clamp-1">Dengan telur & ayam</p>
+                                <div className="flex-1 space-y-1.5 min-w-0">
+                                    <h5 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">Nasi Goreng Spesial</h5>
+                                    <p className="text-[10px] text-slate-500 truncate">Dengan telur & ayam</p>
                                     <div className="flex justify-between items-center pt-1">
                                         <span className="text-[#00a669] dark:text-[#00a669] text-xs font-black">Rp 35.000</span>
-                                        <div className="w-6 h-6 rounded-full bg-[#00a669] hover:bg-emerald-600 text-white flex items-center justify-center shadow-lg transition-colors"><span className="material-symbols-outlined text-[14px]">add</span></div>
+                                        <div className="w-6 h-6 rounded-full bg-[#00a669] hover:bg-emerald-600 text-white flex items-center justify-center shadow-lg transition-colors flex-shrink-0"><span className="material-symbols-outlined text-[14px]">add</span></div>
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Item 2 */}
                             <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-[#00a669]/50 transition-all cursor-pointer">
-                                <div className="w-16 h-16 bg-slate-200 dark:bg-slate-700 rounded-xl overflow-hidden relative">
-                                    <img src="https://images.unsplash.com/photo-1544025162-831e5055b85e?auto=format&fit=crop&q=80&w=150" alt="Burger" className="w-full h-full object-cover" />
+                                <div className="min-w-[4rem] w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-white shadow-inner">
+                                    <span className="material-symbols-outlined text-3xl">set_meal</span>
                                 </div>
-                                <div className="flex-1 space-y-1.5">
-                                    <h5 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">Mie Goreng Seafood</h5>
-                                    <p className="text-[10px] text-slate-500 line-clamp-1">Udang & Cumi segar</p>
+                                <div className="flex-1 space-y-1.5 min-w-0">
+                                    <h5 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">Mie Goreng Seafood</h5>
+                                    <p className="text-[10px] text-slate-500 truncate">Udang & Cumi segar</p>
                                     <div className="flex justify-between items-center pt-1">
                                         <span className="text-[#00a669] dark:text-[#00a669] text-xs font-black">Rp 42.000</span>
-                                        <div className="w-6 h-6 rounded-full bg-[#00a669] hover:bg-emerald-600 text-white flex items-center justify-center shadow-lg transition-colors"><span className="material-symbols-outlined text-[14px]">add</span></div>
+                                        <div className="w-6 h-6 rounded-full bg-[#00a669] hover:bg-emerald-600 text-white flex items-center justify-center shadow-lg transition-colors flex-shrink-0"><span className="material-symbols-outlined text-[14px]">add</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Item 3 */}
+                            <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-[#00a669]/50 transition-all cursor-pointer">
+                                <div className="min-w-[4rem] w-16 h-16 bg-gradient-to-br from-amber-300 to-orange-400 rounded-xl flex items-center justify-center text-white shadow-inner">
+                                    <span className="material-symbols-outlined text-3xl">local_cafe</span>
+                                </div>
+                                <div className="flex-1 space-y-1.5 min-w-0">
+                                    <h5 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">Es Teh Manis</h5>
+                                    <p className="text-[10px] text-slate-500 truncate">Segar & Manis pas</p>
+                                    <div className="flex justify-between items-center pt-1">
+                                        <span className="text-[#00a669] dark:text-[#00a669] text-xs font-black">Rp 8.000</span>
+                                        <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 flex items-center justify-center border border-slate-200 dark:border-slate-600 flex-shrink-0 cursor-default"><span className="material-symbols-outlined text-[14px]">check</span></div>
                                     </div>
                                 </div>
                             </div>

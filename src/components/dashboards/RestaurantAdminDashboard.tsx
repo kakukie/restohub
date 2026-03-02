@@ -21,6 +21,7 @@ import PaymentMethods from './restaurant/PaymentMethods'
 import PaymentMethodDialog from './restaurant/PaymentMethodDialog' // Imported
 import StaffManagement from './restaurant/StaffManagement'
 import BestSellers from './restaurant/BestSellers'
+import HelpdeskChat from './HelpdeskChat'
 
 // Legacy / Existing Sub-Components (We will reuse these or refactor later)
 // For now, we reuse the logic and render them conditionally
@@ -1532,6 +1533,7 @@ export default function RestaurantAdminDashboard() {
                     />
                 )}
                 {activeTab === 'settings' && renderSettingsContent()}
+                {activeTab === 'helpdesk' && <HelpdeskChat role="RESTAURANT_ADMIN" />}
 
 
             </main>

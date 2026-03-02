@@ -27,15 +27,14 @@ export default function RestaurantAdminLoginPage() {
     }, [])
 
     useEffect(() => {
-        // If already logged in
+        // If already logged in, redirect to appropriate dashboard
         if (user) {
             if (user.role === 'SUPER_ADMIN') {
                 router.push('/admin')
             } else if (user.role === 'RESTAURANT_ADMIN') {
                 router.push('/dashboard')
-            } else {
-                router.push('/')
             }
+            // Do NOT redirect to '/' for unknown roles — stay on login page
         }
     }, [user, router])
 
@@ -92,8 +91,6 @@ export default function RestaurantAdminLoginPage() {
                 router.push('/admin')
             } else if (userData.role === 'RESTAURANT_ADMIN') {
                 router.push('/dashboard')
-            } else {
-                router.push('/')
             }
         } catch (error: any) {
             console.error('Login Error:', error)

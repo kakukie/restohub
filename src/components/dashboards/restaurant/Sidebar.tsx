@@ -12,7 +12,8 @@ import {
     UtensilsCrossed,
     User as UserIcon,
     Menu,
-    ChevronDown
+    ChevronDown,
+    LifeBuoy
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import {
@@ -48,6 +49,7 @@ const translations = {
         payments: "Payments",
         logout: "Logout",
         staff: "Staff",
+        helpdesk: "Helpdesk",
         more: "More"
     },
     id: {
@@ -60,6 +62,7 @@ const translations = {
         payments: "Pembayaran",
         logout: "Keluar",
         staff: "Staf",
+        helpdesk: "Bantuan",
         more: "Lainnya"
     }
 }
@@ -84,6 +87,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
         { id: 'analytics', label: t.analytics, icon: Package },
         { id: 'settings', label: t.settings, icon: Settings },
         { id: 'staff', label: t.staff, icon: UserIcon },
+        { id: 'helpdesk', label: t.helpdesk, icon: LifeBuoy },
     ]
 
     const NavItem = ({ item, isMobile = false }: { item: any, isMobile?: boolean }) => {
@@ -137,7 +141,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
             {/* Mobile Navigation Bar */}
             <div className="lg:hidden flex justify-around items-end w-full px-1 sm:px-2 py-1 sm:py-2">
-                {mainNavItems.map(item => <NavItem key={item.id} item={{ ...item, badge: item.badge > 0 ? item.badge : 0 }} isMobile />)}
+                {mainNavItems.map(item => <NavItem key={item.id} item={{ ...item, badge: (item.badge || 0) > 0 ? item.badge : 0 }} isMobile />)}
 
                 {/* More Sheet Trigger */}
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
