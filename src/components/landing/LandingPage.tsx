@@ -115,17 +115,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8 z-10">
-              <div
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-[#00a669] text-sm font-bold border border-emerald-100 dark:border-emerald-800">
-                <span className="relative flex h-2 w-2">
-                  <span
-                    className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00a669] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00a669]"></span>
-                </span>
-                {textData.heroSubtitle}
-              </div>
               <h1
-                className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white" dangerouslySetInnerHTML={{ __html: textData.heroTitle }}>
+                className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white" dangerouslySetInnerHTML={{ __html: textData.heroTitle }}>
               </h1>
               <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-lg">
                 {textData.heroDescription}

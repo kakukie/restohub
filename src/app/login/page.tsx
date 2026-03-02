@@ -31,13 +31,10 @@ export default function RestaurantAdminLoginPage() {
         if (user) {
             if (user.role === 'SUPER_ADMIN') {
                 router.push('/admin')
-                router.refresh()
             } else if (user.role === 'RESTAURANT_ADMIN') {
                 router.push('/dashboard')
-                router.refresh()
             } else {
                 router.push('/')
-                router.refresh()
             }
         }
     }, [user, router])
@@ -93,13 +90,10 @@ export default function RestaurantAdminLoginPage() {
             // Redirect based on role
             if (userData.role === 'SUPER_ADMIN') {
                 router.push('/admin')
-                router.refresh()
             } else if (userData.role === 'RESTAURANT_ADMIN') {
                 router.push('/dashboard')
-                router.refresh()
             } else {
                 router.push('/')
-                router.refresh()
             }
         } catch (error: any) {
             console.error('Login Error:', error)

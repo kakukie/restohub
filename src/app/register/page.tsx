@@ -341,8 +341,8 @@ export default function Register() {
                                         <div className="space-y-1">
                                             <h4 className="text-sm font-bold text-[#00a669]">Butuh bantuan daftar?</h4>
                                             <p className="text-xs text-slate-600 dark:text-slate-400">Tim kami siap membantu proses
-                                                pendaftaran Anda melalui WhatsApp. <a className="text-[#00a669] font-bold underline"
-                                                    href="#">Hubungi kami di sini.</a></p>
+                                                pendaftaran Anda. <a className="text-[#00a669] font-bold underline"
+                                                    href="mailto:support@meenuin.biz.id?subject=Bantuan%20Pendaftaran%20Meenuin">Kirim email ke support@meenuin.biz.id</a></p>
                                         </div>
                                     </div>
                                 </div>
@@ -384,20 +384,12 @@ export default function Register() {
             </main >
             <footer className="mt-20 py-12 border-t border-slate-200 dark:border-slate-800">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-8">
-                    <div className="flex flex-wrap justify-center gap-x-12 gap-y-4">
-                        <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="#">Fitur</a>
-                        <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="#">Harga</a>
-                        <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="#">Blog</a>
-                        <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="#">Karir</a>
-                        <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="#">Kontak</a>
-                    </div>
+                    <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="/#harga">Harga</a>
+                    <a className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#00a669]" href="/#kontak">Kontak</a>
                     <div className="flex flex-col items-center gap-4">
                         <p className="text-sm text-slate-400 dark:text-slate-500">© {new Date().getFullYear()} {platformName} Technology. All rights reserved.
                         </p>
                         <div className="flex items-center gap-3">
-                            <span
-                                className="px-3 py-1 bg-green-50 dark:bg-green-900/20 text-[#00a669] text-[10px] font-bold tracking-widest uppercase rounded-full">v3.2.1
-                                Stable</span>
                             <button
                                 className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 transition-all"
                                 onClick={toggleDarkMode}>
