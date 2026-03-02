@@ -27,8 +27,10 @@ export default function RestaurantAdminLoginPage() {
         generateCaptcha()
 
         // If already logged in
-        if (user && user.role === 'RESTAURANT_ADMIN') {
-            router.push('/') // Redirect to dashboard (handled by page.tsx)
+        if (user) {
+            if (user.role === 'SUPER_ADMIN') router.push('/admin')
+            else if (user.role === 'RESTAURANT_ADMIN') router.push('/dashboard')
+            else router.push('/')
         }
     }, [user, router])
 
@@ -61,42 +63,41 @@ export default function RestaurantAdminLoginPage() {
 
         setLoading(true)
         try {
-            const { users, restaurants } = useAppStore.getState()
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password
+                })
+            })
 
-            // Hardcoded default restaurant admin users (matching page.tsx)
-            const defaultUsers = [
-                { id: 'u2', name: 'Resto Admin', email: 'resto@admin.com', role: 'RESTAURANT_ADMIN', restaurantId: '1', password: 'resto123' },
-                { id: 'u2-alt', name: 'Resto Admin (Alt)', email: 'u@resto.com', role: 'RESTAURANT_ADMIN', restaurantId: '1', password: 'password' },
-                { id: 'u4', name: 'Sushi Admin', email: 'sushi@admin.com', role: 'RESTAURANT_ADMIN', restaurantId: '2', password: 'sushi123' },
-                { id: 'u5', name: 'Pizza Admin', email: 'pizza@admin.com', role: 'RESTAURANT_ADMIN', restaurantId: '3', password: 'pizza123' },
-                ...users.filter(u => u.role === 'RESTAURANT_ADMIN')
-            ]
+            const data = await response.json()
 
-            const foundUser = defaultUsers.find(
-                (u) => u.email.toLowerCase() === formData.email.toLowerCase() &&
-                    u.password === formData.password
-            )
-
-            if (foundUser) {
-                // Find restaurant
-                const userRestaurant = restaurants.find(r => r.id === foundUser.restaurantId)
-
-                const userToStore = {
-                    ...foundUser,
-                    restaurant: userRestaurant
-                }
-
-                setUser(userToStore as any)
-                toast({ title: 'Login Berhasil', description: `Selamat datang, ${foundUser.name}` })
-                window.location.href = '/' // Force full reload to ensure clean state
-            } else {
-                console.warn('Login failed: Invalid credentials for', formData.email)
-                toast({ title: 'Login Gagal', description: 'Email atau password salah', variant: 'destructive' })
-                generateCaptcha()
+            if (!response.ok) {
+                throw new Error(data.error || 'Login failed')
             }
-        } catch (error) {
+
+            const userData = data.user
+            setUser(userData)
+            toast({ title: 'Selamat Datang!', description: `Login sebagai ${userData.name}` })
+
+            // Redirect based on role
+            if (userData.role === 'SUPER_ADMIN') {
+                window.location.href = '/admin'
+            } else if (userData.role === 'RESTAURANT_ADMIN') {
+                window.location.href = '/dashboard'
+            } else {
+                window.location.href = '/'
+            }
+        } catch (error: any) {
             console.error('Login Error:', error)
-            toast({ title: 'Error', description: 'Terjadi kesalahan sistem. Silakan coba lagi.', variant: 'destructive' })
+            toast({
+                title: 'Login Gagal',
+                description: error.message || 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                variant: 'destructive',
+            })
+            generateCaptcha()
         } finally {
             setLoading(false)
         }
