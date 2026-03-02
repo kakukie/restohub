@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="light" lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Masuk Portal Restoran - Meenuin</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00a669",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#0f172a",
+                    },
+                    fontFamily: {
+                        display: ["Plus Jakarta Sans", "sans-serif"],
+                        body: ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "12px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif
+        }
+
+        .hero-pattern {
+            background-color: #00a669;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuDxxGoviN6BHCNdHXq2rl_-CYNSu0kFzb4xp9raSQa1iaAfwVQuqPDwhDUranyi51RM6iDCpdfYsgUKMnIyc2mipKJn4lLS1QwMEprL7TWnM0r58whs4nsSDzrKc4Fhw0cXnHQ2Wr1QGBxjIoesbIO3hZ4RfxOUvttI8QotuyGvYjp8LV0qk8N8pSLM5rLq-xAnlG_cepA0egQswa-vZnqyskfKLWukvHT6Ny-ARL8RimZ93ldLi-_KcYUv7GtolEv8Bo3zSlsSsPHh);
+            background-size: cover;
+            background-position: center
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark transition-colors duration-200 min-h-screen flex items-center justify-center p-0">
+    <div class="flex w-full min-h-screen">
+        <div class="hidden lg:flex lg:w-1/2 hero-pattern relative p-12 flex-col justify-between text-white">
+            <div class="flex items-center gap-2">
+                <div class="bg-white p-2 rounded-lg">
+                    <span class="material-symbols-rounded text-primary text-3xl">restaurant</span>
+                </div>
+                <span class="text-2xl font-extrabold tracking-tight">Meenuin</span>
+            </div>
+            <div class="max-w-md">
+                <div class="mb-8">
+                    <div class="flex gap-1 text-yellow-400 mb-4">
+                        <span class="material-symbols-rounded">star</span>
+                        <span class="material-symbols-rounded">star</span>
+                        <span class="material-symbols-rounded">star</span>
+                        <span class="material-symbols-rounded">star</span>
+                        <span class="material-symbols-rounded">star</span>
+                    </div>
+                    <blockquote class="text-2xl font-medium leading-relaxed italic">
+                        "Meenuin telah merevolusi cara kami mengelola pesanan. Efisiensi operasional kami meningkat
+                        hingga 40% sejak beralih ke menu digital."
+                    </blockquote>
+                    <div class="mt-6 flex items-center gap-4">
+                        <img alt="Budi Santoso" class="w-12 h-12 rounded-full object-cover border-2 border-white/50"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiCN85n-wvh1uKVNmoLFgfQd1nEucLmc3ZOKNOx-X2p5CeBKThMbUgzMGzpvsrJMycg8xY_XYstFbB4249Y0Y-cgKHWLVBMxyCa9hgWy1NWnp7hVpNBajq9mMFSM5aCcPMc7sXbS1XeYBaMdTnnwbGnXFvBmKU1ytpr83ZG1tzm_xx9kbZNS59-1AuGIRPolpsXgXvaYvG2ss16Swrtc2_9oKt2oBves0kkkSjrAT5eADR_qEumcsE0794gmVdSs8u2ERHCpxZzxW4" />
+                        <div>
+                            <p class="font-bold">Budi Santoso</p>
+                            <p class="text-sm text-white/80">Pemilik Restoran Aroma Nusantara</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-8 text-sm text-white/60">
+                <p>© 2026 Meenuin Technology</p>
+                <div class="flex gap-4">
+                    <a class="hover:text-white transition-colors" href="#">Syarat &amp; Ketentuan</a>
+                    <a class="hover:text-white transition-colors" href="#">Kebijakan Privasi</a>
+                </div>
+            </div>
+        </div>
+        <div
+            class="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 md:px-12 py-12 bg-white dark:bg-slate-900">
+            <div class="max-w-md w-full">
+                <div class="lg:hidden flex justify-center mb-8">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-primary p-2 rounded-lg">
+                            <span class="material-symbols-rounded text-white text-2xl">restaurant</span>
+                        </div>
+                        <span
+                            class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Meenuin</span>
+                    </div>
+                </div>
+                <div class="mb-10 text-center lg:text-left">
+                    <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Selamat Datang Kembali</h1>
+                    <p class="text-slate-500 dark:text-slate-400">Masuk ke portal restoran Anda untuk mengelola menu dan
+                        pesanan.</p>
+                </div>
+                <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-8">
+                    <button
+                        class="flex-1 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition-all">
+                        Login
+                    </button>
+                    <button
+                        class="flex-1 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-all">
+                        Daftar
+                    </button>
+                </div>
+                <form class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                            for="email">Alamat Email</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <span class="material-symbols-rounded text-[20px]">mail</span>
+                            </span>
+                            <input
+                                class="block w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all"
+                                id="email" name="email" placeholder="email@restoran.com" required="" type="email" />
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300"
+                                for="password">Kata Sandi</label>
+                            <a class="text-sm font-semibold text-primary hover:underline" href="#">Lupa Password?</a>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <span class="material-symbols-rounded text-[20px]">lock</span>
+                            </span>
+                            <input
+                                class="block w-full pl-11 pr-11 py-3 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all"
+                                id="password" name="password" placeholder="••••••••" required="" type="password" />
+                            <button
+                                class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                type="button">
+                                <span class="material-symbols-rounded text-[20px]">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl font-bold text-primary dark:text-primary">12 + 8 = ?</span>
+                            <input
+                                class="w-20 py-1.5 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center dark:text-white focus:ring-primary"
+                                placeholder="Jawaban" type="text" />
+                        </div>
+                        <button class="text-slate-400 hover:text-primary transition-colors" type="button">
+                            <span class="material-symbols-rounded">refresh</span>
+                        </button>
+                    </div>
+                    <button
+                        class="w-full bg-primary hover:bg-opacity-90 text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 group"
+                        type="submit">
+                        Masuk Ke Portal
+                        <span
+                            class="material-symbols-rounded group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </button>
+                </form>
+                <div class="mt-8 relative">
+                    <div aria-hidden="true" class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-slate-200 dark:border-slate-800"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-3 bg-white dark:bg-slate-900 text-slate-500">Atau masuk dengan</span>
+                    </div>
+                </div>
+                <div class="mt-8 grid grid-cols-2 gap-4">
+                    <button
+                        class="flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <img alt="Google" class="w-5 h-5"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbIqZWU1frBmUga3mKHomND9_wX6G-GFC06hPIArw_RbK7GwWHWRl61jJYeU6nU96FSxOO3opAnAAz2iEfa5FwSGxCcu0QGOC3tN-0T_O-L8RVkZ7XLEPH8kUjxbF2iKIDsZq7V9I4UWdi0f2ouGV_wSC20lvPvhMii7seOmiuYXMFAmygFttlA6_98cyZzyWA3-Gh3pRTYLt_gTb9PBk-ojUZzJpwghgx3veLNWxdIIyNmbEArJxEZ_UbNiLbDpJsEXXbzYoDPZQN" />
+                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Google</span>
+                    </button>
+                    <button
+                        class="flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <img alt="Facebook" class="w-5 h-5"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD21HXPUIvQQKlbuBERscNbjsbibeSXIDGYv-_muxDDzYsahE_-EklmwxQB15N7j1vRVlUXPHH0_TSo4etOqwi6NQ71_XX4JlCink3AUHeqD3Fr1qYp4dh9J-rC78HyYLTR_tszmk76ryHJp-b0UM7o22SlB62_BLQvxe8m6GZCozxbkCHvfPq4q05E2vm_zVdlLOJU0XbTtN0W3GToCsEWmxAFv2oVI3J7hkpXcUsP5zx2SzqimDDgERBsgAgZYyQCTJg8qzwlXzi0" />
+                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Facebook</span>
+                    </button>
+                </div>
+                <div class="mt-10 flex flex-col items-center gap-4 text-center">
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        Belum punya akun Meenuin?
+                        <a class="text-primary font-bold hover:underline" href="#">Daftar Restoran</a>
+                    </p>
+                    <div
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                        <span class="material-symbols-rounded text-[14px]">shield</span>
+                        Protected by Meenuin Secure Login
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button
+        class="fixed bottom-6 right-6 p-3 bg-white dark:bg-slate-800 shadow-xl rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:scale-110 transition-transform z-50"
+        onclick="document.documentElement.classList.toggle('dark')">
+        <span class="material-symbols-rounded dark:hidden">dark_mode</span>
+        <span class="material-symbols-rounded hidden dark:block">light_mode</span>
+    </button>
+
+</body>
+
+</html>

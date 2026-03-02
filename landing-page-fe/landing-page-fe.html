@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html class="light" lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Meenuin - Digital Menu &amp; Restaurant POS</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00a368",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#020617",
+                    },
+                    fontFamily: {
+                        display: ["Plus Jakarta Sans", "sans-serif"],
+                        sans: ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "12px",
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        :root {
+            --primary-color: #00a368;
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .hero-gradient {
+            background: radial-gradient(circle at 80% 20%, rgba(0, 163, 104, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 10% 80%, rgba(0, 163, 104, 0.05) 0%, transparent 40%);
+        }
+        .mockup-shadow {
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.12), 0 30px 60px -30px rgba(0, 0, 0, 0.15);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="bg-white dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <nav
+        class="fixed top-0 w-full z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2 group cursor-pointer">
+                <div class="bg-primary p-1.5 rounded-lg">
+                    <span class="material-symbols-outlined text-white text-2xl">restaurant_menu</span>
+                </div>
+                <span class="text-2xl font-extrabold tracking-tight text-primary">Meenuin</span>
+            </div>
+            <div class="hidden md:flex items-center gap-10 font-semibold text-slate-600 dark:text-slate-400">
+                <a class="hover:text-primary transition-colors" href="#fitur">Fitur</a>
+                <a class="hover:text-primary transition-colors" href="#harga">Harga</a>
+                <a class="hover:text-primary transition-colors" href="#kontak">Kontak</a>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    onclick="document.documentElement.classList.toggle('dark')">
+                    <span class="material-symbols-outlined dark:hidden">dark_mode</span>
+                    <span class="material-symbols-outlined hidden dark:block">light_mode</span>
+                </button>
+                <a class="bg-primary hover:bg-emerald-600 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
+                    href="#">
+                    Coba Gratis
+                </a>
+            </div>
+        </div>
+    </nav>
+    <section class="relative pt-32 pb-24 hero-gradient overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="space-y-8 z-10">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-primary text-sm font-bold border border-emerald-100 dark:border-emerald-800">
+                        <span class="relative flex h-2 w-2">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                        Update v3.2: Mobile Experience Optimized
+                    </div>
+                    <h1
+                        class="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">
+                        Modern Menu <br />
+                        <span class="text-primary">Ecosystem</span>
+                    </h1>
+                    <p class="text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-lg">
+                        Berikan pengalaman bersantap yang tak terlupakan dengan menu digital interaktif. Kelola pesanan
+                        dengan mulus di berbagai perangkat.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                        <button
+                            class="bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-primary/25 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2">
+                            Mulai Sekarang <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                        <button
+                            class="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">play_circle</span> Lihat Demo
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+                        <div>
+                            <div class="text-3xl font-extrabold text-slate-900 dark:text-white">500+</div>
+                            <div class="text-slate-500 text-sm">Merchants</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-slate-900 dark:text-white">120k+</div>
+                            <div class="text-slate-500 text-sm">Orders</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-slate-900 dark:text-white">99.9%</div>
+                            <div class="text-slate-500 text-sm">Uptime</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative lg:h-[600px] flex items-center justify-center">
+                    <div
+                        class="absolute w-[450px] md:w-[600px] h-[350px] md:h-[450px] bg-slate-800 rounded-[2.5rem] border-[12px] border-slate-900 overflow-hidden mockup-shadow -rotate-3 translate-x-[-10%] z-0 hidden md:block">
+                        <div class="w-full h-full bg-slate-50 dark:bg-slate-900 p-6">
+                            <div class="flex items-center justify-between mb-8">
+                                <div class="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
+                                <div class="flex gap-4">
+                                    <div class="h-6 w-6 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
+                                    <div class="h-6 w-6 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-6">
+                                <div class="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>
+                                <div class="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>
+                                <div class="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>
+                                <div class="col-span-2 h-32 bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>
+                                <div class="h-32 bg-primary/10 rounded-2xl"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="relative w-[280px] h-[560px] bg-slate-900 rounded-[3rem] border-[8px] border-slate-900 overflow-hidden mockup-shadow rotate-2 z-10">
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-20">
+                        </div>
+                        <div class="w-full h-full bg-white dark:bg-slate-900 flex flex-col">
+                            <div class="h-40 bg-primary/10 p-6 flex flex-col justify-end">
+                                <div class="w-24 h-4 bg-primary/40 rounded-full mb-2"></div>
+                                <div class="w-40 h-6 bg-primary/60 rounded-full"></div>
+                            </div>
+                            <div class="p-6 space-y-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
+                                    <div class="flex-1 space-y-2">
+                                        <div class="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                        <div class="w-2/3 h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
+                                    <div class="flex-1 space-y-2">
+                                        <div class="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                        <div class="w-2/3 h-3 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                    </div>
+                                </div>
+                                <div
+                                    class="aspect-video bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border-2 border-dashed border-primary/20 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary text-3xl">qr_code_2</span>
+                                </div>
+                                <div class="pt-4">
+                                    <div
+                                        class="w-full h-12 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-sm">
+                                        Checkout Now
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-24 bg-white dark:bg-background-dark" id="fitur">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
+                <h2 class="text-primary font-bold tracking-widest uppercase text-sm">Keunggulan Kami</h2>
+                <h3 class="text-4xl font-extrabold text-slate-900 dark:text-white leading-tight">Solusi Terbaik Untuk
+                    Operasional Restoran</h3>
+                <p class="text-slate-600 dark:text-slate-400">Dirancang khusus untuk membantu pemilik F&amp;B mengelola
+                    bisnis dengan lebih efisien dan modern.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div
+                    class="group p-8 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/5">
+                    <div
+                        class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-primary text-3xl">qr_code_2</span>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">QR Menu</h4>
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed">Pelanggan bisa langsung scan dan pesan
+                        dari meja tanpa perlu menunggu pelayan datang membawa menu fisik.</p>
+                </div>
+                <div
+                    class="group p-8 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/5">
+                    <div
+                        class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-primary text-3xl">payments</span>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">QRIS Pay</h4>
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed">Pembayaran otomatis terintegrasi.
+                        Pelanggan bisa bayar langsung setelah pesan menggunakan QRIS favorit mereka.</p>
+                </div>
+                <div
+                    class="group p-8 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-primary/50 transition-all hover:shadow-2xl hover:shadow-primary/5">
+                    <div
+                        class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined text-primary text-3xl">restaurant</span>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Kitchen Display</h4>
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed">Monitor pesanan di dapur secara
+                        real-time. Tidak ada lagi pesanan yang terlewat atau salah catat.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-24 bg-slate-50 dark:bg-slate-950" id="harga">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
+                <h2 class="text-4xl font-extrabold text-slate-900 dark:text-white">Simple, Transparent Pricing</h2>
+                <p class="text-slate-600 dark:text-slate-400">Pilih paket yang paling sesuai untuk restoran Anda. Tanpa
+                    biaya tersembunyi, batalkan kapan saja.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div
+                    class="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 flex flex-col h-full shadow-sm hover:shadow-xl transition-shadow">
+                    <div class="mb-8">
+                        <h4 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Free Trial</h4>
+                        <p class="text-slate-500">Perfect for testing Meenuin features</p>
+                    </div>
+                    <div class="mb-8 flex items-baseline gap-1">
+                        <span class="text-5xl font-extrabold text-slate-900 dark:text-white">Rp 0</span>
+                        <span class="text-slate-400">/bulan</span>
+                    </div>
+                    <ul class="space-y-4 mb-10 flex-grow">
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> 14 Hari Uji Coba
+                            Penuh
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> Maks. 20 Menu Items
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> QR Code Standar
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> Support Email
+                        </li>
+                    </ul>
+                    <button
+                        class="w-full py-4 rounded-2xl border-2 border-primary text-primary font-bold hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all text-lg">Mulai
+                        Coba Gratis</button>
+                </div>
+                <div
+                    class="bg-white dark:bg-slate-900 p-10 rounded-[2.5rem] border-2 border-primary flex flex-col h-full relative shadow-2xl shadow-primary/10">
+                    <div
+                        class="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-6 py-2 rounded-full uppercase tracking-widest shadow-lg shadow-primary/30">
+                        Paling Populer
+                    </div>
+                    <div class="mb-8">
+                        <h4 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Business Package</h4>
+                        <p class="text-slate-500">Full ecosystem for growing F&amp;B</p>
+                    </div>
+                    <div class="mb-8 flex items-baseline gap-1">
+                        <span class="text-5xl font-extrabold text-slate-900 dark:text-white">Rp 99k</span>
+                        <span class="text-slate-400">/bulan</span>
+                    </div>
+                    <ul class="space-y-4 mb-10 flex-grow">
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> Unlimited Menu
+                            Items
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> Custom QR Branding
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> Kitchen Display
+                            System
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> Laporan Penjualan
+                            Real-time
+                        </li>
+                        <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                            <span class="material-symbols-outlined text-primary">check_circle</span> Priority Support
+                            24/7
+                        </li>
+                    </ul>
+                    <button
+                        class="w-full py-4 rounded-2xl bg-primary text-white font-bold shadow-xl shadow-primary/25 hover:bg-emerald-600 transition-all text-lg">Pilih
+                        Paket Bisnis</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-24 bg-white dark:bg-background-dark" id="kontak">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h2 class="text-4xl font-extrabold text-slate-900 dark:text-white mb-12">Hubungi Kami</h2>
+            <div class="flex flex-col md:flex-row justify-center gap-8">
+                <div
+                    class="flex-1 max-w-sm bg-emerald-50 dark:bg-emerald-900/10 p-10 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 flex flex-col items-center">
+                    <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm mb-6">
+                        <span class="material-symbols-outlined text-primary text-3xl">phone_iphone</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-2">WhatsApp</h4>
+                    <p class="text-slate-600 dark:text-slate-400 font-semibold text-lg">0812-3456-7890</p>
+                </div>
+                <div
+                    class="flex-1 max-w-sm bg-emerald-50 dark:bg-emerald-900/10 p-10 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 flex flex-col items-center">
+                    <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm mb-6">
+                        <span class="material-symbols-outlined text-primary text-3xl">alternate_email</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Email</h4>
+                    <p class="text-slate-600 dark:text-slate-400 font-semibold text-lg">support@meenuin.biz.id</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="py-12 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-background-dark">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col items-center space-y-6">
+            <div class="flex items-center gap-2">
+                <div class="bg-primary p-1.5 rounded-lg">
+                    <span class="material-symbols-outlined text-white text-xl">restaurant_menu</span>
+                </div>
+                <span class="text-xl font-extrabold tracking-tight text-primary">Meenuin</span>
+            </div>
+            <p class="text-slate-500 text-sm text-center">© 2026 Meenuin Technology. All rights reserved.</p>
+            <div
+                class="inline-flex items-center bg-emerald-50 dark:bg-emerald-900/20 px-4 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800">
+                <span class="text-primary font-mono text-xs font-bold">v3.2.0 Meenuin</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

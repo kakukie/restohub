@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="light" lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Daftar Merchant - Meenuin</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00a669",
+                        "background-light": "#f4fdf9",
+                        "background-dark": "#0f172a",
+                        secondary: "#064e3b"
+                    },
+                    fontFamily: {
+                        display: ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .step-active {
+            @apply text-primary font-bold;
+        }
+
+        .progress-line {
+            height: 2px;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark min-h-screen transition-colors duration-300">
+    <nav
+        class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-green-100 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="bg-primary p-2 rounded-lg">
+                    <span class="material-icons-round text-white text-2xl">restaurant</span>
+                </div>
+                <span class="text-2xl font-extrabold text-secondary dark:text-white">Meenuin</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors"
+                    href="#">Bantuan</a>
+                <a class="text-sm font-semibold bg-green-50 dark:bg-slate-800 text-primary px-5 py-2.5 rounded-full hover:bg-green-100 transition-all"
+                    href="#">Sudah punya akun? Login</a>
+            </div>
+        </div>
+    </nav>
+    <main class="max-w-7xl mx-auto px-6 py-12 flex flex-col lg:flex-row gap-16">
+        <aside class="lg:w-1/3 space-y-12">
+            <div class="space-y-6">
+                <h1 class="text-4xl font-extrabold text-secondary dark:text-white leading-tight">
+                    Mulai Digitalisasi Restoran Anda Hari Ini
+                </h1>
+                <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Bergabunglah dengan ribuan pemilik bisnis kuliner yang telah meningkatkan efisiensi operasional
+                    dengan Meenuin.
+                </p>
+            </div>
+            <div
+                class="bg-white dark:bg-slate-800 p-8 rounded-3xl border border-green-100 dark:border-slate-700 shadow-xl shadow-green-900/5">
+                <div class="flex -space-x-3 mb-6">
+                    <img alt="Merchant 1"
+                        class="w-12 h-12 rounded-full border-4 border-white dark:border-slate-800 object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIGToXp7kUAYXGQcb_xGl-ysGYst0wD7y8D85HlTrPwX2IUkgsx20-ghDqLs_hnj0nK-sq9viH3pOs9unz4MpdsM70avM2R3drHa3Bvov6f15Qc4Udn_DaX-EZI95D1-hTxykE0QYJuAmWfbciMAO5UW1HbX7ww6ZYu2hd9Telnr0XJGsaYset4-YEs-UYQRSHmzo2imVIiU8IGdK7Plqzv-Y6xTLi9tDr61cJojT2EoGDIMS8Iu7CEqpC-jTVQuLz83ZbtfgQDoMj" />
+                    <img alt="Merchant 2"
+                        class="w-12 h-12 rounded-full border-4 border-white dark:border-slate-800 object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH8zJywtu7DBLfKHq-xgaKgUiaUXZVvj0tFxHgvzU-hUUo1fuCQWlfATIJKoHk5XrKhFUIHPhiL37Iu2ltZYo3BhuUxdOrlfgkKgZxpq71165gOxIhfimR1HGLFrGQ1Kh-VSN0NGz4qEOVc3ku-PEimNa3YUrsZmSpuH9n7HioAtczyMoBkLGbnKTQlfnHgZeb-OgHXDe5d-8yenRoWcx6DATHFkxNeKQlwxzg71Q_Reyn_xx1sI4VAWh4s2tne-e65XXBNV-S_W0Z" />
+                    <img alt="Merchant 3"
+                        class="w-12 h-12 rounded-full border-4 border-white dark:border-slate-800 object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3-drkNstTzbF4bpB4D4Ha93Kdm7i8UgsIlNxu16VxdIuPE3qYMZLUX2bNcBl9jfTQYSbKutKs0JR8hDkaY-talrezKp8SWaNto_vjJ01YVjniOdTYCzTN_Wz22wjSV2ltq8gQ6fHml4_FYBq83OG0eOI7oJl5fSTdtBJledYKm_nyrFr78MlkvU9yP0Nu89sTgO_OaBIzbF4aFkyyy1aNc5uYtH0Ikf7JlSXiqfFcsnq0_lAT0QF2ZSiuag9V7mJaSK4GWb0S1NQs" />
+                    <div
+                        class="w-12 h-12 rounded-full border-4 border-white dark:border-slate-800 bg-primary flex items-center justify-center text-white text-xs font-bold">
+                        +1k
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold text-secondary dark:text-white mb-2">Join 1,000+ Merchants</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-sm italic">
+                    "Meenuin mengubah cara kami melayani pelanggan. QR Menu sangat membantu saat jam sibuk."
+                </p>
+                <div class="mt-4 flex items-center gap-2">
+                    <div class="flex text-amber-400">
+                        <span class="material-icons-round text-sm">star</span>
+                        <span class="material-icons-round text-sm">star</span>
+                        <span class="material-icons-round text-sm">star</span>
+                        <span class="material-icons-round text-sm">star</span>
+                        <span class="material-icons-round text-sm">star</span>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400">Rating 4.9/5</span>
+                </div>
+            </div>
+            <ul class="space-y-4">
+                <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                    <span class="material-icons-round text-primary">verified</span>
+                    <span>Aktivasi Instan &amp; Cepat</span>
+                </li>
+                <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                    <span class="material-icons-round text-primary">verified</span>
+                    <span>Tanpa Biaya Tersembunyi</span>
+                </li>
+                <li class="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                    <span class="material-icons-round text-primary">verified</span>
+                    <span>Support WhatsApp 24/7</span>
+                </li>
+            </ul>
+        </aside>
+        <section class="flex-1">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-3xl p-8 lg:p-12 border border-green-100 dark:border-slate-700 shadow-2xl shadow-green-900/5">
+                <div class="mb-12">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex flex-col items-center gap-2">
+                            <div
+                                class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                                1</div>
+                            <span class="text-xs font-bold text-primary">Bisnis</span>
+                        </div>
+                        <div class="flex-1 progress-line bg-primary mx-4 opacity-20"></div>
+                        <div class="flex flex-col items-center gap-2 opacity-40">
+                            <div
+                                class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold">
+                                2</div>
+                            <span class="text-xs font-bold text-slate-500">Pemilik</span>
+                        </div>
+                        <div class="flex-1 progress-line bg-slate-200 dark:bg-slate-700 mx-4"></div>
+                        <div class="flex flex-col items-center gap-2 opacity-40">
+                            <div
+                                class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold">
+                                3</div>
+                            <span class="text-xs font-bold text-slate-500">Setup Menu</span>
+                        </div>
+                    </div>
+                </div>
+                <form class="space-y-8">
+                    <div class="space-y-6">
+                        <h2 class="text-2xl font-bold text-secondary dark:text-white">Informasi Bisnis</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama
+                                    Restoran</label>
+                                <input
+                                    class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary px-4 py-3 dark:text-white transition-all"
+                                    placeholder="Contoh: Kopi Senja Utama" type="text" />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Tipe
+                                    Bisnis</label>
+                                <select
+                                    class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary px-4 py-3 dark:text-white transition-all">
+                                    <option>Pilih Tipe Bisnis</option>
+                                    <option>Coffee Shop / Cafe</option>
+                                    <option>Restoran Cepat Saji</option>
+                                    <option>Bakery</option>
+                                    <option>UMKM / Food Stall</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat
+                                Lengkap</label>
+                            <textarea
+                                class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary px-4 py-3 dark:text-white transition-all"
+                                placeholder="Masukkan alamat lengkap restoran Anda..." rows="3"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Kota</label>
+                                <input
+                                    class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary px-4 py-3 dark:text-white transition-all"
+                                    placeholder="Contoh: Jakarta Selatan" type="text" />
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Jumlah
+                                    Meja</label>
+                                <input
+                                    class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-primary focus:border-primary px-4 py-3 dark:text-white transition-all"
+                                    placeholder="Contoh: 15" type="number" />
+                            </div>
+                        </div>
+                        <div
+                            class="p-6 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-2xl flex items-start gap-4">
+                            <span class="material-icons-round text-primary">info</span>
+                            <div class="space-y-1">
+                                <h4 class="text-sm font-bold text-primary">Butuh bantuan daftar?</h4>
+                                <p class="text-xs text-slate-600 dark:text-slate-400">Tim kami siap membantu proses
+                                    pendaftaran Anda melalui WhatsApp. <a class="text-primary font-bold underline"
+                                        href="#">Hubungi kami di sini.</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                        <button
+                            class="flex-1 py-4 px-6 bg-primary text-white font-bold rounded-2xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 group"
+                            type="button">
+                            Lanjutkan Ke Info Pemilik
+                            <span
+                                class="material-icons-round transition-transform group-hover:translate-x-1">arrow_forward</span>
+                        </button>
+                    </div>
+                    <p class="text-center text-xs text-slate-400 dark:text-slate-500">
+                        Dengan mendaftar, Anda menyetujui <a class="underline" href="#">Syarat &amp; Ketentuan</a> serta
+                        <a class="underline" href="#">Kebijakan Privasi</a> Meenuin.
+                    </p>
+                </form>
+            </div>
+        </section>
+    </main>
+    <footer class="mt-20 py-12 border-t border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col items-center gap-8">
+            <div class="flex flex-wrap justify-center gap-x-12 gap-y-4">
+                <a class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary" href="#">Fitur</a>
+                <a class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary" href="#">Harga</a>
+                <a class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary" href="#">Blog</a>
+                <a class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary" href="#">Karir</a>
+                <a class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary" href="#">Kontak</a>
+            </div>
+            <div class="flex flex-col items-center gap-4">
+                <p class="text-sm text-slate-400 dark:text-slate-500">© 2026 Meenuin Technology. All rights reserved.
+                </p>
+                <div class="flex items-center gap-3">
+                    <span
+                        class="px-3 py-1 bg-green-50 dark:bg-green-900/20 text-primary text-[10px] font-bold tracking-widest uppercase rounded-full">v3.2.1
+                        Stable</span>
+                    <button
+                        class="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 transition-all"
+                        onclick="document.documentElement.classList.toggle('dark')">
+                        <span class="material-icons-round text-sm dark:hidden">dark_mode</span>
+                        <span class="material-icons-round text-sm hidden dark:block">light_mode</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
