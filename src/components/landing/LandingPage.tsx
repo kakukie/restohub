@@ -299,7 +299,7 @@ export default function LandingPage() {
                 <span className="material-symbols-outlined text-[#00a669] text-3xl">phone_iphone</span>
               </div>
               <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">WhatsApp</h4>
-              <p className="text-slate-600 dark:text-slate-400 font-semibold text-lg">0812-3456-7890</p>
+              <p className="text-slate-600 dark:text-slate-400 font-semibold text-lg">{helpdeskSettings?.whatsapp || '088294945050'}</p>
             </div>
             <div
               className="flex-1 max-w-sm bg-emerald-50 dark:bg-emerald-900/10 p-10 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 flex flex-col items-center">

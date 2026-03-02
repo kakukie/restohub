@@ -266,7 +266,7 @@ export const useAppStore = create<AppState>()(
       categories: INITIAL_CATEGORIES,
       subscriptionPlans: INITIAL_SUBSCRIPTION_PLANS,
       helpdeskSettings: {
-        whatsapp: '6281234567890',
+        whatsapp: '088294945050',
         email: 'support@meenuin.biz.id'
       },
       systemAnnouncements: [],

@@ -13,14 +13,16 @@ export default function Register() {
     const [loading, setLoading] = useState(false)
     const [captchaVerified, setCaptchaVerified] = useState(false)
 
-    // Using existing shape for ease, but mapping nicely to the new UI
+    const [step, setStep] = useState(1)
     const [formData, setFormData] = useState({
         name: '',
         address: '',
         phone: '',
-        adminEmail: '',
+        email: '',
+        ownerName: '',
+        password: '',
         package: 'FREE_TRIAL',
-        description: '', // Can map to business type / city
+        description: '',
         tableCount: ''
     })
 
@@ -32,6 +34,18 @@ export default function Register() {
     }
 
     const platformName = helpdeskSettings?.platformName || 'Meenuin'
+
+    const handleNextStep = () => {
+        if (!formData.name || !formData.address || !formData.description || !formData.tableCount) {
+            toast({ title: 'Validation Error', description: 'Silakan isi semua data bisnis', variant: 'destructive' })
+            return
+        }
+        setStep(2)
+    }
+
+    const handleBackStep = () => {
+        setStep(1)
+    }
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -48,23 +62,28 @@ export default function Register() {
         setLoading(true)
 
         try {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    phone: formData.phone,
+                    password: formData.password,
+                    plan: formData.package,
+                    role: 'RESTAURANT_ADMIN',
+                    address: formData.address,
+                    description: formData.description,
+                    tableCount: formData.tableCount,
+                    ownerName: formData.ownerName
+                })
+            })
 
-            const newRestaurant: Restaurant = {
-                id: crypto.randomUUID(),
-                name: formData.name,
-                description: `${formData.description} - ${formData.tableCount} Tables`,
-                address: formData.address,
-                phone: formData.phone || "08000000000",
-                package: formData.package as any,
-                rating: 5.0,
-                adminEmail: formData.adminEmail || "admin@resto.com",
-                status: 'PENDING',
-                slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Registrasi gagal')
             }
-
-            addRestaurant(newRestaurant)
 
             toast({
                 title: "Registration Successful",
@@ -72,10 +91,10 @@ export default function Register() {
             })
 
             router.push('/login')
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Registration failed. Please try again.",
+                description: error.message || "Registration failed. Please try again.",
                 variant: "destructive"
             })
         } finally {
@@ -171,126 +190,189 @@ export default function Register() {
                             <div className="flex justify-between items-center mb-4">
                                 <div className="flex flex-col items-center gap-2">
                                     <div
-                                        className="w-10 h-10 rounded-full bg-[#00a669] text-white flex items-center justify-center font-bold">
+                                        className={`w-10 h-10 rounded-full ${step === 1 ? 'bg-[#00a669] text-white' : 'bg-green-100 text-[#00a669]'} flex items-center justify-center font-bold`}>
                                         1</div>
-                                    <span className="text-xs font-bold text-[#00a669]">Bisnis</span>
+                                    <span className={`text-xs font-bold ${step === 1 ? 'text-[#00a669]' : 'text-slate-500'}`}>Bisnis</span>
                                 </div>
-                                <div className="flex-1 h-[2px] bg-[#00a669] mx-4 opacity-20"></div>
-                                <div className="flex flex-col items-center gap-2 opacity-40">
+                                <div className={`flex-1 h-[2px] mx-4 ${step === 2 ? 'bg-[#00a669]' : 'bg-[#00a669] opacity-20'}`}></div>
+                                <div className={`flex flex-col items-center gap-2 ${step === 1 ? 'opacity-40' : ''}`}>
                                     <div
-                                        className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold">
+                                        className={`w-10 h-10 rounded-full ${step === 2 ? 'bg-[#00a669] text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'} flex items-center justify-center font-bold`}>
                                         2</div>
-                                    <span className="text-xs font-bold text-slate-500">Pemilik</span>
-                                </div>
-                                <div className="flex-1 h-[2px] bg-slate-200 dark:bg-slate-700 mx-4"></div>
-                                <div className="flex flex-col items-center gap-2 opacity-40">
-                                    <div
-                                        className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold">
-                                        3</div>
-                                    <span className="text-xs font-bold text-slate-500">Setup Menu</span>
+                                    <span className={`text-xs font-bold ${step === 2 ? 'text-[#00a669]' : 'text-slate-500'}`}>Pemilik</span>
                                 </div>
                             </div>
                         </div>
                         <form className="space-y-8" onSubmit={handleRegister}>
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-bold text-[#064e3b] dark:text-white">Informasi Bisnis</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {step === 1 && (
+                                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                                    <h2 className="text-2xl font-bold text-[#064e3b] dark:text-white">Informasi Bisnis</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama
+                                                Restoran</label>
+                                            <input
+                                                name="name"
+                                                value={formData.name}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
+                                                placeholder="Contoh: Kopi Senja Utama" type="text" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Tipe
+                                                Bisnis</label>
+                                            <select
+                                                name="description"
+                                                value={formData.description}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all">
+                                                <option value="">Pilih Tipe Bisnis</option>
+                                                <option value="Coffee Shop / Cafe">Coffee Shop / Cafe</option>
+                                                <option value="Restoran Cepat Saji">Restoran Cepat Saji</option>
+                                                <option value="Bakery">Bakery</option>
+                                                <option value="UMKM / Food Stall">UMKM / Food Stall</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama
-                                            Restoran</label>
-                                        <input
-                                            name="name"
-                                            value={formData.name}
+                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat
+                                            Lengkap</label>
+                                        <textarea
+                                            name="address"
+                                            value={formData.address}
                                             onChange={handleChange}
                                             required
                                             className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
-                                            placeholder="Contoh: Kopi Senja Utama" type="text" />
+                                            placeholder="Masukkan alamat lengkap restoran Anda..." rows={3}></textarea>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Tipe
-                                            Bisnis</label>
-                                        <select
-                                            name="description"
-                                            value={formData.description}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all">
-                                            <option value="">Pilih Tipe Bisnis</option>
-                                            <option value="Coffee Shop / Cafe">Coffee Shop / Cafe</option>
-                                            <option value="Restoran Cepat Saji">Restoran Cepat Saji</option>
-                                            <option value="Bakery">Bakery</option>
-                                            <option value="UMKM / Food Stall">UMKM / Food Stall</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat
-                                        Lengkap</label>
-                                    <textarea
-                                        name="address"
-                                        value={formData.address}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
-                                        placeholder="Masukkan alamat lengkap restoran Anda..." rows={3}></textarea>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Pilih Paket</label>
-                                        <select
-                                            name="package"
-                                            value={formData.package}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all">
-                                            <option value="FREE_TRIAL">Free Trial (Rp 0)</option>
-                                            <option value="BASIC">Basic Package</option>
-                                            <option value="BUSINESS">Business Package</option>
-                                            <option value="ENTERPRISE">Enterprise Package</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Jumlah
-                                            Meja</label>
-                                        <input
-                                            name="tableCount"
-                                            value={formData.tableCount}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
-                                            placeholder="Contoh: 15" type="number" />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Pilih Paket</label>
+                                            <select
+                                                name="package"
+                                                value={formData.package}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all">
+                                                <option value="FREE_TRIAL">Free Trial (Rp 0)</option>
+                                                <option value="BASIC">Basic Package</option>
+                                                <option value="PRO">Pro Package</option>
+                                                <option value="ENTERPRISE">Enterprise Package</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Jumlah
+                                                Meja</label>
+                                            <input
+                                                name="tableCount"
+                                                value={formData.tableCount}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
+                                                placeholder="Contoh: 15" type="number" />
+                                        </div>
                                     </div>
                                 </div>
+                            )}
 
-                                <div className="flex items-center space-x-2 border p-3 rounded-lg bg-gray-50 dark:bg-gray-900 mt-4">
-                                    <Checkbox id="captcha" checked={captchaVerified} onCheckedChange={(c) => setCaptchaVerified(c as boolean)} />
-                                    <label
-                                        htmlFor="captcha"
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer select-none dark:text-white"
-                                    >
-                                        Saya menyetujui Syarat & Ketentuan.
-                                    </label>
-                                </div>
+                            {step === 2 && (
+                                <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                                    <h2 className="text-2xl font-bold text-[#064e3b] dark:text-white">Informasi Pemilik</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama Pemilik</label>
+                                            <input
+                                                name="ownerName"
+                                                value={formData.ownerName}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
+                                                placeholder="Contoh: Budi Santoso" type="text" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email</label>
+                                            <input
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
+                                                placeholder="owner@restoran.com" type="email" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nomor HP</label>
+                                            <input
+                                                name="phone"
+                                                value={formData.phone}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
+                                                placeholder="0812..." type="text" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Password</label>
+                                            <input
+                                                name="password"
+                                                value={formData.password}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all"
+                                                placeholder="••••••••" type="password" />
+                                        </div>
+                                    </div>
 
-                                <div
-                                    className="p-6 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-2xl flex items-start gap-4">
-                                    <span className="material-symbols-rounded text-[#00a669]">info</span>
-                                    <div className="space-y-1">
-                                        <h4 className="text-sm font-bold text-[#00a669]">Butuh bantuan daftar?</h4>
-                                        <p className="text-xs text-slate-600 dark:text-slate-400">Tim kami siap membantu proses
-                                            pendaftaran Anda melalui WhatsApp. <a className="text-[#00a669] font-bold underline"
-                                                href="#">Hubungi kami di sini.</a></p>
+                                    <div className="flex items-center space-x-2 border p-3 rounded-lg bg-gray-50 dark:bg-gray-900 mt-4">
+                                        <Checkbox id="captcha" checked={captchaVerified} onCheckedChange={(c) => setCaptchaVerified(c as boolean)} />
+                                        <label
+                                            htmlFor="captcha"
+                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer select-none dark:text-white"
+                                        >
+                                            Saya menyetujui Syarat & Ketentuan.
+                                        </label>
+                                    </div>
+
+                                    <div
+                                        className="p-6 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-2xl flex items-start gap-4">
+                                        <span className="material-symbols-rounded text-[#00a669]">info</span>
+                                        <div className="space-y-1">
+                                            <h4 className="text-sm font-bold text-[#00a669]">Butuh bantuan daftar?</h4>
+                                            <p className="text-xs text-slate-600 dark:text-slate-400">Tim kami siap membantu proses
+                                                pendaftaran Anda melalui WhatsApp. <a className="text-[#00a669] font-bold underline"
+                                                    href="#">Hubungi kami di sini.</a></p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
+
                             <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                                <button
-                                    className="flex-1 py-4 px-6 bg-[#00a669] text-white font-bold rounded-2xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 group disabled:opacity-50"
-                                    type="submit" disabled={loading}>
-                                    {loading ? 'Memproses...' : 'Lanjutkan Ke Info Pemilik'}
-                                    <span
-                                        className="material-symbols-rounded transition-transform group-hover:translate-x-1">arrow_forward</span>
-                                </button>
+                                {step === 1 ? (
+                                    <button
+                                        className="flex-1 py-4 px-6 bg-[#00a669] text-white font-bold rounded-2xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 group disabled:opacity-50"
+                                        type="button" onClick={handleNextStep}>
+                                        Lanjutkan Ke Info Pemilik
+                                        <span
+                                            className="material-symbols-rounded transition-transform group-hover:translate-x-1">arrow_forward</span>
+                                    </button>
+                                ) : (
+                                    <div className="flex w-full gap-4">
+                                        <button
+                                            className="py-4 px-6 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center"
+                                            type="button" onClick={handleBackStep}>
+                                            <span className="material-symbols-rounded mr-2">arrow_back</span> Kembali
+                                        </button>
+                                        <button
+                                            className="flex-1 py-4 px-6 bg-[#00a669] text-white font-bold rounded-2xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 group disabled:opacity-50"
+                                            type="submit" disabled={loading}>
+                                            {loading ? 'Mendaftar...' : 'Selesaikan Pendaftaran'}
+                                            <span
+                                                className="material-symbols-rounded transition-transform group-hover:translate-x-1">check_circle</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             <p className="text-center text-xs text-slate-400 dark:text-slate-500">
                                 Dengan mendaftar, Anda menyetujui <a className="underline" href="#">Syarat & Ketentuan</a> serta
@@ -298,8 +380,8 @@ export default function Register() {
                             </p>
                         </form>
                     </div>
-                </section>
-            </main>
+                </section >
+            </main >
             <footer className="mt-20 py-12 border-t border-slate-200 dark:border-slate-800">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-8">
                     <div className="flex flex-wrap justify-center gap-x-12 gap-y-4">
@@ -326,6 +408,6 @@ export default function Register() {
                     </div>
                 </div>
             </footer>
-        </div>
+        </div >
     )
 }

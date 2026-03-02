@@ -84,11 +84,14 @@ export default function RestaurantAdminLoginPage() {
 
             // Redirect based on role
             if (userData.role === 'SUPER_ADMIN') {
-                window.location.href = '/admin'
+                router.push('/admin')
+                router.refresh()
             } else if (userData.role === 'RESTAURANT_ADMIN') {
-                window.location.href = '/dashboard'
+                router.push('/dashboard')
+                router.refresh()
             } else {
-                window.location.href = '/'
+                router.push('/')
+                router.refresh()
             }
         } catch (error: any) {
             console.error('Login Error:', error)
