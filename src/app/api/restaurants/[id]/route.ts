@@ -110,23 +110,21 @@ export async function DELETE(
                     { slug: idOrSlug }
                 ]
             },
-            select: { id: true, name: true }
+            select: { id: true, name: true, slug: true }
         })
 
         if (!restaurant) {
             return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
         }
 
-        // Soft Delete (Recursive/Cascade Soft Delete?)
-        // For now, let's just Soft Delete the restaurant.
-        // Logic: If restaurant is deleted, access to sub-resources should be blocked by application logic checking restaurant.deletedAt.
-        // Or we can cascade soft delete?
-        // Let's stick to simple Restaurant Soft Delete for now, as it's reversible.
-
-        await prisma.restaurant.update({
-            where: { id: restaurant.id },
-            data: { deletedAt: new Date(), isActive: false }
+        // Hard Delete (Cascade takes care of children as defined in Schema)
+        await prisma.restaurant.delete({
+            where: { id: restaurant.id }
         })
+
+        // Also invalidate the cache so it doesn't show up again
+        await invalidateCache(`dashboard:${restaurant.id}`)
+        await invalidateCache(`dashboard:${restaurant.slug}`)
 
         return NextResponse.json({ success: true, message: 'Restaurant deleted successfully' })
     } catch (error) {

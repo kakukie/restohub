@@ -69,46 +69,35 @@ export default function SuperAdminDashboard() {
   // Fetch data on mount
   const fetchDashboardData = useCallback(async () => {
     try {
-      // Fetch Restaurants
-      const resResto = await fetch('/api/restaurants')
-      const dataResto = await resResto.json()
-      if (dataResto.success) {
-        setRestaurants(dataResto.data)
-      }
+      const authReq = fetch('/api/auth/me'); // Fire auth early in background
+      const [
+        resResto,
+        resUsers,
+        resAnalytics,
+        resPlans,
+        resLogs
+      ] = await Promise.all([
+        fetch('/api/restaurants'),
+        fetch('/api/users'),
+        fetch('/api/admin/analytics'),
+        fetch('/api/subscription-plans'),
+        fetch('/api/admin/audit-logs?limit=20')
+      ]);
 
-      // Fetch Users (Admins)
-      const resUsers = await fetch('/api/users')
-      const dataUsers = await resUsers.json()
-      if (dataUsers.success) {
-        setUsers(dataUsers.data)
-      }
+      const [dataResto, dataUsers, dataAnalytics, dataPlans, dataLogs] = await Promise.all([
+        resResto.json(),
+        resUsers.json(),
+        resAnalytics.ok ? resAnalytics.json() : Promise.resolve({ success: false }),
+        resPlans.ok ? resPlans.json() : Promise.resolve({ success: false }),
+        resLogs.ok ? resLogs.json() : Promise.resolve({ success: false })
+      ]);
 
-      // Fetch Admin Analytics
-      try {
-        const resAnalytics = await fetch('/api/admin/analytics')
-        const dataAnalytics = await resAnalytics.json()
-        if (dataAnalytics.success) {
-          setAdminAnalytics(dataAnalytics.data)
-        }
-      } catch (err) { console.error("Failed to fetch analytics", err) }
+      if (dataResto.success) setRestaurants(dataResto.data)
+      if (dataUsers.success) setUsers(dataUsers.data)
+      if (dataAnalytics.success) setAdminAnalytics(dataAnalytics.data)
+      if (dataPlans.success) setSubscriptionPlans(dataPlans.data)
+      if (dataLogs.success) setAuditLogs(dataLogs.data)
 
-      // Fetch Subscription Plans
-      try {
-        const resPlans = await fetch('/api/subscription-plans')
-        const dataPlans = await resPlans.json()
-        if (dataPlans.success) {
-          setSubscriptionPlans(dataPlans.data)
-        }
-      } catch (err) { console.error("Failed to fetch plans", err) }
-
-      // Fetch Audit Logs
-      try {
-        const resLogs = await fetch('/api/admin/audit-logs?limit=20')
-        const dataLogs = await resLogs.json()
-        if (dataLogs.success) {
-          setAuditLogs(dataLogs.data)
-        }
-      } catch (err) { console.error("Failed to fetch audit logs", err) }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
     }
@@ -176,7 +165,7 @@ export default function SuperAdminDashboard() {
   const [qrCodeRestaurant, setQrCodeRestaurant] = useState<Restaurant | null>(null)
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings' | 'landing-editor' | 'helpdesk'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings' | 'landing-editor' | 'helpdesk' | 'audit-logs'>('dashboard')
 
   // User Edit State
   const [userDialogOpen, setUserDialogOpen] = useState(false)
@@ -362,7 +351,7 @@ export default function SuperAdminDashboard() {
   }
 
   const handleDeleteRestaurant = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this restaurant? This cannot be undone.')) return
+    if (!window.confirm('Are you sure you want to completely delete this restaurant? This cannot be undone.')) return
 
     try {
       const res = await fetch(`/api/restaurants/${id}`, { method: 'DELETE' })
@@ -445,7 +434,7 @@ export default function SuperAdminDashboard() {
 
   const handleOpenSubscriptionDialog = (restaurant: Restaurant) => {
     setEditingSubscription(restaurant)
-    setNewSubscriptionType(restaurant.package as any || 'BASIC')
+    setNewSubscriptionType(restaurant.package as any)
     setSubscriptionDialogOpen(true)
   }
 
@@ -1318,11 +1307,22 @@ export default function SuperAdminDashboard() {
           )
         })}
       </div>
+    </div>
+  )
 
-      <div className="mt-12 bg-[#1A2235] border border-[#2A344A] rounded-[32px] overflow-hidden">
+  const renderAuditLogs = () => (
+    <div className="space-y-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 mt-4">
+        <div>
+          <h2 className="text-3xl font-extrabold text-[#F8FAFC]">Audit Logs</h2>
+          <p className="text-slate-400">Track all system changes, logins, and administrative actions.</p>
+        </div>
+      </header>
+
+      <div className="bg-[#1A2235] border border-[#2A344A] rounded-[32px] overflow-hidden">
         <div className="p-6 border-b border-[#2A344A] flex justify-between items-center">
           <div>
-            <h3 className="font-bold text-lg text-white">System Audit Logs</h3>
+            <h3 className="font-bold text-lg text-white">System Activity</h3>
             <p className="text-xs text-slate-400">Recent actions performed by users and admins</p>
           </div>
         </div>
@@ -1567,6 +1567,10 @@ export default function SuperAdminDashboard() {
               <span className={`material-symbols-outlined text-xl ${activeTab === 'helpdesk' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>support_agent</span>
               <span>Helpdesk</span>
             </button>
+            <button onClick={() => setActiveTab('audit-logs')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${activeTab === 'audit-logs' ? 'bg-[#10B981]/10 text-[#10B981] border-r-4 border-[#10B981] font-semibold' : 'text-slate-500 hover:text-slate-100 hover:bg-white/5'}`}>
+              <span className={`material-symbols-outlined text-xl ${activeTab === 'audit-logs' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>history</span>
+              <span>Audit Logs</span>
+            </button>
             <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${activeTab === 'settings' ? 'bg-[#10B981]/10 text-[#10B981] border-r-4 border-[#10B981] font-semibold' : 'text-slate-500 hover:text-slate-100 hover:bg-white/5'}`}>
               <span className={`material-symbols-outlined text-xl ${activeTab === 'settings' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>settings</span>
               <span>System Settings</span>
@@ -1592,6 +1596,7 @@ export default function SuperAdminDashboard() {
         {activeTab === 'restaurants' && renderRestaurants()}
         {activeTab === 'plans' && renderPlans()}
         {activeTab === 'users' && renderUsers()}
+        {activeTab === 'audit-logs' && renderAuditLogs()}
         {activeTab === 'settings' && renderSettings()}
         {activeTab === 'landing-editor' && <LandingEditorTab />}
         {activeTab === 'helpdesk' && <HelpdeskChat role="SUPER_ADMIN" />}

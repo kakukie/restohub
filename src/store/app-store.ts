@@ -506,7 +506,6 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         language: state.language,
         cart: state.cart,
-        user: state.user,
         selectedRestaurant: state.selectedRestaurant,
         helpdeskSettings: state.helpdeskSettings
       }),
