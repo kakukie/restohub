@@ -200,7 +200,7 @@ export default function RestaurantAdminLoginPage() {
                                 <div className="flex justify-between items-center mb-1.5">
                                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300"
                                         htmlFor="password">Kata Sandi</label>
-                                    <a className="text-sm font-semibold text-[#00a669] hover:underline" href="#">Lupa Password?</a>
+                                    <Link className="text-sm font-semibold text-[#00a669] hover:underline" href="/forgot-password">Lupa Password?</Link>
                                 </div>
                                 <div className="relative">
                                     <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">

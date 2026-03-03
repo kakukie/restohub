@@ -58,6 +58,12 @@ model User {
   orders        Order[]
   refreshTokens RefreshToken[]
   deletedAt     DateTime?
+
+  // Reset Password
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  
+  auditLogs     AuditLog[]
 }
 
 model Restaurant {
@@ -267,4 +273,15 @@ model HelpdeskMessage {
   attachment   String?
   readAt       DateTime?
   createdAt    DateTime   @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  targetType String
+  targetId   String?
+  details    Json?
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
 }

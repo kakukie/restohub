@@ -49,7 +49,9 @@ export default function SuperAdminDashboard() {
     helpdeskSettings,
     updateHelpdeskSettings,
     broadcastAnnouncement,
-    setSubscriptionPlans
+    setSubscriptionPlans,
+    setRestaurants,
+    setUsers
   } = useAppStore()
 
   // Fetch Settings on Mount
@@ -63,8 +65,6 @@ export default function SuperAdminDashboard() {
 
   // Use store restaurants 
   const restaurants = allRestaurants
-
-  const { setRestaurants, setUsers } = useAppStore()
 
   // Fetch data on mount
   const fetchDashboardData = useCallback(async () => {
@@ -100,6 +100,15 @@ export default function SuperAdminDashboard() {
           setSubscriptionPlans(dataPlans.data)
         }
       } catch (err) { console.error("Failed to fetch plans", err) }
+
+      // Fetch Audit Logs
+      try {
+        const resLogs = await fetch('/api/admin/audit-logs?limit=20')
+        const dataLogs = await resLogs.json()
+        if (dataLogs.success) {
+          setAuditLogs(dataLogs.data)
+        }
+      } catch (err) { console.error("Failed to fetch audit logs", err) }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
     }
@@ -136,8 +145,15 @@ export default function SuperAdminDashboard() {
   const [adminAnalytics, setAdminAnalytics] = useState<{
     topRevenue: any[]
     topSelling: any[]
+    globalStats?: {
+      totalRevenue: number
+      totalOrders: number
+      activeRestaurants: number
+      pendingApproval: number
+    }
   }>({ topRevenue: [], topSelling: [] })
 
+  const [auditLogs, setAuditLogs] = useState<any[]>([])
   // Helper for image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
     const file = e.target.files?.[0]
@@ -646,11 +662,11 @@ export default function SuperAdminDashboard() {
               <span className="material-symbols-outlined text-xl">analytics</span>
             </div>
             <span className="text-emerald-400 text-xs font-bold px-3 py-1 bg-emerald-400/10 rounded-full flex items-center gap-1">
-              <span className="material-symbols-outlined text-xs">trending_up</span> +12.5%
+              <span className="material-symbols-outlined text-xs">trending_up</span> Live
             </span>
           </div>
-          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Total Revenue</h3>
-          <p className="text-2xl font-black text-[#F8FAFC]">Rp {(stats.totalRevenue / 1000000).toFixed(1)}M</p>
+          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Global Revenue</h3>
+          <p className="text-2xl font-black text-[#F8FAFC]">Rp {((adminAnalytics.globalStats?.totalRevenue || 0) / 1000000).toFixed(1)}M</p>
         </div>
 
         {/* Total Orders */}
@@ -660,12 +676,12 @@ export default function SuperAdminDashboard() {
               <span className="material-symbols-outlined text-xl">receipt_long</span>
             </div>
             <span className="text-blue-400 text-xs font-bold px-3 py-1 bg-blue-400/10 rounded-full flex items-center gap-1">
-              <span className="material-symbols-outlined text-xs">trending_up</span> +8.2%
+              <span className="material-symbols-outlined text-xs">trending_up</span> Live
             </span>
           </div>
-          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Daily Orders</h3>
+          <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Global Orders</h3>
           <p className="text-2xl font-black text-[#F8FAFC]">
-            {orders.filter(o => new Date(o.createdAt).toDateString() === new Date().toDateString()).length || 0}
+            {adminAnalytics.globalStats?.totalOrders || 0}
           </p>
         </div>
 
@@ -676,11 +692,11 @@ export default function SuperAdminDashboard() {
               <span className="material-symbols-outlined text-xl">store</span>
             </div>
             <span className="text-indigo-400 text-xs font-bold px-3 py-1 bg-indigo-400/10 rounded-full flex items-center gap-1">
-              <span className="material-symbols-outlined text-xs">storefront</span> +2
+              <span className="material-symbols-outlined text-xs">storefront</span> System
             </span>
           </div>
           <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Active Restaurants</h3>
-          <p className="text-2xl font-black text-[#F8FAFC]">{stats.activeRestaurants} <span className="text-sm font-normal text-slate-500">of {stats.totalRestaurants}</span></p>
+          <p className="text-2xl font-black text-[#F8FAFC]">{adminAnalytics.globalStats?.activeRestaurants || 0} <span className="text-sm font-normal text-slate-500">of {stats.totalRestaurants}</span></p>
         </div>
 
         {/* Pending Approvals */}
@@ -694,9 +710,9 @@ export default function SuperAdminDashboard() {
             </button>
           </div>
           <h3 className="text-slate-400 text-sm font-medium mb-1 mt-auto">Pending Approvals</h3>
-          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">18</p>
+          <p className="text-3xl font-extrabold tracking-tight text-[#F8FAFC]">{adminAnalytics.globalStats?.pendingApproval || 0}</p>
           <div className="mt-4 flex items-center gap-1.5 text-amber-500 text-xs font-bold">
-            <span className="material-symbols-outlined text-[14px]">error</span> 5 urgent requests
+            <span className="material-symbols-outlined text-[14px]">error</span> Needs Attention
           </div>
         </div>
       </div>
@@ -744,6 +760,8 @@ export default function SuperAdminDashboard() {
                 <tbody className="divide-y divide-[#2A344A]/50">
                   {filteredRestaurants.slice(0, 3).map(restaurant => {
                     const planInfo = getSubscriptionBadge(restaurant.package as any)
+                    const stats = topRestaurants.find((r) => r.id === restaurant.id)
+                    const revenue = stats ? stats.revenue : 0
                     return (
                       <tr key={restaurant.id} className="hover:bg-white/[0.02] transition-colors group">
                         <td className="py-4 px-2">
@@ -782,7 +800,7 @@ export default function SuperAdminDashboard() {
                           </span>
                         </td>
                         <td className="py-4 px-2 text-right">
-                          <span className="text-sm font-bold text-[#F8FAFC]">{restaurant.status === 'ACTIVE' ? 'Rp ' + (Math.floor(Math.random() * 20000000) + 1000000).toLocaleString('id-ID') : '-'}</span>
+                          <span className="text-sm font-bold text-[#F8FAFC]">Rp {revenue.toLocaleString('id-ID')}</span>
                         </td>
                         <td className="py-4 px-2 text-center">
                           <button className="text-slate-500 hover:text-white transition-colors" title="Options" onClick={() => handleEditRestaurantProfile(restaurant)}>
@@ -1301,11 +1319,60 @@ export default function SuperAdminDashboard() {
         })}
       </div>
 
-      <p className="text-xs text-slate-400 mt-0.5">Updated Permission Matrix</p>
-      <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">Yesterday</p>
-      <button className="w-full mt-6 py-3.5 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] text-slate-300 rounded-full text-xs font-bold transition-all text-center">
-        View Full Audit Log
-      </button>
+      <div className="mt-12 bg-[#1A2235] border border-[#2A344A] rounded-[32px] overflow-hidden">
+        <div className="p-6 border-b border-[#2A344A] flex justify-between items-center">
+          <div>
+            <h3 className="font-bold text-lg text-white">System Audit Logs</h3>
+            <p className="text-xs text-slate-400">Recent actions performed by users and admins</p>
+          </div>
+        </div>
+        <div className="p-0">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#111827] text-slate-400 text-xs uppercase tracking-wider">
+                <th className="p-4 font-semibold">Action</th>
+                <th className="p-4 font-semibold">User</th>
+                <th className="p-4 font-semibold">Target</th>
+                <th className="p-4 font-semibold">Date</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#2A344A]">
+              {auditLogs.map((log: any) => (
+                <tr key={log.id} className="hover:bg-white/5 transition-colors group">
+                  <td className="p-4 text-sm text-white font-medium">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm text-slate-500">history</span>
+                      {log.action}
+                    </div>
+                    {log.details && <p className="text-xs text-slate-500 mt-1 pl-6">{log.details}</p>}
+                  </td>
+                  <td className="p-4 text-sm text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-md bg-slate-800 flex items-center justify-center text-[10px] font-bold border border-slate-700">
+                        {log.user?.name?.charAt(0) || '?'}
+                      </span>
+                      {log.user?.name || log.userId || 'System'}
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <span className="px-2 py-1 text-[10px] bg-slate-800 text-slate-300 rounded border border-slate-700 font-mono">
+                      {log.targetType} {log.targetId ? `#${log.targetId.substring(0, 8)}` : ''}
+                    </span>
+                  </td>
+                  <td className="p-4 text-xs text-slate-500">
+                    {new Date(log.createdAt).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+              {auditLogs.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-slate-500 text-sm">No audit logs found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 

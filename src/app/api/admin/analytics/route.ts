@@ -55,11 +55,38 @@ export async function GET(request: NextRequest) {
         // Top Selling (sort by order count)
         const topSelling = [...leaderboard].sort((a, b) => b.totalOrders - a.totalOrders)
 
+        // Calculate Global Stats
+        const globalOrderStats = await prisma.order.aggregate({
+            where: {
+                status: { not: 'CANCELLED' }
+            },
+            _sum: {
+                totalAmount: true
+            },
+            _count: {
+                id: true
+            }
+        })
+
+        const activeRestaurants = await prisma.restaurant.count({
+            where: { status: 'ACTIVE', isActive: true, deletedAt: null }
+        })
+
+        const pendingRestaurants = await prisma.restaurant.count({
+            where: { status: 'PENDING', deletedAt: null }
+        })
+
         return NextResponse.json({
             success: true,
             data: {
                 topRevenue: topRevenue.slice(0, 5),
-                topSelling: topSelling.slice(0, 5)
+                topSelling: topSelling.slice(0, 5),
+                globalStats: {
+                    totalRevenue: globalOrderStats._sum.totalAmount || 0,
+                    totalOrders: globalOrderStats._count.id || 0,
+                    activeRestaurants: activeRestaurants,
+                    pendingApproval: pendingRestaurants
+                }
             }
         })
 

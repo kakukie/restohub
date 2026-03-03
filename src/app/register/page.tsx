@@ -263,9 +263,7 @@ export default function Register() {
                                                 required
                                                 className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all">
                                                 <option value="FREE_TRIAL">Free Trial (Rp 0)</option>
-                                                <option value="BASIC">Basic Package</option>
-                                                <option value="PRO">Pro Package</option>
-                                                <option value="ENTERPRISE">Enterprise Package</option>
+                                                <option value="BUSINESS">Bisnis (Rp 200.000 / bln)</option>
                                             </select>
                                         </div>
                                         <div className="space-y-2">
