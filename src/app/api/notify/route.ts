@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
         let result
         if (type === 'EMAIL') {
-            const emailSubject = subject || 'Notification from meenuin'
+            const emailSubject = subject || 'Notification from Meenuin'
             const html = `<div style="font-family: sans-serif; padding: 20px;">
               <h2>Notification</h2>
               <p>${message}</p>

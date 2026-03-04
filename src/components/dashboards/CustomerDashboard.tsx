@@ -282,7 +282,7 @@ export default function CustomerDashboard() {
             <div className="flex items-center gap-2">
               <Store className="h-8 w-8 text-emerald-600" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{helpdeskSettings?.platformName || 'RestoHub'}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{helpdeskSettings?.platformName || 'Meenuin'}</h1>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Customer Portal</p>
               </div>
             </div>
@@ -387,7 +387,7 @@ export default function CustomerDashboard() {
           <>
             <div className="mb-8 text-center">
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Welcome to {helpdeskSettings?.platformName || 'RestoHub'}
+                Welcome to {helpdeskSettings?.platformName || 'Meenuin'}
               </h2>
               <p className="text-gray-600 dark:text-gray-400">
                 Select a restaurant to start ordering delicious food
@@ -726,7 +726,7 @@ export default function CustomerDashboard() {
       <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm mt-auto">
         <div className="container mx-auto px-4 py-4">
           <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-            © 2024 {helpdeskSettings?.platformName || 'RestoHub'} Technology. All rights reserved.
+            © 2024 {helpdeskSettings?.platformName || 'Meenuin'} Technology. All rights reserved.
           </p>
         </div>
       </footer>

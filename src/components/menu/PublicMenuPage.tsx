@@ -549,7 +549,7 @@ export default function PublicMenuPage() {
       <footer className="border-t bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm mt-auto">
         <div className="container mx-auto px-4 py-4">
           <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-            © 2024 {helpdeskSettings?.platformName || 'RestoHub'}. Digital Restaurant Platform
+            © 2024 {helpdeskSettings?.platformName || 'Meenuin'}. Digital Restaurant Platform
           </p>
         </div>
       </footer>

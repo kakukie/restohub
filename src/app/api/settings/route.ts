@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
                 whatsapp: settingsMap['helpdesk_whatsapp'] || '6281234567890',
                 email: settingsMap['helpdesk_email'] || 'support@meenuin.biz.id',
                 maintenanceMode: settingsMap['maintenance_mode'] === 'true',
-                platformName: settingsMap['platform_name'] || 'meenuin'
+                platformName: settingsMap['platform_name'] || 'Meenuin'
             }
         })
     } catch (error) {
