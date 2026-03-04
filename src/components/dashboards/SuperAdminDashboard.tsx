@@ -373,14 +373,14 @@ export default function SuperAdminDashboard() {
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false)
   const [notificationMessage, setNotificationMessage] = useState('')
   const [notificationChannel, setNotificationChannel] = useState<'EMAIL' | 'WHATSAPP'>('EMAIL')
-  const [selectedRestoForAction, setSelectedRestoForAction] = useState<{ id: string, status: 'ACTIVE' | 'REJECTED', name: string } | null>(null)
+  const [selectedRestoForAction, setSelectedRestoForAction] = useState<{ id: string, status: 'ACTIVE' | 'REJECTED', name: string, email: string } | null>(null)
 
-  const handleToggleRestaurantStatus = (id: string, isActive: boolean, restaurantName: string) => {
+  const handleToggleRestaurantStatus = (id: string, isActive: boolean, restaurantName: string, adminEmail: string) => {
     // Open notification dialog first
-    setSelectedRestoForAction({ id, status: isActive ? 'ACTIVE' : 'REJECTED', name: restaurantName })
+    setSelectedRestoForAction({ id, status: isActive ? 'ACTIVE' : 'REJECTED', name: restaurantName, email: adminEmail })
     setNotificationMessage(isActive
-      ? `Selamat! Restoran ${restaurantName} telah disetujui. Silakan login untuk melengkapi profil Anda.`
-      : `Mohon maaf, registrasi restoran ${restaurantName} belum dapat kami setujui saat ini.`)
+      ? `Selamat! Restoran ${restaurantName} telah disetujui. Silakan kunjungi halaman login untuk masuk menggunakan email terdaftar Anda dan password yang telah Anda buat.`
+      : `Mohon maaf, registrasi restoran ${restaurantName} belum dapat kami setujui saat ini. Silakan balas email ini atau hubungi tim support kami untuk informasi lebih lanjut.`)
     setNotificationChannel('EMAIL') // Default
     setNotificationDialogOpen(true)
   }
@@ -409,9 +409,7 @@ export default function SuperAdminDashboard() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               type: notificationChannel,
-              recipient: selectedRestoForAction.id, // Using Restaurant ID for now, ideally Email. But ID is what we have in selectedRestoForAction context.
-              // Ideally we should have passed email here. But let's assume backend resolved email or just log ID. 
-              // Actually, let's look up the restaurant to get email or just say "Restaurant Owner".
+              recipient: selectedRestoForAction.email || 'support@meenuin.biz.id', // Fallback just in case
               message: notificationMessage
             })
           })
@@ -996,7 +994,7 @@ export default function SuperAdminDashboard() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <label className="relative inline-flex items-center cursor-pointer" title="Toggle Active Status">
-                          <input type="checkbox" className="sr-only peer" checked={restaurant.status === 'ACTIVE'} onChange={(e) => handleToggleRestaurantStatus(restaurant.id, e.target.checked, restaurant.name)} />
+                          <input type="checkbox" className="sr-only peer" checked={restaurant.status === 'ACTIVE'} onChange={(e) => handleToggleRestaurantStatus(restaurant.id, e.target.checked, restaurant.name, restaurant.adminEmail)} />
                           <div className="w-10 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                         </label>
                         {getStatusBadge(restaurant.status)}

@@ -247,7 +247,7 @@ export default function LandingPage() {
               <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm mb-6">
                 <span className="material-symbols-outlined text-[#00a669] text-4xl">phone_iphone</span>
               </div>
-              <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{textData.contactWhatsappText || 'WhatsApp / Telepon'}</h4>
+              <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{textData.contactWhatsappText || 'WhatsApp'}</h4>
               <p className="text-slate-600 dark:text-slate-400 font-semibold text-xl mb-2">{mounted && helpdeskSettings?.whatsapp ? helpdeskSettings.whatsapp : '088294945050'}</p>
               <p className="text-sm text-slate-500 mb-8">{textData.contactWhatsappDesc || 'CS kami siap menjawab semua pertanyaan Anda.'}</p>
               <a href={`https://wa.me/${(mounted && helpdeskSettings?.whatsapp ? helpdeskSettings.whatsapp : '088294945050').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-full px-6 py-4 bg-[#00a669] text-white hover:bg-emerald-600 font-bold rounded-2xl transition-colors shadow-lg shadow-[#00a669]/20">Chat WhatsApp</a>
