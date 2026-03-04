@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
                         <Utensils className="w-8 h-8 text-[#10B981] relative z-10" />
                     </div>
                     <div className="flex items-center gap-1 mb-2">
-                        <span className="text-3xl font-extrabold text-white tracking-tight">Resto<span className="text-[#10B981]">Hub</span></span>
+                        <span className="text-3xl font-extrabold text-white tracking-tight">Meen<span className="text-[#10B981]">uin</span></span>
                     </div>
                     <p className="text-slate-400 text-sm font-medium">Reset kata sandi akun Anda</p>
                 </div>
