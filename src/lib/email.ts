@@ -11,8 +11,11 @@ const transporter = nodemailer.createTransport({
 })
 
 export async function sendEmail(to: string, subject: string, html: string) {
-    if (!process.env.SMTP_USER) {
-        console.log('[MOCK EMAIL] To:', to, 'Subject:', subject)
+    if (!process.env.SMTP_USER || process.env.SMTP_HOST === 'mail.meenuin.biz.id') {
+        console.log('--- MOCK EMAIL INTERCEPTED ---')
+        console.log(`To: ${to}`)
+        console.log(`Subject: ${subject}`)
+        console.log('------------------------------')
         return { success: true, mocked: true }
     }
 

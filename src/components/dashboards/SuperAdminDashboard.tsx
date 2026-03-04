@@ -1538,7 +1538,7 @@ export default function SuperAdminDashboard() {
               <span className="material-symbols-outlined text-white">shield_person</span>
             </div>
             <div>
-              <h1 className="font-extrabold text-xl tracking-tight text-white">{helpdeskSettings.platformName || 'RestoHub'}<span className="text-[#10B981]">.</span></h1>
+              <h1 className="font-extrabold text-xl tracking-tight text-white">{helpdeskSettings.platformName || 'meenuin'}<span className="text-[#10B981]">.</span></h1>
               <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Super Admin</p>
             </div>
           </div>
