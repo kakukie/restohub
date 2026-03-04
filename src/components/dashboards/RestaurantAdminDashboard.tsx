@@ -334,34 +334,72 @@ export default function RestaurantAdminDashboard() {
                 <head>
                     <title>Order #${order.orderNumber}</title>
                     <style>
-                        body { font-family: monospace; padding: 20px; max-width: 300px; margin: 0 auto; }
-                        h1, h2, h3, p { margin: 5px 0; text-align: center; }
-                        hr { border: 1px dashed #ccc; margin: 10px 0; }
-                        .item { display: flex; justify-content: space-between; }
-                        .total { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2em; }
+                        @page {
+                            size: 58mm auto; /* Fallback for many mobile printers */
+                            margin: 0;
+                        }
+                        @media print {
+                            body { margin: 0; padding: 5mm; }
+                            .no-print { display: none; }
+                            @page { margin: 0; }
+                        }
+                        body { 
+                            font-family: 'Courier New', Courier, monospace; 
+                            line-height: 1.2;
+                            font-size: 12px;
+                            width: 58mm; /* Default to 58mm width */
+                            margin: 0 auto;
+                            color: #000;
+                        }
+                        .header { text-align: center; margin-bottom: 10px; }
+                        .logo { max-height: 40px; margin-bottom: 5px; }
+                        .center { text-align: center; }
+                        .dashed-line { border-top: 1px dashed #000; margin: 8px 0; }
+                        .item { display: flex; justify-content: space-between; margin: 2px 0; }
+                        .item-name { flex: 1; padding-right: 5px; }
+                        .item-price { white-space: nowrap; }
+                        .total { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-top: 5px; }
+                        .footer { text-align: center; margin-top: 15px; font-size: 10px; }
                     </style>
                 </head>
                 <body>
-                    ${logoHtml}
-                    <h2>${currentRestaurant?.name || 'Restaurant'}</h2>
-                    <h3>Order #${order.orderNumber}</h3>
-                    <p>Customer: ${order.customerName}</p>
-                    <p>Table: ${order.tableNumber || (order.orderType === 'TAKEAWAY' ? 'Takeaway' : 'Delivery')}</p>
-                    <hr/>
+                    <div class="header">
+                        ${logoHtml}
+                        <div style="font-weight: bold; font-size: 16px;">${currentRestaurant?.name || 'Restaurant'}</div>
+                        <div>${currentRestaurant?.address || ''}</div>
+                        <div>${currentRestaurant?.phone || ''}</div>
+                    </div>
+
+                    <div class="dashed-line"></div>
+                    
+                    <div><strong>No: #${order.orderNumber}</strong></div>
+                    <div>Tgl: ${new Date(order.createdAt).toLocaleString('id-ID')}</div>
+                    <div>Cust: ${order.customerName || 'Guest'}</div>
+                    <div>Tipe: ${order.tableNumber ? `Meja ${order.tableNumber}` : 'Takeaway'}</div>
+
+                    <div class="dashed-line"></div>
+
                     ${order.items.map((item: any) => `
                         <div class="item">
-                            <span>${item.quantity}x ${item.menuItemName}</span>
-                            <span>Rp ${item.price * item.quantity}</span>
+                            <span class="item-name">${item.quantity}x ${item.menuItemName}</span>
+                            <span class="item-price">Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
                         </div>
+                        ${item.notes ? `<div style="font-size: 10px; font-style: italic; margin-left: 10px;">- ${item.notes}</div>` : ''}
                     `).join('')}
-                    <hr/>
+
+                    <div class="dashed-line"></div>
+
                     <div class="total">
-                        <span>Total:</span>
-                        <span>Rp ${order.totalAmount}</span>
+                        <span>TOTAL</span>
+                        <span>Rp${order.totalAmount.toLocaleString('id-ID')}</span>
                     </div>
-                    <hr/>
-                    <p style="margin-top: 20px;">Terima Kasih</p>
-                    <p>Thank you for your order!</p>
+
+                    <div class="dashed-line"></div>
+                    
+                    <div class="footer">
+                        <p>Terima kasih atas kunjungan Anda!</p>
+                        <p>Layanan Menu Digital oleh Meenuin</p>
+                    </div>
                 </body>
                 </html>
             `)

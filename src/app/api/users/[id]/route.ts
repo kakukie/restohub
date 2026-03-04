@@ -7,52 +7,37 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const { id } = params
+        const id = params.id
 
-        // Check if user has orders
-        const userWithOrders = await prisma.user.findUnique({
-            where: { id },
-            include: {
-                _count: {
-                    select: { orders: true }
-                }
-            }
-        })
-
-        if (!userWithOrders) {
-            return NextResponse.json({
-                success: false,
-                error: 'User not found'
-            }, { status: 404 })
+        if (!id || typeof id !== 'string') {
+            return NextResponse.json({ success: false, error: 'Valid User ID required' }, { status: 400 })
         }
 
-        // If user has orders, soft delete
-        if (userWithOrders._count.orders > 0) {
+        // Check for existing orders before deletion
+        const user = await prisma.user.findUnique({
+            where: { id },
+            include: { _count: { select: { orders: true } } }
+        })
+
+        if (!user) {
+            return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
+        }
+
+        // Soft delete if has orders, hard delete otherwise
+        if (user._count.orders > 0) {
             await prisma.user.update({
                 where: { id },
-                data: { deletedAt: new Date() }
+                data: { deletedAt: new Date(), password: '' }
             })
-
-            return NextResponse.json({
-                success: true,
-                message: `User soft deleted (has ${userWithOrders._count.orders} orders)`
+            return NextResponse.json({ success: true, message: `User soft-deleted (has ${user._count.orders} orders)` })
+        } else {
+            await prisma.user.delete({
+                where: { id }
             })
+            return NextResponse.json({ success: true, message: 'User permanent-deleted' })
         }
-
-        // If no orders, hard delete
-        await prisma.user.delete({
-            where: { id }
-        })
-
-        return NextResponse.json({
-            success: true,
-            message: 'User deleted'
-        })
-    } catch (error) {
-        console.error('Delete user error:', error)
-        return NextResponse.json({
-            success: false,
-            error: 'Failed to delete user'
-        }, { status: 500 })
+    } catch (error: any) {
+        console.error('Delete User Error:', error)
+        return NextResponse.json({ success: false, error: error.message || 'Failed to delete user' }, { status: 500 })
     }
 }
