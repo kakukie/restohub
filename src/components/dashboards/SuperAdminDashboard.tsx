@@ -404,13 +404,19 @@ export default function SuperAdminDashboard() {
 
         // Call Real Notification API
         try {
+          // Use targeted email types for better templates
+          const notificationType = selectedRestoForAction.status === 'ACTIVE'
+            ? 'APPROVE_RESTAURANT'
+            : 'REJECT_RESTAURANT';
+
           await fetch('/api/notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              type: notificationChannel,
-              recipient: selectedRestoForAction.email || 'support@meenuin.biz.id', // Fallback just in case
-              message: notificationMessage
+              type: notificationType,
+              recipient: selectedRestoForAction.email || 'support@meenuin.biz.id',
+              message: notificationMessage,
+              restaurantName: selectedRestoForAction.name
             })
           })
         } catch (e) { console.error('Notify failed', e) }
@@ -1302,19 +1308,19 @@ export default function SuperAdminDashboard() {
                 </button>
                 {systemUser.role !== 'SUPER_ADMIN' && (
                   <button onClick={async () => {
-                    if (confirm(`Are you sure you want to delete ${systemUser.name}?`)) {
+                    if (confirm(`Are you sure you want to delete ${systemUser.name}? This will remove their account permanently (hard delete) or deactivate it if they have orders (soft delete).`)) {
                       try {
                         const res = await fetch(`/api/users/${systemUser.id}`, { method: 'DELETE' })
                         const data = await res.json()
                         if (data.success) {
                           deleteUser(systemUser.id)
-                          toast({ title: 'User Deleted', description: `${systemUser.name} has been removed.` })
+                          toast({ title: 'User Deleted', description: data.message || `${systemUser.name} has been removed.`, variant: 'default' })
                         } else {
-                          toast({ title: 'Error', variant: 'destructive', description: data.error || 'Failed to delete user' })
+                          toast({ title: 'Deletion Failed', variant: 'destructive', description: data.error || 'Failed to delete user' })
                         }
                       } catch (err) {
                         console.error('Failed to delete user:', err)
-                        toast({ title: 'Error', variant: 'destructive', description: 'Network error deleting user' })
+                        toast({ title: 'Network Error', variant: 'destructive', description: 'Could not connect to the server to delete user.' })
                       }
                     }
                   }} className="px-4 py-3 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 rounded-full flex items-center justify-center transition-all text-red-500" title="Delete User">

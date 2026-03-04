@@ -1920,6 +1920,31 @@ export default function RestaurantAdminDashboard() {
                             </div>
 
                             <div className="flex gap-2 justify-end pt-2">
+                                {viewOrder.customerId && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                        onClick={async () => {
+                                            if (confirm(`Are you sure you want to delete customer ${viewOrder.customerName}? This will also remove their associated account data.`)) {
+                                                try {
+                                                    const res = await fetch(`/api/users/${viewOrder.customerId}`, { method: 'DELETE' })
+                                                    const data = await res.json()
+                                                    if (data.success) {
+                                                        toast({ title: 'Success', description: data.message || 'Customer deleted' })
+                                                        setViewOrder(null) // Close dialog
+                                                    } else {
+                                                        toast({ title: 'Error', variant: 'destructive', description: data.error || 'Failed to delete customer' })
+                                                    }
+                                                } catch (err) {
+                                                    toast({ title: 'Error', variant: 'destructive', description: 'Network error deleting customer' })
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-1" /> Delete Customer
+                                    </Button>
+                                )}
                                 <Button variant="outline" onClick={() => handlePrintOrder(viewOrder)}>
                                     <Printer className="h-4 w-4 mr-2" /> Print
                                 </Button>
