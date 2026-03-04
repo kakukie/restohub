@@ -167,6 +167,16 @@ export async function PUT(request: NextRequest) {
 
         const dataToUpdate: any = { ...updates }
 
+        if (updates.email) {
+            const existingEmail = await prisma.user.findUnique({ where: { email: updates.email } })
+            if (existingEmail && existingEmail.id !== id) {
+                return NextResponse.json({
+                    success: false,
+                    error: 'Email already in use by another user'
+                }, { status: 400 })
+            }
+        }
+
         // Handle password update if provided
         if (password && password.trim() !== '') {
             const hashedPassword = await bcrypt.hash(password, 10)

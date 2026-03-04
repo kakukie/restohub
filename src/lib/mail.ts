@@ -16,15 +16,6 @@ export async function sendPasswordResetEmail(to: string, token: string) {
         </div>
     `
 
-    if (!apiKey) {
-        console.log('--- MOCK EMAIL INTERCEPTED (NO BREVO_API_KEY) ---')
-        console.log(`To: ${to}`)
-        console.log(`Subject: Reset Password`)
-        console.log(`Reset Link: ${resetLink}`)
-        console.log('-------------------------------------------------')
-        return { success: true, messageId: 'mock-id' }
-    }
-
     try {
         const response = await fetch('https://api.brevo.com/v3/smtp/email', {
             method: 'POST',
@@ -74,15 +65,6 @@ export async function sendActivationEmail(to: string, ownerName: string, restoNa
             <p>To your success,<br>The Meenuin Team</p>
         </div>
     `
-
-    if (!apiKey) {
-        console.log('--- MOCK EMAIL INTERCEPTED (NO BREVO_API_KEY) ---')
-        console.log(`To: ${to}`)
-        console.log(`Subject: Your Meenuin Account is Active!`)
-        console.log(`Login Link: ${loginLink}`)
-        console.log('-------------------------------------------------')
-        return { success: true, messageId: 'mock-id' }
-    }
 
     try {
         const response = await fetch('https://api.brevo.com/v3/smtp/email', {

@@ -1302,6 +1302,27 @@ export default function SuperAdminDashboard() {
                 }} className="px-4 py-3 bg-[#111827] border border-[#2A344A] hover:bg-[#2A344A] rounded-full flex items-center justify-center transition-all text-slate-400" title="Manage Keys/Password">
                   <span className="material-symbols-outlined text-[16px]">key</span>
                 </button>
+                {systemUser.role !== 'SUPER_ADMIN' && (
+                  <button onClick={async () => {
+                    if (confirm(`Are you sure you want to delete ${systemUser.name}?`)) {
+                      try {
+                        const res = await fetch(`/api/users/${systemUser.id}`, { method: 'DELETE' })
+                        const data = await res.json()
+                        if (data.success) {
+                          deleteUser(systemUser.id)
+                          toast({ title: 'User Deleted', description: `${systemUser.name} has been removed.` })
+                        } else {
+                          toast({ title: 'Error', variant: 'destructive', description: data.error || 'Failed to delete user' })
+                        }
+                      } catch (err) {
+                        console.error('Failed to delete user:', err)
+                        toast({ title: 'Error', variant: 'destructive', description: 'Network error deleting user' })
+                      }
+                    }
+                  }} className="px-4 py-3 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 rounded-full flex items-center justify-center transition-all text-red-500" title="Delete User">
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                  </button>
+                )}
               </div>
             </div>
           )

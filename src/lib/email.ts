@@ -1,33 +1,38 @@
-import nodemailer from 'nodemailer'
-
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-})
-
 export async function sendEmail(to: string, subject: string, html: string) {
-    if (!process.env.SMTP_USER || process.env.SMTP_HOST === 'mail.meenuin.biz.id') {
-        console.log('--- MOCK EMAIL INTERCEPTED ---')
-        console.log(`To: ${to}`)
-        console.log(`Subject: ${subject}`)
-        console.log('------------------------------')
-        return { success: true, mocked: true }
+    const apiKey = process.env.BREVO_API_KEY
+    if (!apiKey) {
+        console.warn('BREVO_API_KEY is not set. Cannot send email.')
+        return { success: false, error: 'Missing API Key' }
     }
 
     try {
-        const info = await transporter.sendMail({
-            from: `"${process.env.NEXT_PUBLIC_APP_NAME}" <${process.env.SMTP_USER}>`,
-            to,
-            subject,
-            html,
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'api-key': apiKey as string,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender: {
+                    name: process.env.NEXT_PUBLIC_APP_NAME || "Meenuin",
+                    email: process.env.SMTP_FROM || 'noreply@meenuin.biz.id'
+                },
+                to: [{ email: to }],
+                subject: subject,
+                htmlContent: html
+            })
         })
-        console.log('Email sent: %s', info.messageId)
-        return { success: true, id: info.messageId }
+
+        const data = await response.json()
+
+        if (!response.ok) {
+            console.error('Brevo API Error:', data)
+            return { success: false, error: data.message || 'Failed to send email via Brevo' }
+        }
+
+        console.log('Email sent via Brevo: %s', data.messageId)
+        return { success: true, id: data.messageId }
     } catch (error) {
         console.error('Error sending email:', error)
         return { success: false, error }
