@@ -193,30 +193,8 @@ export default function SuperAdminDashboard() {
     })
   }, [restaurants])
 
-  // Calculate Top Restaurants by Revenue
-  const topRestaurants = restaurants
-    .map(r => {
-      const restoOrders = orders.filter(o => o.restaurantId === r.id)
-      const revenue = restoOrders.reduce((acc, o) => acc + o.totalAmount, 0)
-      return { ...r, revenue, orderCount: restoOrders.length }
-    })
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 5)
-
-  // Calculate Top Menu Items Globally
-  const topMenuItems = (() => {
-    const itemMap: Record<string, { name: string, count: number, revenue: number }> = {}
-    orders.forEach(o => {
-      o.items.forEach(item => {
-        if (!itemMap[item.menuItemId]) {
-          itemMap[item.menuItemId] = { name: item.menuItemName, count: 0, revenue: 0 }
-        }
-        itemMap[item.menuItemId].count += item.quantity
-        itemMap[item.menuItemId].revenue += item.quantity * item.price
-      })
-    })
-    return Object.values(itemMap).sort((a, b) => b.count - a.count).slice(0, 5)
-  })()
+  // Use optimized backend analytics for accurate global revenue instead of local empty orders array
+  const topRestaurants = adminAnalytics.topRevenue || []
 
   const handleEditRestaurantProfile = (restaurant: Restaurant) => {
     setEditingRestaurant(restaurant)
@@ -793,7 +771,7 @@ export default function SuperAdminDashboard() {
                           </span>
                         </td>
                         <td className="py-4 px-2 text-right">
-                          <span className="text-sm font-bold text-[#F8FAFC]">Rp {revenue.toLocaleString('id-ID')}</span>
+                          <span className="text-sm font-bold text-[#F8FAFC]">Rp {revenue.totalRevenue ? revenue.totalRevenue.toLocaleString('id-ID') : 0}</span>
                         </td>
                         <td className="py-4 px-2 text-center">
                           <button className="text-slate-500 hover:text-white transition-colors" title="Options" onClick={() => handleEditRestaurantProfile(restaurant)}>
@@ -1834,7 +1812,7 @@ export default function SuperAdminDashboard() {
                   />
                   {restaurantForm.logo && (
                     <div className="mt-2 w-20 h-20 border dark:border-slate-700 rounded overflow-hidden relative">
-                      <Image src={restaurantForm.logo} alt="Preview" fill className="object-cover" />
+                      <Image src={restaurantForm.logo} alt="Preview" fill className="object-cover" onError={(e) => { const target = e.target as HTMLImageElement; target.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=Preview'; target.srcset = ''; }} />
                     </div>
                   )}
                 </div>

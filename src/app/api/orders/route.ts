@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
 
     const orders = await prisma.order.findMany({
       where,
+      take: (startDateParam && endDateParam) ? undefined : 150, // Prevent massive payloads on live queue
       include: {
         orderItems: {
           include: { menuItem: true }

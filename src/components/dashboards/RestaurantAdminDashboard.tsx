@@ -619,10 +619,10 @@ export default function RestaurantAdminDashboard() {
     const renderDashboardContent = () => (
         <>
             <StatsGrid stats={{
-                totalOrders: orders.filter(o => o.status !== 'CANCELLED').length,
-                revenue: orders.filter(o => o.status === 'COMPLETED').reduce((acc, o) => acc + o.totalAmount, 0),
+                totalOrders: reportStats?.totalOrders || 0,
+                revenue: reportStats?.totalRevenue || 0,
                 totalCategories: categories.length,
-                cancelledOrders: orders.filter(o => o.status === 'CANCELLED').length
+                cancelledOrders: reportStats?.cancelledOrders || 0
             }} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -977,7 +977,7 @@ export default function RestaurantAdminDashboard() {
                                             <td className="p-3">
                                                 {item.image && (
                                                     <div className="relative h-12 w-12 rounded overflow-hidden">
-                                                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                                        <Image src={item.image} alt={item.name} fill className="object-cover" onError={(e) => { const target = e.target as HTMLImageElement; target.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=NA'; target.srcset = ''; }} />
                                                     </div>
                                                 )}
                                             </td>
@@ -1654,6 +1654,11 @@ export default function RestaurantAdminDashboard() {
                                             alt="QR Preview"
                                             fill
                                             className="object-contain"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.src = 'https://placehold.co/200x200/e2e8f0/64748b?text=Invalid+Image';
+                                                target.srcset = '';
+                                            }}
                                         />
                                         <Button
                                             variant="destructive"
