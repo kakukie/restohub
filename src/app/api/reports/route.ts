@@ -149,9 +149,7 @@ export async function GET(request: NextRequest) {
             }
         };
 
-        // 2. Fetch Top Menu Items Directly (Simplified for performance)
-        // Since Prisma doesn't support complex nested GroupBy with relations perfectly, 
-        // we fetch the base joined data with a streamlined query
+        // 2. Fetch Top Menu Items - use avg price * sum quantity for accurate revenue
         const orderItemsGrouped = await prisma.orderItem.groupBy({
             by: ['menuItemId'],
             where: {
@@ -160,7 +158,8 @@ export async function GET(request: NextRequest) {
                     status: { in: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'] }
                 }
             },
-            _sum: { quantity: true, price: true },
+            _sum: { quantity: true },
+            _avg: { price: true },
             orderBy: { _sum: { quantity: 'desc' } },
             take: 5
         });
@@ -174,10 +173,12 @@ export async function GET(request: NextRequest) {
 
         const topMenuItems = orderItemsGrouped.map(item => {
             const menuData = topMenuItemsData.find(m => m.id === item.menuItemId);
+            const totalQty = item._sum.quantity || 0;
+            const avgPrice = item._avg.price || 0;
             return {
                 name: menuData?.name || 'Deleted Item',
-                count: item._sum.quantity || 0,
-                revenue: (item._sum.price || 0) * (item._sum.quantity || 0)
+                count: totalQty,
+                revenue: Math.round(avgPrice * totalQty) // avg unit price × total qty sold
             };
         });
 

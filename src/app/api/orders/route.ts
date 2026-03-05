@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const restaurantId = searchParams.get('restaurantId')
     const customerId = searchParams.get('customerId') // For customer history if needed
+    const paymentMethodParam = searchParams.get('paymentMethod') // NEW: filter by payment method
 
     const where: any = {}
     if (restaurantId) where.restaurantId = restaurantId
@@ -26,6 +27,15 @@ export async function GET(request: NextRequest) {
       where.createdAt = {
         gte: start,
         lte: end
+      }
+    }
+
+    // Payment Method Filtering
+    if (paymentMethodParam && paymentMethodParam !== 'ALL') {
+      where.payment = {
+        method: {
+          type: paymentMethodParam
+        }
       }
     }
 

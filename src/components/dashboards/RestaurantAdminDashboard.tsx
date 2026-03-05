@@ -90,6 +90,7 @@ export default function RestaurantAdminDashboard() {
 
     // Orders Management States
     const [orderStatusFilter, setOrderStatusFilter] = useState<string>('ALL')
+    const [orderPaymentFilter, setOrderPaymentFilter] = useState<string>('ALL') // NEW: payment method filter
     const [orderDateRange, setOrderDateRange] = useState({ start: '', end: '' })
     const [orderSearchQuery, setOrderSearchQuery] = useState('')
     const [orderCurrentPage, setOrderCurrentPage] = useState(1)
@@ -100,13 +101,19 @@ export default function RestaurantAdminDashboard() {
     const [reportGranularity, setReportGranularity] = useState<'day' | 'month' | 'year'>('day')
     const [reportDateRange, setReportDateRange] = useState({ start: '', end: '' })
     const [loadingReports, setLoadingReports] = useState(false)
+    // reportStats mirrors the nested API response: { stats: {...}, topMenuItems, topPaymentMethods, chartData }
     const [reportStats, setReportStats] = useState<any>({
-        totalRevenue: 0,
-        totalOrders: 0,
-        averageOrderValue: 0,
-        completedOrders: 0,
+        stats: {
+            totalRevenue: 0,
+            totalOrders: 0,
+            averageOrderValue: 0,
+            completedOrders: 0,
+            cancelledOrders: 0,
+            trends: { orders: 0, revenue: 0, cancelled: 0 }
+        },
         topMenuItems: [],
-        topPaymentMethods: []
+        topPaymentMethods: [],
+        chartData: {}
     })
 
     const [restaurantId, setRestaurantId] = useState<string>('')
@@ -166,6 +173,10 @@ export default function RestaurantAdminDashboard() {
             params.append('status', orderStatusFilter)
         }
 
+        if (orderPaymentFilter !== 'ALL') {
+            params.append('paymentMethod', orderPaymentFilter)
+        }
+
         if (orderDateRange.start) {
             params.append('startDate', orderDateRange.start)
         }
@@ -183,7 +194,7 @@ export default function RestaurantAdminDashboard() {
         } catch (e) {
             console.error("Failed to load orders", e)
         }
-    }, [user?.restaurantId, orderStatusFilter, orderDateRange, setOrders])
+    }, [user?.restaurantId, orderStatusFilter, orderPaymentFilter, orderDateRange, setOrders])
 
     const loadReportsData = useCallback(async () => {
         if (!user?.restaurantId) return
@@ -513,7 +524,8 @@ export default function RestaurantAdminDashboard() {
     }
 
     const handleExportReport = () => {
-        if (!reportStats || Object.keys(reportStats).length === 0) {
+        const stats = reportStats?.stats
+        if (!stats || stats.totalOrders === 0) {
             toast({ title: 'No Data', description: 'No analytics data to export', variant: 'destructive' })
             return
         }
@@ -526,10 +538,10 @@ export default function RestaurantAdminDashboard() {
 
             csv += 'Summary Statistics\n'
             csv += 'Metric,Value\n'
-            csv += `Total Revenue,Rp ${reportStats.totalRevenue || 0}\n`
-            csv += `Total Orders,${reportStats.totalOrders || 0}\n`
-            csv += `Average Order Value,Rp ${reportStats.averageOrderValue || 0}\n`
-            csv += `Completed Orders,${reportStats.completedOrders || 0}\n\n`
+            csv += `Total Revenue,Rp ${stats.totalRevenue || 0}\n`
+            csv += `Total Orders,${stats.totalOrders || 0}\n`
+            csv += `Average Order Value,Rp ${stats.averageOrderValue || 0}\n`
+            csv += `Completed Orders,${stats.completedOrders || 0}\n\n`
 
             if (reportStats.topMenuItems && reportStats.topMenuItems.length > 0) {
                 csv += 'Top Menu Items\n'
@@ -619,11 +631,11 @@ export default function RestaurantAdminDashboard() {
     const renderDashboardContent = () => (
         <>
             <StatsGrid stats={{
-                totalOrders: reportStats?.totalOrders || 0,
-                revenue: reportStats?.totalRevenue || 0,
+                totalOrders: reportStats?.stats?.totalOrders || 0,
+                revenue: reportStats?.stats?.totalRevenue || 0,
                 totalCategories: categories.length,
-                cancelledOrders: reportStats?.cancelledOrders || 0,
-                trends: reportStats?.trends
+                cancelledOrders: reportStats?.stats?.cancelledOrders || 0,
+                trends: reportStats?.stats?.trends
             }} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -1166,7 +1178,7 @@ export default function RestaurantAdminDashboard() {
                         setOrderStatusFilter(val)
                         setOrderCurrentPage(1)
                     }}>
-                        <SelectTrigger className="w-full lg:w-48">
+                        <SelectTrigger className="w-full lg:w-40">
                             <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1179,6 +1191,27 @@ export default function RestaurantAdminDashboard() {
                             <SelectItem value="CANCELLED">Cancelled</SelectItem>
                         </SelectContent>
                     </Select>
+
+                    {/* NEW: Payment Method Filter */}
+                    <Select value={orderPaymentFilter} onValueChange={(val) => {
+                        setOrderPaymentFilter(val)
+                        setOrderCurrentPage(1)
+                    }}>
+                        <SelectTrigger className="w-full lg:w-40">
+                            <SelectValue placeholder="Payment Method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ALL">All Payments</SelectItem>
+                            <SelectItem value="QRIS">QRIS</SelectItem>
+                            <SelectItem value="CASH">Cash</SelectItem>
+                            <SelectItem value="GOPAY">GoPay</SelectItem>
+                            <SelectItem value="OVO">OVO</SelectItem>
+                            <SelectItem value="DANA">Dana</SelectItem>
+                            <SelectItem value="SHOPEEPAY">ShopeePay</SelectItem>
+                            <SelectItem value="LINKAJA">LinkAja</SelectItem>
+                        </SelectContent>
+                    </Select>
+
                     <div className="flex gap-2">
                         <Input
                             type="date"
@@ -1381,7 +1414,7 @@ export default function RestaurantAdminDashboard() {
                 </div>
             </div>
 
-            {/* Stats Grid */}
+            {/* Stats Grid - reads from nested stats object as returned by the API */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <Card>
                     <CardHeader>
@@ -1389,7 +1422,7 @@ export default function RestaurantAdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold text-emerald-600">
-                            Rp {(reportStats?.totalRevenue || 0).toLocaleString()}
+                            Rp {(reportStats?.stats?.totalRevenue || 0).toLocaleString()}
                         </p>
                     </CardContent>
                 </Card>
@@ -1398,7 +1431,7 @@ export default function RestaurantAdminDashboard() {
                         <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Orders</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">{reportStats?.totalOrders || 0}</p>
+                        <p className="text-2xl font-bold">{reportStats?.stats?.totalOrders || 0}</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -1407,7 +1440,7 @@ export default function RestaurantAdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">
-                            Rp {(reportStats?.averageOrderValue || 0).toLocaleString()}
+                            Rp {(reportStats?.stats?.averageOrderValue || 0).toLocaleString()}
                         </p>
                     </CardContent>
                 </Card>
@@ -1416,7 +1449,7 @@ export default function RestaurantAdminDashboard() {
                         <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Completed Orders</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">{reportStats?.completedOrders || 0}</p>
+                        <p className="text-2xl font-bold">{reportStats?.stats?.completedOrders || 0}</p>
                     </CardContent>
                 </Card>
             </div>
