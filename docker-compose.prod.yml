@@ -18,7 +18,7 @@ services:
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://meenuin.biz.id}
       - REDIS_URL=redis://meenuin-redis:6379
     volumes:
-      - app-uploads:/app/public/uploads
+      - /opt/meenuin/upload:/app/public/uploads
     networks:
       - meenuin-prod-net
 
@@ -38,5 +38,4 @@ networks:
     driver: bridge
 
 volumes:
-  app-uploads:
   redis_data:
