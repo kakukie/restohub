@@ -30,12 +30,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Payment Method Filtering
+    // Payment Method Filtering (uses direct 'type' field stored on Payment record)
     if (paymentMethodParam && paymentMethodParam !== 'ALL') {
       where.payment = {
-        method: {
-          type: paymentMethodParam
-        }
+        type: paymentMethodParam
       }
     }
 
