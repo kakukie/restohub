@@ -8,10 +8,38 @@ interface StatsGridProps {
         revenue: number
         totalCategories: number
         cancelledOrders: number
+        trends?: {
+            orders: number
+            revenue: number
+            cancelled: number
+        }
     }
 }
 
 export default function StatsGrid({ stats }: StatsGridProps) {
+    const { trends } = stats
+
+    const getTrendBadge = (value?: number, inverseGood = false) => {
+        if (value === undefined) return null;
+
+        const isPositive = value > 0;
+        const isNeutral = value === 0;
+
+        let isGood = isPositive;
+        if (inverseGood) {
+            isGood = !isPositive;
+        }
+
+        const colorClass = isNeutral ? 'text-slate-500 bg-slate-500/10 dark:bg-slate-800' :
+            isGood ? 'text-emerald-500 bg-emerald-500/10' : 'text-rose-500 bg-rose-500/10';
+
+        return (
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${colorClass}`}>
+                {isPositive ? '+' : ''}{value}%
+            </span>
+        )
+    }
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             {/* Total Orders */}
@@ -20,10 +48,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
                     <div className="p-3 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
                         <ShoppingBag className="h-6 w-6" />
                     </div>
-                    {/* Mock Trend - In real app, calculate this */}
-                    <span className="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">
-                        +12.5%
-                    </span>
+                    {getTrendBadge(trends?.orders)}
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Orders</p>
                 <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
@@ -37,9 +62,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
                     <div className="p-3 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
                         <DollarSign className="h-6 w-6" />
                     </div>
-                    <span className="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">
-                        +18.2%
-                    </span>
+                    {getTrendBadge(trends?.revenue)}
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenue</p>
                 <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
@@ -69,9 +92,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
                     <div className="p-3 bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl">
                         <XCircle className="h-6 w-6" />
                     </div>
-                    <span className="text-xs font-semibold text-rose-500 bg-rose-500/10 px-2 py-1 rounded-full">
-                        -2.4%
-                    </span>
+                    {getTrendBadge(trends?.cancelled, true)}
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Cancelled</p>
                 <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">

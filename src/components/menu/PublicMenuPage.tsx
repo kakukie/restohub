@@ -271,6 +271,11 @@ export default function PublicMenuPage() {
                     width={48}
                     height={48}
                     className="rounded-lg"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=Logo';
+                      target.srcset = '';
+                    }}
                   />
                 )}
                 <div>
@@ -420,6 +425,11 @@ export default function PublicMenuPage() {
                         alt={item.name}
                         fill
                         className="object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://placehold.co/400x300/e2e8f0/64748b?text=Image+Not+Found';
+                          target.srcset = '';
+                        }}
                       />
                     </div>
                   )}

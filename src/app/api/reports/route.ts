@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
         const endDateParam = searchParams.get('endDate')
 
         let startDate: Date, endDate: Date
+        let prevStartDate: Date, prevEndDate: Date
 
         const granularity = searchParams.get('granularity') || 'day' // day, month, year
 
@@ -29,10 +30,17 @@ export async function GET(request: NextRequest) {
                 endDate = end
                 // Adjust end date to end of day
                 endDate.setHours(23, 59, 59, 999)
+
+                const duration = endDate.getTime() - startDate.getTime()
+                prevStartDate = new Date(startDate.getTime() - duration - 1)
+                prevEndDate = new Date(startDate.getTime() - 1)
             } else {
                 const now = new Date()
                 startDate = new Date(now.getFullYear(), now.getMonth(), 1)
                 endDate = new Date()
+
+                prevStartDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+                prevEndDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
             }
         } else {
             const now = new Date()
@@ -42,12 +50,21 @@ export async function GET(request: NextRequest) {
             if (granularity === 'day') {
                 startDate = new Date(year, month - 1, 1) // Start of current month
                 endDate = new Date(year, month, 0, 23, 59, 59) // End of current month
+
+                prevStartDate = new Date(year, month - 2, 1)
+                prevEndDate = new Date(year, month - 1, 0, 23, 59, 59)
             } else if (granularity === 'month') {
                 startDate = new Date(year, 0, 1) // Start of current year
                 endDate = new Date(year, 11, 31, 23, 59, 59) // End of current year
+
+                prevStartDate = new Date(year - 1, 0, 1)
+                prevEndDate = new Date(year - 1, 11, 31, 23, 59, 59)
             } else { // year
                 startDate = new Date(year - 4, 0, 1) // 5 years ago
                 endDate = new Date(year, 11, 31, 23, 59, 59) // End of current year
+
+                prevStartDate = new Date(year - 9, 0, 1)
+                prevEndDate = new Date(year - 5, 11, 31, 23, 59, 59)
             }
         }
 
@@ -61,84 +78,142 @@ export async function GET(request: NextRequest) {
             whereClause.status = statusParam
         }
 
-        // 1. Fetch Orders for calculations
-        // 1. Fetch Orders for calculations
-        const orders = await prisma.order.findMany({
-            where: whereClause,
-            include: {
-                orderItems: {
-                    include: { menuItem: true }
-                },
-                payment: {
-                    include: { method: true }
-                }
-            }
-        })
+        // 1. Fetch Global Stats with Aggregation
+        const orderStats = await prisma.order.aggregate({
+            where: {
+                ...whereClause,
+                status: { in: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'] }
+            },
+            _count: { id: true },
+            _sum: { totalAmount: true }
+        });
 
-        // Fix: Only count COMPLETED orders for all stats (Revenue, Count, Charts)
-        // Fix: Count [PENDING, CONFIRMED, PREPARING, READY, COMPLETED] orders for all stats (Revenue, Count, Charts)
-        // so daily/monthly metrics aren't empty when there are active orders
-        const validStatuses = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED']
-        const validOrders = orders.filter(o => validStatuses.includes(o.status))
-        const cancelledOrders = orders.filter(o => o.status === 'CANCELLED')
+        const completedStats = await prisma.order.aggregate({
+            where: { ...whereClause, status: 'COMPLETED' },
+            _count: { id: true },
+            _sum: { totalAmount: true }
+        });
 
-        // 2. Aggregate Stats
-        const completedOnly = orders.filter(o => o.status === 'COMPLETED')
-        const stats = {
-            totalOrders: validOrders.length, // Only COMPLETED (this logic is actually CONFIRMED/PREPARING/READY/COMPLETED per previous rounds)
-            totalRevenue: validOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
-            cancelledOrders: cancelledOrders.length,
-            cancelledRevenue: cancelledOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
-            totalMenuItems: await prisma.menuItem.count({ where: { restaurantId, deletedAt: null } }),
-            totalCategories: await prisma.category.count({ where: { restaurantId, deletedAt: null } }),
-            completedOrders: completedOnly.length,
-            averageOrderValue: completedOnly.length > 0
-                ? Math.round(completedOnly.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0) / completedOnly.length)
-                : 0
+        const cancelledStats = await prisma.order.aggregate({
+            where: { ...whereClause, status: 'CANCELLED' },
+            _count: { id: true },
+            _sum: { totalAmount: true }
+        });
+
+        // Fetch Previous Stats
+        const prevWhereClause: any = {
+            restaurantId,
+            createdAt: { gte: prevStartDate, lte: prevEndDate }
+        }
+        if (statusParam && statusParam !== 'ALL') {
+            prevWhereClause.status = statusParam
         }
 
-        // Aggregate Top Menu Items
-        const itemMap = new Map<string, { name: string, count: number, revenue: number }>()
-        validOrders.forEach(o => {
-            o.orderItems.forEach(item => {
-                if (item.menuItem) {
-                    const existing = itemMap.get(item.menuItemId) || { name: item.menuItem.name, count: 0, revenue: 0 }
-                    existing.count += item.quantity
-                    existing.revenue += (item.price * item.quantity)
-                    itemMap.set(item.menuItemId, existing)
-                } else {
-                    // Handle orphaned items (soft deleted before implementation or check failure)
-                    const existing = itemMap.get('unknown-' + item.menuItemId) || { name: 'Deleted Item', count: 0, revenue: 0 }
-                    existing.count += item.quantity
-                    existing.revenue += (item.price * item.quantity)
-                    itemMap.set('unknown-' + item.menuItemId, existing)
+        const prevOrderStats = await prisma.order.aggregate({
+            where: {
+                ...prevWhereClause,
+                status: { in: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'] }
+            },
+            _count: { id: true },
+            _sum: { totalAmount: true }
+        });
+
+        const prevCancelledStats = await prisma.order.aggregate({
+            where: { ...prevWhereClause, status: 'CANCELLED' },
+            _count: { id: true }
+        });
+
+        const totalMenuItems = await prisma.menuItem.count({ where: { restaurantId, deletedAt: null } });
+        const totalCategories = await prisma.category.count({ where: { restaurantId, deletedAt: null } });
+
+        const calcTrend = (current: number, previous: number) => {
+            if (previous === 0) return current > 0 ? 100 : 0;
+            return Math.round(((current - previous) / previous) * 100);
+        }
+
+        const stats = {
+            totalOrders: orderStats._count.id || 0,
+            totalRevenue: orderStats._sum.totalAmount || 0,
+            cancelledOrders: cancelledStats._count.id || 0,
+            cancelledRevenue: cancelledStats._sum.totalAmount || 0,
+            totalMenuItems,
+            totalCategories,
+            completedOrders: completedStats._count.id || 0,
+            averageOrderValue: completedStats._count.id > 0
+                ? Math.round((completedStats._sum.totalAmount || 0) / completedStats._count.id)
+                : 0,
+            trends: {
+                orders: calcTrend(orderStats._count.id || 0, prevOrderStats._count.id || 0),
+                revenue: calcTrend(orderStats._sum.totalAmount || 0, prevOrderStats._sum.totalAmount || 0),
+                cancelled: calcTrend(cancelledStats._count.id || 0, prevCancelledStats._count.id || 0)
+            }
+        };
+
+        // 2. Fetch Top Menu Items Directly (Simplified for performance)
+        // Since Prisma doesn't support complex nested GroupBy with relations perfectly, 
+        // we fetch the base joined data with a streamlined query
+        const orderItemsGrouped = await prisma.orderItem.groupBy({
+            by: ['menuItemId'],
+            where: {
+                order: {
+                    ...whereClause,
+                    status: { in: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'] }
                 }
-            })
-        })
-        const topMenuItems = Array.from(itemMap.values())
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5)
+            },
+            _sum: { quantity: true, price: true },
+            orderBy: { _sum: { quantity: 'desc' } },
+            take: 5
+        });
 
-        // Aggregate Top Payment Methods
-        const paymentMap = new Map<string, { name: string, count: number, revenue: number }>()
+        // Fetch names for the top items
+        const topItemIds = orderItemsGrouped.map(i => i.menuItemId);
+        const topMenuItemsData = await prisma.menuItem.findMany({
+            where: { id: { in: topItemIds } },
+            select: { id: true, name: true }
+        });
 
-        validOrders.forEach(o => {
-            const methodType = o.payment?.method?.type || 'CASH'
-            // Use existing entry or create new
-            const existing = paymentMap.get(methodType) || { name: methodType, count: 0, revenue: 0 }
+        const topMenuItems = orderItemsGrouped.map(item => {
+            const menuData = topMenuItemsData.find(m => m.id === item.menuItemId);
+            return {
+                name: menuData?.name || 'Deleted Item',
+                count: item._sum.quantity || 0,
+                revenue: (item._sum.price || 0) * (item._sum.quantity || 0)
+            };
+        });
 
-            existing.count += 1
-            existing.revenue += (o.totalAmount || 0)
+        // 3. Aggregate Top Payment Methods
+        const paymentsGrouped = await prisma.payment.groupBy({
+            by: ['type'],
+            where: {
+                order: {
+                    ...whereClause,
+                    status: { in: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'] }
+                }
+            },
+            _count: { id: true },
+            _sum: { amount: true },
+            orderBy: { _count: { id: 'desc' } },
+            take: 5
+        });
 
-            paymentMap.set(methodType, existing)
-        })
+        const topPaymentMethods = paymentsGrouped.map(p => ({
+            name: p.type,
+            count: p._count.id || 0,
+            revenue: p._sum.amount || 0
+        }));
 
-        const topPaymentMethods = Array.from(paymentMap.values())
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5)
+        // 4. Generate Daily Data for Chart (Using efficient select instead of full include)
+        const relevantOrders = await prisma.order.findMany({
+            where: {
+                ...whereClause,
+                status: { in: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED'] }
+            },
+            select: {
+                createdAt: true,
+                totalAmount: true
+            }
+        });
 
-        // 3. Generate Daily Data for Chart
-        // 3. Generate Daily Data for Chart
         const chartData: Record<string, { count: number, revenue: number }> = {}
 
         // Helper to format date key
@@ -147,12 +222,6 @@ export async function GET(request: NextRequest) {
             if (type === 'month') return date.toISOString().slice(0, 7) // YYYY-MM
             return date.toISOString().split('T')[0] // YYYY-MM-DD
         }
-
-        // Initialize range (optional for day, harder for dynamic month/year, relying on sparse data fill is okay or we pre-fill)
-        // For simplicity and robustness, we'll iterate validOrders only, but frontend charts usually prefer continuous info.
-        // Let's pre-fill based on range if feasible, or just return what we have.
-        // Pre-filling 'day' is already done. Let's keep it for 'day'. 
-        // For 'month', we iterate months.
 
         if (granularity === 'day') {
             const loopDate = new Date(startDate);
@@ -163,7 +232,6 @@ export async function GET(request: NextRequest) {
             }
         } else if (granularity === 'month') {
             const loopDate = new Date(startDate);
-            // set to first day of month to be safe
             loopDate.setDate(1)
             while (loopDate <= endDate) {
                 const dateKey = getKey(loopDate, 'month')
@@ -180,12 +248,11 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        validOrders.forEach(o => {
+        relevantOrders.forEach(o => {
             const d = new Date(o.createdAt)
             const dateKey = getKey(d, granularity)
 
             if (!chartData[dateKey]) {
-                // Initialize if not exists (e.g. range mismatch slightly or safety)
                 chartData[dateKey] = { count: 0, revenue: 0 }
             }
 
@@ -200,6 +267,10 @@ export async function GET(request: NextRequest) {
                 chartData,
                 topMenuItems,
                 topPaymentMethods
+            }
+        }, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
             }
         })
 

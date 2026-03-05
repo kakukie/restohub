@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth'
 
+export const revalidate = 60 // Cache for 60 seconds
+
 // GET /api/restaurants - Get all restaurants
 export async function GET(request: NextRequest) {
   try {
@@ -48,6 +50,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: formattedRestaurants
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+      }
     })
   } catch (error) {
     console.error('Error fetching restaurants:', error)

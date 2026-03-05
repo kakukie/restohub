@@ -622,7 +622,8 @@ export default function RestaurantAdminDashboard() {
                 totalOrders: reportStats?.totalOrders || 0,
                 revenue: reportStats?.totalRevenue || 0,
                 totalCategories: categories.length,
-                cancelledOrders: reportStats?.cancelledOrders || 0
+                cancelledOrders: reportStats?.cancelledOrders || 0,
+                trends: reportStats?.trends
             }} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

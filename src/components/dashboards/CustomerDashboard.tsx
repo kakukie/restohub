@@ -407,6 +407,11 @@ export default function CustomerDashboard() {
                             width={64}
                             height={64}
                             className="rounded-lg"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=Logo';
+                              target.srcset = '';
+                            }}
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -480,6 +485,11 @@ export default function CustomerDashboard() {
                         alt={item.name}
                         fill
                         className="object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://placehold.co/400x300/e2e8f0/64748b?text=Image+Not+Found';
+                          target.srcset = '';
+                        }}
                       />
                     </div>
                   )}

@@ -1288,7 +1288,7 @@ export default function SuperAdminDashboard() {
                   <button onClick={async () => {
                     if (confirm(`Are you sure you want to delete ${systemUser.name}? This will remove their account permanently (hard delete) or deactivate it if they have orders (soft delete).`)) {
                       try {
-                        const res = await fetch(`/api/users/${systemUser.id}`, { method: 'DELETE' })
+                        const res = await fetch(`/api/users?id=${systemUser.id}`, { method: 'DELETE' })
                         const data = await res.json()
                         if (data.success) {
                           deleteUser(systemUser.id)

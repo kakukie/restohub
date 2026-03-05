@@ -126,7 +126,7 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
         if (!confirm('Are you sure you want to remove this staff member?')) return
 
         try {
-            const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
+            const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE' })
             if (res.ok) {
                 toast({ title: 'Success', description: 'Staff member removed' })
                 fetchStaff()
