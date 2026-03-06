@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useAppStore } from '@/store/app-store'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from '@/hooks/use-toast'
 
-export default function RestaurantAdminLoginPage() {
+function LoginPageContent() {
     const { setUser, user, isInitialized, helpdeskSettings } = useAppStore()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -191,8 +191,8 @@ export default function RestaurantAdminLoginPage() {
 
                         {/* ── Demo Account Banner ── */}
                         <div className={`mb-6 rounded-2xl p-4 border ${isDemoMode
-                                ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700'
-                                : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700'
+                            : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
                             }`}>
                             <div className="flex items-start gap-3">
                                 <span className={`material-symbols-rounded text-2xl mt-0.5 ${isDemoMode ? 'text-emerald-500' : 'text-amber-500'}`}>
@@ -212,16 +212,16 @@ export default function RestaurantAdminLoginPage() {
                                             type="button"
                                             onClick={() => setFormData({ email: 'demo@restohub.id', password: 'demo1234' })}
                                             className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${isDemoMode
-                                                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                                                    : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                                : 'bg-amber-500 hover:bg-amber-600 text-white'
                                                 }`}>
                                             <span className="material-symbols-rounded text-[14px]">bolt</span>
                                             {isDemoMode ? 'Isi Ulang Credential' : 'Gunakan Akun Demo'}
                                         </button>
                                         <Link href="/demo"
                                             className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border ${isDemoMode
-                                                    ? 'border-emerald-400 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
-                                                    : 'border-amber-400 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+                                                ? 'border-emerald-400 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
+                                                : 'border-amber-400 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'
                                                 }`}>
                                             <span className="material-symbols-rounded text-[14px]">menu_book</span>
                                             Panduan Demo
@@ -303,5 +303,17 @@ export default function RestaurantAdminLoginPage() {
                 <span className="material-symbols-rounded hidden dark:block">light_mode</span>
             </button>
         </div>
+    )
+}
+
+export default function RestaurantAdminLoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00a669]"></div>
+            </div>
+        }>
+            <LoginPageContent />
+        </Suspense>
     )
 }
