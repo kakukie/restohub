@@ -172,7 +172,7 @@ export default function RestaurantAdminLoginPage() {
                             <p className="text-slate-500 dark:text-slate-400">Masuk ke portal restoran Anda untuk mengelola menu dan
                                 pesanan.</p>
                         </div>
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-8">
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6">
                             <button
                                 className="flex-1 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition-all pointer-events-none">
                                 Login
@@ -182,6 +182,36 @@ export default function RestaurantAdminLoginPage() {
                                 Daftar
                             </Link>
                         </div>
+
+                        {/* ── Demo Account Banner ── */}
+                        <div className="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-4">
+                            <div className="flex items-start gap-3">
+                                <span className="material-symbols-rounded text-amber-500 text-2xl mt-0.5">science</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-amber-800 dark:text-amber-300 mb-0.5">Mode Demo Tersedia</p>
+                                    <p className="text-xs text-amber-700 dark:text-amber-400 mb-3">
+                                        Jelajahi fitur lengkap tanpa perlu daftar. Email & password akan terisi otomatis.
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFormData({ email: 'demo@restohub.id', password: 'demo1234' })
+                                            }}
+                                            className="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                                            <span className="material-symbols-rounded text-[14px]">bolt</span>
+                                            Gunakan Akun Demo
+                                        </button>
+                                        <Link href="/demo"
+                                            className="text-xs border border-amber-400 text-amber-700 dark:text-amber-300 font-semibold px-3 py-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors flex items-center gap-1">
+                                            <span className="material-symbols-rounded text-[14px]">menu_book</span>
+                                            Panduan Demo
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <form className="space-y-5" onSubmit={handleLogin}>
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
