@@ -107,38 +107,26 @@ async function main() {
         {
             type: PaymentMethodType.CASH,
             isActive: true,
-            accountName: 'Kasir Utama',
         },
         {
             type: PaymentMethodType.QRIS,
             isActive: true,
-            merchantId: 'ID102030405060',
-            accountName: 'Warung Nusantara',
-            // In production, qrCode would be an image URL
         },
         {
             type: PaymentMethodType.GOPAY,
             isActive: true,
-            accountNumber: '08123456789',
-            accountName: 'Warung Nusantara',
         },
         {
             type: PaymentMethodType.OVO,
             isActive: true,
-            accountNumber: '08123456789',
-            accountName: 'Warung Nusantara',
         },
         {
             type: PaymentMethodType.DANA,
             isActive: true,
-            accountNumber: '08123456789',
-            accountName: 'Warung Nusantara',
         },
         {
             type: PaymentMethodType.SHOPEEPAY,
-            isActive: false, // Inactive by default but visible in settings
-            accountNumber: '08123456789',
-            accountName: 'Warung Nusantara',
+            isActive: false,
         },
     ]
 
@@ -155,11 +143,12 @@ async function main() {
         } else {
             await prisma.paymentMethod.update({
                 where: { id: existing.id },
-                data: { isActive: pm.isActive, accountName: pm.accountName },
+                data: { isActive: pm.isActive },
             })
             createdPaymentMethods[pm.type] = existing.id
         }
     }
+
     console.log(`✅ Payment Methods: ${Object.keys(createdPaymentMethods).join(', ')}`)
 
     // ──────────────────────────────────────────────────────────────────────────
