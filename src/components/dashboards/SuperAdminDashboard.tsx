@@ -731,8 +731,8 @@ export default function SuperAdminDashboard() {
                 <tbody className="divide-y divide-[#2A344A]/50">
                   {filteredRestaurants.slice(0, 3).map(restaurant => {
                     const planInfo = getSubscriptionBadge(restaurant.package as any)
-                    const stats = topRestaurants.find((r) => r.id === restaurant.id)
-                    const revenue = stats ? stats.revenue : 0
+                    const revenueStats = topRestaurants.find((r) => r.id === restaurant.id)
+                    const revenue = revenueStats ? revenueStats.totalRevenue : 0
                     return (
                       <tr key={restaurant.id} className="hover:bg-white/[0.02] transition-colors group">
                         <td className="py-4 px-2">
@@ -771,8 +771,9 @@ export default function SuperAdminDashboard() {
                           </span>
                         </td>
                         <td className="py-4 px-2 text-right">
-                          <span className="text-sm font-bold text-[#F8FAFC]">Rp {revenue.totalRevenue ? revenue.totalRevenue.toLocaleString('id-ID') : 0}</span>
+                          <span className="text-sm font-bold text-[#F8FAFC]">Rp {revenue.toLocaleString('id-ID')}</span>
                         </td>
+
                         <td className="py-4 px-2 text-center">
                           <button className="text-slate-500 hover:text-white transition-colors" title="Options" onClick={() => handleEditRestaurantProfile(restaurant)}>
                             <span className="material-symbols-outlined">more_vert</span>
