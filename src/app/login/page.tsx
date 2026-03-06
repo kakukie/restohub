@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/app-store'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from '@/hooks/use-toast'
 
 export default function RestaurantAdminLoginPage() {
     const { setUser, user, isInitialized, helpdeskSettings } = useAppStore()
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const isDemoMode = searchParams.get('mode') === 'demo'
     const [loading, setLoading] = useState(false)
     const [mounted, setMounted] = useState(false)
     const [formData, setFormData] = useState({
@@ -24,6 +26,10 @@ export default function RestaurantAdminLoginPage() {
     useEffect(() => {
         setMounted(true)
         generateCaptcha()
+        // Auto-fill demo credentials if coming from ?mode=demo
+        if (searchParams.get('mode') === 'demo') {
+            setFormData({ email: 'demo@restohub.id', password: 'demo1234' })
+        }
     }, [])
 
     useEffect(() => {
@@ -184,26 +190,39 @@ export default function RestaurantAdminLoginPage() {
                         </div>
 
                         {/* ── Demo Account Banner ── */}
-                        <div className="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-4">
+                        <div className={`mb-6 rounded-2xl p-4 border ${isDemoMode
+                                ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700'
+                                : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
+                            }`}>
                             <div className="flex items-start gap-3">
-                                <span className="material-symbols-rounded text-amber-500 text-2xl mt-0.5">science</span>
+                                <span className={`material-symbols-rounded text-2xl mt-0.5 ${isDemoMode ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                    {isDemoMode ? 'play_circle' : 'science'}
+                                </span>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-amber-800 dark:text-amber-300 mb-0.5">Mode Demo Tersedia</p>
-                                    <p className="text-xs text-amber-700 dark:text-amber-400 mb-3">
-                                        Jelajahi fitur lengkap tanpa perlu daftar. Email & password akan terisi otomatis.
+                                    <p className={`text-sm font-bold mb-0.5 ${isDemoMode ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300'}`}>
+                                        {isDemoMode ? '🎯 Mode Demo Aktif' : 'Mode Demo Tersedia'}
+                                    </p>
+                                    <p className={`text-xs mb-3 ${isDemoMode ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                                        {isDemoMode
+                                            ? 'Kredensial sudah terisi. Jawab captcha lalu klik "Masuk Ke Portal" untuk mulai demo.'
+                                            : 'Jelajahi fitur lengkap tanpa perlu daftar. Email & password akan terisi otomatis.'}
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                setFormData({ email: 'demo@restohub.id', password: 'demo1234' })
-                                            }}
-                                            className="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                                            onClick={() => setFormData({ email: 'demo@restohub.id', password: 'demo1234' })}
+                                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${isDemoMode
+                                                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                                    : 'bg-amber-500 hover:bg-amber-600 text-white'
+                                                }`}>
                                             <span className="material-symbols-rounded text-[14px]">bolt</span>
-                                            Gunakan Akun Demo
+                                            {isDemoMode ? 'Isi Ulang Credential' : 'Gunakan Akun Demo'}
                                         </button>
                                         <Link href="/demo"
-                                            className="text-xs border border-amber-400 text-amber-700 dark:text-amber-300 font-semibold px-3 py-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors flex items-center gap-1">
+                                            className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border ${isDemoMode
+                                                    ? 'border-emerald-400 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
+                                                    : 'border-amber-400 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+                                                }`}>
                                             <span className="material-symbols-rounded text-[14px]">menu_book</span>
                                             Panduan Demo
                                         </Link>

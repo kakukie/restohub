@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/app-store'
 import PhoneMockup3D from './PhoneMockup3D'
 import Link from 'next/link'
-import { toast } from '@/hooks/use-toast'
 
 interface SubscriptionPlan {
   id: 'BASIC' | 'PRO' | 'ENTERPRISE' | string
@@ -127,23 +126,10 @@ export default function LandingPage() {
                   className="bg-[#00a669] text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-[#00a669]/25 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2">
                   Mulai Sekarang <span className="material-symbols-outlined">arrow_forward</span>
                 </Link>
-                <button
-                  onClick={async () => {
-                    toast({ title: 'Menyiapkan Demo...', description: 'Mohon tunggu sebentar.' })
-                    try {
-                      const res = await fetch('/api/auth/demo', { method: 'POST' })
-                      if (res.ok) {
-                        window.location.href = '/dashboard'
-                      } else {
-                        toast({ title: 'Error', description: 'Gagal memuat demo.', variant: 'destructive' })
-                      }
-                    } catch (e) {
-                      toast({ title: 'Error', description: 'Gagal memuat demo.', variant: 'destructive' })
-                    }
-                  }}
+                <Link href="/login?mode=demo"
                   className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
                   <span className="material-symbols-outlined">play_circle</span> Lihat Demo
-                </button>
+                </Link>
               </div>
               <div className="grid grid-cols-3 gap-8 pt-8 border-t border-slate-100 dark:border-slate-800">
                 <div>
