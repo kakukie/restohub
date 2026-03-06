@@ -3,14 +3,29 @@
  * Creates: 1 demo restaurant admin + restaurant + categories + menu items
  *          + payment methods + sample orders (with payments)
  *
- * Run: npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-demo.ts
- * OR:  npx tsx prisma/seed-demo.ts
+ * ⚠️  SUPABASE NOTE: This script requires a DIRECT connection (not via pgBouncer).
+ *     Set DIRECT_URL in your .env — this script will auto-use it.
+ *     OR run via: npm run db:seed-demo
  */
 
 import { PrismaClient, OrderStatus, PaymentStatus, PaymentMethodType } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
+// ─── Supabase / pgBouncer compatibility ──────────────────────────────────────
+// Supabase's pooled connection (DATABASE_URL) doesn't support all Prisma
+// operations. For seeding, we must use the direct URL.
+if (process.env.DIRECT_URL && process.env.DATABASE_URL !== process.env.DIRECT_URL) {
+    console.log('🔀 Supabase detected — switching to DIRECT_URL for seeding...')
+    process.env.DATABASE_URL = process.env.DIRECT_URL
+}
+
+const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DIRECT_URL || process.env.DATABASE_URL
+        }
+    }
+})
 
 // ─── Utility ────────────────────────────────────────────────────────────────
 function randInt(min: number, max: number) {
