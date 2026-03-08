@@ -1,33 +1,59 @@
+version: "3.9"
+
+x-app-base: &app-base
+  build:
+    context: .
+    dockerfile: docker/Dockerfile.node
+  restart: unless-stopped
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: ${DATABASE_URL}
+    DIRECT_URL: ${DIRECT_URL}
+    NEXTAUTH_URL: ${NEXTAUTH_URL:-https://meenuin.biz.id}
+    NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+    NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://meenuin.biz.id}
+    REDIS_URL: redis://meenuin-redis:6379
+  volumes:
+    - /root/meenuin/upload:/app/public/uploads
+  networks:
+    - meenuin-prod-net
+  expose:
+    - "3000"
+  stop_grace_period: 30s
+  healthcheck:
+    test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health" ]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+
 services:
-  # Main Application
-  app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.node
-    container_name: meenuin-app
-    restart: always
+
+  app1:
+    <<: *app-base
+    container_name: meenuin-app-1
+
+  app2:
+    <<: *app-base
+    container_name: meenuin-app-2
+
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: meenuin-nginx-proxy
+    restart: unless-stopped
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - DIRECT_URL=${DIRECT_URL}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://meenuin.biz.id}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://meenuin.biz.id}
-      - REDIS_URL=redis://meenuin-redis:6379
+      - "127.0.0.1:8080:80"
     volumes:
-      - /opt/meenuin/upload:/app/public/uploads
+      - ./nginx-proxy.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app1
+      - app2
     networks:
       - meenuin-prod-net
 
   redis:
     image: redis:alpine
     container_name: meenuin-redis
-    restart: always
-    # ports:
-    #   - "6379:6379" # Removed to avoid conflict, only internal access needed
+    restart: unless-stopped
     volumes:
       - redis_data:/data
     networks:
