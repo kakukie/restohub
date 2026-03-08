@@ -8,14 +8,18 @@ export async function GET(request: NextRequest) {
         const settings = await prisma.systemSetting.findMany()
         const settingsMap = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {} as Record<string, string>)
 
-        // Return default values if not set
         return NextResponse.json({
             success: true,
             data: {
                 whatsapp: settingsMap['helpdesk_whatsapp'] || '6281234567890',
                 email: settingsMap['helpdesk_email'] || 'support@meenuin.biz.id',
                 maintenanceMode: settingsMap['maintenance_mode'] === 'true',
-                platformName: settingsMap['platform_name'] || 'Meenuin'
+                platformName: settingsMap['platform_name'] || 'Meenuin',
+                // Payment settings
+                bankName: settingsMap['bank_name'] || '',
+                bankAccountNumber: settingsMap['bank_account_number'] || '',
+                bankAccountName: settingsMap['bank_account_name'] || '',
+                qrisImageUrl: settingsMap['qris_image_url'] || '',
             }
         })
     } catch (error) {
@@ -28,39 +32,29 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         const body = await request.json()
-        const { whatsapp, email, maintenanceMode, platformName } = body
+        const {
+            whatsapp, email, maintenanceMode, platformName,
+            bankName, bankAccountNumber, bankAccountName, qrisImageUrl
+        } = body
 
-        if (whatsapp !== undefined) {
+        const upsertSetting = async (key: string, value: string | undefined | boolean) => {
+            if (value === undefined) return
+            const v = String(value)
             await prisma.systemSetting.upsert({
-                where: { key: 'helpdesk_whatsapp' },
-                update: { value: whatsapp },
-                create: { key: 'helpdesk_whatsapp', value: whatsapp }
+                where: { key },
+                update: { value: v },
+                create: { key, value: v }
             })
         }
 
-        if (email !== undefined) {
-            await prisma.systemSetting.upsert({
-                where: { key: 'helpdesk_email' },
-                update: { value: email },
-                create: { key: 'helpdesk_email', value: email }
-            })
-        }
-
-        if (maintenanceMode !== undefined) {
-            await prisma.systemSetting.upsert({
-                where: { key: 'maintenance_mode' },
-                update: { value: String(maintenanceMode) },
-                create: { key: 'maintenance_mode', value: String(maintenanceMode) }
-            })
-        }
-
-        if (platformName !== undefined) {
-            await prisma.systemSetting.upsert({
-                where: { key: 'platform_name' },
-                update: { value: platformName },
-                create: { key: 'platform_name', value: platformName }
-            })
-        }
+        await upsertSetting('helpdesk_whatsapp', whatsapp)
+        await upsertSetting('helpdesk_email', email)
+        await upsertSetting('maintenance_mode', maintenanceMode !== undefined ? String(maintenanceMode) : undefined)
+        await upsertSetting('platform_name', platformName)
+        await upsertSetting('bank_name', bankName)
+        await upsertSetting('bank_account_number', bankAccountNumber)
+        await upsertSetting('bank_account_name', bankAccountName)
+        await upsertSetting('qris_image_url', qrisImageUrl)
 
         return NextResponse.json({ success: true })
     } catch (error) {

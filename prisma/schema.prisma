@@ -113,6 +113,9 @@ model Restaurant {
   orders         Order[]
   helpdeskMessages HelpdeskMessage[]
   deletedAt      DateTime? // Soft Delete for Restaurant
+
+  // Subscription payments
+  subscriptionPayments SubscriptionPayment[]
 }
 
 model Category {
@@ -285,4 +288,26 @@ model AuditLog {
   userId     String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  PAID
+  REJECTED
+}
+
+model SubscriptionPayment {
+  id             String                    @id @default(cuid())
+  restaurantId   String
+  restaurant     Restaurant                @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  planName       String
+  amount         Float
+  method         String                    @default("BANK_TRANSFER") // BANK_TRANSFER | QRIS
+  status         SubscriptionPaymentStatus @default(PENDING)
+  proofImageUrl  String?
+  notes          String?
+  validatedAt    DateTime?
+  validatedBy    String?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
 }
