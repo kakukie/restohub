@@ -115,6 +115,9 @@ export default function SuperAdminDashboard() {
     name?: string
     description?: string
     price?: number
+    price3Months?: number
+    price6Months?: number
+    price12Months?: number
     menuLimit?: number
     features?: string // text area input
     maxCategories?: number
@@ -466,6 +469,9 @@ export default function SuperAdminDashboard() {
       name: plan.name,
       description: plan.description,
       price: plan.price,
+      price3Months: plan.price3Months,
+      price6Months: plan.price6Months,
+      price12Months: plan.price12Months,
       menuLimit: plan.menuLimit,
       features: plan.features.join('\n') // Convert array to multiline string for editing
     })
@@ -477,6 +483,9 @@ export default function SuperAdminDashboard() {
         name: planForm.name || editingPlan.name,
         description: planForm.description || editingPlan.description,
         price: Number(planForm.price) || editingPlan.price,
+        price3Months: planForm.price3Months !== undefined ? Number(planForm.price3Months) : editingPlan.price3Months,
+        price6Months: planForm.price6Months !== undefined ? Number(planForm.price6Months) : editingPlan.price6Months,
+        price12Months: planForm.price12Months !== undefined ? Number(planForm.price12Months) : editingPlan.price12Months,
         menuLimit: Number(planForm.menuLimit) || editingPlan.menuLimit,
         features: planForm.features ? planForm.features.split('\n').filter(f => f.trim() !== '') : editingPlan.features
       }
@@ -1593,28 +1602,43 @@ export default function SuperAdminDashboard() {
                 <span className="font-bold text-sm text-white">QRIS</span>
               </div>
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase">URL Gambar QRIS</label>
-                <div className="flex gap-3">
+                <label className="text-[11px] font-bold text-slate-500 uppercase">Upload Gambar QRIS</label>
+                <div className="flex flex-col gap-3">
                   <input
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="https://meenuin.biz.id/uploads/qris.png"
-                    type="url"
-                    value={helpdeskSettings?.qrisImageUrl || ''}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20"
+                    type="file"
+                    accept="image/*"
                     onChange={async (e) => {
-                      const val = e.target.value
-                      updateHelpdeskSettings({ ...helpdeskSettings, qrisImageUrl: val })
-                      try {
-                        await fetch('/api/settings', { method: 'PUT', body: JSON.stringify({ qrisImageUrl: val }) })
-                      } catch (err) { console.error(err) }
+                      const file = e.target.files?.[0]
+                      if (!file) return
+
+                      const reader = new FileReader()
+                      reader.onloadend = async () => {
+                        const base64String = reader.result as string
+                        updateHelpdeskSettings({ ...helpdeskSettings, qrisImageUrl: base64String })
+                        try {
+                          await fetch('/api/settings', { method: 'PUT', body: JSON.stringify({ qrisImageUrl: base64String }) })
+                          toast({ title: 'QRIS Tersimpan', description: 'Gambar QRIS berhasil diperbarui.' })
+                        } catch (err) {
+                          console.error(err)
+                          toast({ title: 'Error', description: 'Gagal menyimpan QRIS', variant: 'destructive' })
+                        }
+                      }
+                      reader.readAsDataURL(file)
                     }}
                   />
                   {helpdeskSettings?.qrisImageUrl && (
-                    <a href={helpdeskSettings.qrisImageUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-slate-300 hover:text-[#10B981] transition-all">
-                      Preview
-                    </a>
+                    <div className="mt-2 w-32 h-32 border border-white/10 rounded-xl overflow-hidden relative bg-white">
+                      <Image
+                        src={helpdeskSettings.qrisImageUrl}
+                        alt="QRIS Preview"
+                        fill
+                        className="object-contain p-2"
+                      />
+                    </div>
                   )}
                 </div>
-                <p className="text-xs text-slate-500">Upload gambar QRIS ke halaman upload atau Supabase Storage, lalu paste URL-nya di sini.</p>
+                <p className="text-xs text-slate-500">Upload gambar QRIS (maks. 5MB). Gambar akan otomatis disimpan saat dipilih.</p>
               </div>
             </div>
           </div>
@@ -1987,14 +2011,43 @@ export default function SuperAdminDashboard() {
                   onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })}
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="dark:text-white">Price (Rp)</Label>
-                <Input
-                  className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                  type="number"
-                  value={planForm.price || ''}
-                  onChange={(e) => setPlanForm({ ...planForm, price: Number(e.target.value) })}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="dark:text-white">Price 1 Mo (Rp)</Label>
+                  <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    type="number"
+                    value={planForm.price !== undefined ? planForm.price : ''}
+                    onChange={(e) => setPlanForm({ ...planForm, price: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="dark:text-white">Price 3 Mo (Rp)</Label>
+                  <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    type="number"
+                    value={planForm.price3Months !== undefined ? planForm.price3Months : ''}
+                    onChange={(e) => setPlanForm({ ...planForm, price3Months: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="dark:text-white">Price 6 Mo (Rp)</Label>
+                  <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    type="number"
+                    value={planForm.price6Months !== undefined ? planForm.price6Months : ''}
+                    onChange={(e) => setPlanForm({ ...planForm, price6Months: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="dark:text-white">Price 12 Mo (Rp)</Label>
+                  <Input
+                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    type="number"
+                    value={planForm.price12Months !== undefined ? planForm.price12Months : ''}
+                    onChange={(e) => setPlanForm({ ...planForm, price12Months: Number(e.target.value) })}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label className="dark:text-white">Menu Limit</Label>

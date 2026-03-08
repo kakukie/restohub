@@ -45,6 +45,7 @@ function RegisterContent() {
         ownerName: '',
         password: '',
         package: 'FREE_TRIAL',
+        billingCycle: '1',
         description: '',
         tableCount: ''
     })
@@ -146,7 +147,7 @@ function RegisterContent() {
             })
 
             if (needsPayment && data.data?.restaurant?.id) {
-                router.push(`/payment?restaurantId=${data.data.restaurant.id}&plan=${formData.package}`)
+                router.push(`/payment?restaurantId=${data.data.restaurant.id}&plan=${formData.package}&cycle=${formData.billingCycle}`)
             } else {
                 router.push('/login')
             }
@@ -170,11 +171,6 @@ function RegisterContent() {
                         <span className="text-2xl font-extrabold text-[#064e3b] dark:text-white">{platformName}</span>
                     </Link>
                     <div className="flex items-center gap-6">
-                        <a className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#00a669] transition-colors" href="#">Bantuan</a>
-                        <button className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 transition-all focus:outline-none" onClick={toggleDarkMode}>
-                            <span className="material-symbols-rounded text-sm dark:hidden">dark_mode</span>
-                            <span className="material-symbols-rounded text-sm hidden dark:block">light_mode</span>
-                        </button>
                         <Link className="text-sm font-semibold bg-green-50 dark:bg-slate-800 text-[#00a669] px-5 py-2.5 rounded-full hover:bg-green-100 transition-all" href="/login">Sudah punya akun? Login</Link>
                     </div>
                 </div>
@@ -287,12 +283,31 @@ function RegisterContent() {
                                             {!plansLoading && (() => {
                                                 const sel = plans.find(p => p.name === formData.package)
                                                 if (!sel) return null
+
                                                 return (
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                        {sel.price === 0
-                                                            ? '✅ Gratis, aktivasi manual oleh tim kami'
-                                                            : `💳 Perlu pembayaran Rp ${sel.price.toLocaleString('id-ID')}/bulan setelah daftar`}
-                                                    </p>
+                                                    <div className="mt-4 space-y-4">
+                                                        {sel.price === 0 ? (
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                                ✅ Gratis, aktivasi manual oleh tim kami
+                                                            </p>
+                                                        ) : (
+                                                            <>
+                                                                <div className="space-y-2">
+                                                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Siklus Tagihan</label>
+                                                                    <select name="billingCycle" value={formData.billingCycle} onChange={handleChange} required
+                                                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all">
+                                                                        <option value="1">1 Bulan</option>
+                                                                        <option value="3">3 Bulan</option>
+                                                                        <option value="6">6 Bulan</option>
+                                                                        <option value="12">1 Tahun</option>
+                                                                    </select>
+                                                                </div>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                                    💳 Perlu pembayaran setelah daftar untuk mengaktifkan akun.
+                                                                </p>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 )
                                             })()}
                                         </div>
@@ -417,10 +432,17 @@ function RegisterContent() {
                     </div>
                 </div>
             </footer>
-            <button className="fixed bottom-6 right-6 p-3 bg-white dark:bg-slate-800 shadow-xl rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:scale-110 transition-transform z-50" onClick={toggleDarkMode}>
-                <span className="material-symbols-rounded dark:hidden">dark_mode</span>
-                <span className="material-symbols-rounded hidden dark:block">light_mode</span>
-            </button>
+            <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+                <a href="https://wa.me/6288294945050" target="_blank" rel="noopener noreferrer"
+                    className="p-3 bg-[#00a669] shadow-xl rounded-full text-white hover:scale-110 transition-transform flex items-center justify-center"
+                    title="Bantuan WhatsApp">
+                    <span className="material-symbols-rounded">help</span>
+                </a>
+                <button className="p-3 bg-white dark:bg-slate-800 shadow-xl rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:scale-110 transition-transform flex items-center justify-center" onClick={toggleDarkMode}>
+                    <span className="material-symbols-rounded dark:hidden">dark_mode</span>
+                    <span className="material-symbols-rounded hidden dark:block">light_mode</span>
+                </button>
+            </div>
         </div>
     )
 }

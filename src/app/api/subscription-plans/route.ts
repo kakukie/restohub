@@ -67,6 +67,9 @@ export async function PUT(request: NextRequest) {
                 name: updates.name || 'Unnamed Plan',
                 description: updates.description || '',
                 price: typeof updates.price === 'number' ? updates.price : parseFloat(updates.price || '0'),
+                price3Months: updates.price3Months ? (typeof updates.price3Months === 'number' ? updates.price3Months : parseFloat(updates.price3Months)) : null,
+                price6Months: updates.price6Months ? (typeof updates.price6Months === 'number' ? updates.price6Months : parseFloat(updates.price6Months)) : null,
+                price12Months: updates.price12Months ? (typeof updates.price12Months === 'number' ? updates.price12Months : parseFloat(updates.price12Months)) : null,
                 menuLimit: typeof updates.menuLimit === 'number' ? updates.menuLimit : parseInt(updates.menuLimit || '0'),
                 features: updates.features || [],
                 isActive: updates.isActive ?? true

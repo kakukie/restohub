@@ -296,12 +296,22 @@ function LoginPageContent() {
                     </div>
                 </div>
             </div>
-            <button
-                className="fixed bottom-6 right-6 p-3 bg-white dark:bg-slate-800 shadow-xl rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:scale-110 transition-transform z-50"
-                onClick={toggleDarkMode}>
-                <span className="material-symbols-rounded dark:hidden">dark_mode</span>
-                <span className="material-symbols-rounded hidden dark:block">light_mode</span>
-            </button>
+
+            {/* Floating Action Buttons */}
+            <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+                <a href="https://wa.me/6288294945050" target="_blank" rel="noopener noreferrer"
+                    className="p-3 bg-[#00a669] shadow-xl rounded-full text-white hover:scale-110 transition-transform flex items-center justify-center"
+                    title="Bantuan WhatsApp">
+                    <span className="material-symbols-rounded">help</span>
+                </a>
+                <button
+                    className="p-3 bg-white dark:bg-slate-800 shadow-xl rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:scale-110 transition-transform flex items-center justify-center"
+                    onClick={toggleDarkMode}
+                    title="Toggle Tema">
+                    <span className="material-symbols-rounded dark:hidden">dark_mode</span>
+                    <span className="material-symbols-rounded hidden dark:block">light_mode</span>
+                </button>
+            </div>
         </div>
     )
 }

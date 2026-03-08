@@ -21,6 +21,7 @@ function PaymentContent() {
     const { helpdeskSettings } = useAppStore()
     const restaurantId = searchParams.get('restaurantId') || ''
     const plan = searchParams.get('plan') || 'BUSINESS'
+    const cycle = searchParams.get('cycle') || '1'
 
     const [method, setMethod] = useState<PaymentMethod>('BANK_TRANSFER')
     const [proofFile, setProofFile] = useState<File | null>(null)
@@ -63,14 +64,22 @@ function PaymentContent() {
                     const match = data.data.find((p: any) =>
                         p.name?.toUpperCase().replace(/[ -]/g, '_') === plan.toUpperCase().replace(/[ -]/g, '_')
                     )
-                    if (match) setAmount(match.price)
+                    if (match) {
+                        // Calculate price based on cycle
+                        let cyclePrice = match.price
+                        if (cycle === '3') cyclePrice = match.price3Months || (match.price * 3)
+                        else if (cycle === '6') cyclePrice = match.price6Months || (match.price * 6)
+                        else if (cycle === '12') cyclePrice = match.price12Months || (match.price * 12)
+
+                        setAmount(cyclePrice)
+                    }
                 }
             } catch { /* ignore */ }
         }
 
         fetchSettings()
         fetchPlanPrice()
-    }, [plan])
+    }, [plan, cycle])
 
     // Check existing payment status
     useEffect(() => {
@@ -127,7 +136,7 @@ function PaymentContent() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     restaurantId,
-                    planName: plan,
+                    planName: `${plan} (${cycle} Bulan)`, // Save plan name with its cycle
                     amount,
                     method,
                     proofImageUrl,

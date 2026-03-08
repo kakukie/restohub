@@ -234,6 +234,9 @@ model SubscriptionPlan {
   name            String
   description     String
   price           Float
+  price3Months    Float?
+  price6Months    Float?
+  price12Months   Float?
   menuLimit       Int
   maxCategories   Int?     @default(10)
   allowMaps       Boolean  @default(false)
