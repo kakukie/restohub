@@ -21,17 +21,15 @@ echo "Node: ${NODE_BIN:-Not Found}"
 echo "========================"
 
 # === Database Migration ===
-# Uses prisma migrate deploy — safe for production:
-# - Only applies pending migrations
-# - Never drops data
-# - Works with Supabase (reads DATABASE_URL & DIRECT_URL from env)
-echo "Running database migrations..."
+# Pin prisma@6.11.1 to match package.json — prevents accidental download of
+# breaking Prisma v7+ which no longer supports url/directUrl in schema.prisma
+echo "Running database migrations (prisma@6.11.1)..."
 
 if [ -n "$BUN_BIN" ]; then
     export PATH="$(dirname $BUN_BIN):$PATH"
-    "$BUN_BIN" x prisma migrate deploy
+    "$BUN_BIN" x prisma@6.11.1 migrate deploy
 elif [ -n "$NPX_BIN" ]; then
-    "$NPX_BIN" prisma migrate deploy
+    "$NPX_BIN" prisma@6.11.1 migrate deploy
 else
     echo "CRITICAL ERROR: Neither Bun nor Npx found. Cannot run migrations."
     exit 1

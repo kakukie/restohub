@@ -8,8 +8,8 @@ RUN npm install
 
 COPY . .
 
-# Generate Prisma Client (uses version from package.json)
-RUN npx prisma generate
+# Generate Prisma Client — pinned to 6.x to match package.json (v7 is breaking)
+RUN npx prisma@6.11.1 generate
 
 # Build
 RUN npm run build
