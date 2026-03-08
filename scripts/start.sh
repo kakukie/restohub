@@ -21,19 +21,27 @@ echo "Node: ${NODE_BIN:-Not Found}"
 echo "========================"
 
 # === Database Migration ===
-# Pin prisma@6.11.1 to match package.json — prevents accidental download of
-# breaking Prisma v7+ which no longer supports url/directUrl in schema.prisma
+# Pin prisma@6.11.1 to match package.json (v7 is a breaking change)
 echo "Running database migrations (prisma@6.11.1)..."
 
 if [ -n "$BUN_BIN" ]; then
-    export PATH="$(dirname $BUN_BIN):$PATH"
-    "$BUN_BIN" x prisma@6.11.1 migrate deploy
+    PRISMA_CMD="$BUN_BIN x prisma@6.11.1"
 elif [ -n "$NPX_BIN" ]; then
-    "$NPX_BIN" prisma@6.11.1 migrate deploy
+    PRISMA_CMD="$NPX_BIN prisma@6.11.1"
 else
     echo "CRITICAL ERROR: Neither Bun nor Npx found. Cannot run migrations."
     exit 1
 fi
+
+# Auto-resolve any previously failed migrations so deploy can proceed.
+# This is needed when a migration was partially applied and left in a broken
+# state (e.g., Prisma version mismatch caused mid-run failure).
+# The || true ensures we continue even if there are no failed migrations.
+echo "Resolving any failed migrations..."
+$PRISMA_CMD migrate resolve --rolled-back 20260308_add_subscription_payment 2>/dev/null || true
+
+# Apply all pending migrations
+$PRISMA_CMD migrate deploy
 
 echo "Migrations complete."
 
