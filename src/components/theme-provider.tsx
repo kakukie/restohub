@@ -14,7 +14,7 @@ export function ThemeProvider({
     if (pathname === '/') {
         forcedTheme = 'light'
     } else if (pathname?.startsWith('/admin')) {
-        forcedTheme = 'dark'
+        forcedTheme = 'light'
     }
 
     return (

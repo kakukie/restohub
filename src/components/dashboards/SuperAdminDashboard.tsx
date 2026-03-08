@@ -84,12 +84,13 @@ export default function SuperAdminDashboard() {
         fetch('/api/admin/audit-logs?limit=20')
       ]);
 
-      const [dataResto, dataUsers, dataAnalytics, dataPlans, dataLogs] = await Promise.all([
+      const [dataResto, dataUsers, dataAnalytics, dataPlans, dataLogs, dataSubscriptions] = await Promise.all([
         resResto.json(),
         resUsers.json(),
         resAnalytics.ok ? resAnalytics.json() : Promise.resolve({ success: false }),
         resPlans.ok ? resPlans.json() : Promise.resolve({ success: false }),
-        resLogs.ok ? resLogs.json() : Promise.resolve({ success: false })
+        resLogs.ok ? resLogs.json() : Promise.resolve({ success: false }),
+        fetch('/api/admin/subscriptions').then(r => r.ok ? r.json() : { success: false })
       ]);
 
       if (dataResto.success) setRestaurants(dataResto.data)
@@ -97,6 +98,7 @@ export default function SuperAdminDashboard() {
       if (dataAnalytics.success) setAdminAnalytics(dataAnalytics.data)
       if (dataPlans.success) setSubscriptionPlans(dataPlans.data)
       if (dataLogs.success) setAuditLogs(dataLogs.data)
+      if (dataSubscriptions && dataSubscriptions.success) setSubscriptionsData(dataSubscriptions.data)
 
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
@@ -146,6 +148,12 @@ export default function SuperAdminDashboard() {
   }>({ topRevenue: [], topSelling: [] })
 
   const [auditLogs, setAuditLogs] = useState<any[]>([])
+
+  // Subscriptions Tab State
+  const [subscriptionsData, setSubscriptionsData] = useState<any[]>([])
+  const [selectedSubscriptionForReview, setSelectedSubscriptionForReview] = useState<any>(null)
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
+
   // Helper for image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
     const file = e.target.files?.[0]
@@ -168,7 +176,7 @@ export default function SuperAdminDashboard() {
   const [qrCodeRestaurant, setQrCodeRestaurant] = useState<Restaurant | null>(null)
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings' | 'landing-editor' | 'helpdesk' | 'audit-logs'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings' | 'landing-editor' | 'helpdesk' | 'audit-logs' | 'subscriptions'>('dashboard')
 
   // User Edit State
   const [userDialogOpen, setUserDialogOpen] = useState(false)
@@ -613,6 +621,102 @@ export default function SuperAdminDashboard() {
   const pendingRestaurants = restaurants.filter(r => r.status === 'PENDING')
 
   // --- MODULAR RENDER FUNCTIONS ---
+
+  const handleReviewSubscription = async (id: string, status: 'PAID' | 'REJECTED') => {
+    try {
+      const res = await fetch(`/api/admin/subscriptions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Success', description: `Subscription marked as ${status}` })
+        setReviewDialogOpen(false)
+        setSelectedSubscriptionForReview(null)
+        // Refresh data
+        fetchDashboardData()
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', variant: 'destructive', description: error.message })
+    }
+  }
+
+  const renderSubscriptionsTab = () => (
+    <div className="space-y-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 mt-4">
+        <div>
+          <h2 className="text-3xl font-extrabold text-[#F8FAFC]">Subscription Verifications</h2>
+          <p className="text-slate-400">Review and approve uploaded payment proofs from merchants.</p>
+        </div>
+      </header>
+
+      <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-3xl relative overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="text-slate-500 text-xs font-bold border-b border-[#2A344A]">
+                <th className="pb-3 px-2 font-semibold">DATE</th>
+                <th className="pb-3 px-2 font-semibold">MERCHANT</th>
+                <th className="pb-3 px-2 font-semibold">PLAN REQUESTED</th>
+                <th className="pb-3 px-2 font-semibold">AMOUNT PAID</th>
+                <th className="pb-3 px-2 font-semibold">STATUS</th>
+                <th className="pb-3 px-2 font-semibold text-right">ACTION</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#2A344A]/50">
+              {subscriptionsData.map((sub: any) => (
+                <tr key={sub.id} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="py-4 px-2 text-sm text-slate-400">
+                    {new Date(sub.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="py-4 px-2">
+                    <p className="font-bold text-sm text-[#F8FAFC]">{sub.restaurant?.name || 'Unknown'}</p>
+                    <p className="text-xs text-slate-500">{sub.restaurant?.email || '-'}</p>
+                  </td>
+                  <td className="py-4 px-2">
+                    <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-[10px] font-black rounded border border-purple-500/20 uppercase">
+                      {sub.planName}
+                    </span>
+                  </td>
+                  <td className="py-4 px-2 font-bold text-[#F8FAFC]">
+                    Rp {sub.amount?.toLocaleString('id-ID')}
+                  </td>
+                  <td className="py-4 px-2">
+                    {sub.status === 'PAID' ? (
+                      <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20">PAID</span>
+                    ) : sub.status === 'REJECTED' ? (
+                      <span className="px-3 py-1 bg-red-500/10 text-red-400 text-[10px] font-bold rounded-full border border-red-500/20">REJECTED</span>
+                    ) : (
+                      <span className="px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-bold rounded-full border border-amber-500/20">PENDING</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-2 text-right">
+                    <Button
+                      onClick={() => {
+                        setSelectedSubscriptionForReview(sub)
+                        setReviewDialogOpen(true)
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8"
+                    >
+                      Review
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+              {subscriptionsData.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="text-center py-10 text-slate-500 text-sm">No subscription records found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
 
   const renderDashboard = () => (
     <div className="space-y-8">
@@ -1690,6 +1794,10 @@ export default function SuperAdminDashboard() {
               <span className={`material-symbols-outlined text-xl ${activeTab === 'plans' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>payments</span>
               <span>Plans & Pricing</span>
             </button>
+            <button onClick={() => setActiveTab('subscriptions')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${activeTab === 'subscriptions' ? 'bg-[#10B981]/10 text-[#10B981] border-r-4 border-[#10B981] font-semibold' : 'text-slate-500 hover:text-slate-100 hover:bg-white/5'}`}>
+              <span className={`material-symbols-outlined text-xl ${activeTab === 'subscriptions' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>fact_check</span>
+              <span>Subscriptions</span>
+            </button>
             <button onClick={() => setActiveTab('users')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${activeTab === 'users' ? 'bg-[#10B981]/10 text-[#10B981] border-r-4 border-[#10B981] font-semibold' : 'text-slate-500 hover:text-slate-100 hover:bg-white/5'}`}>
               <span className={`material-symbols-outlined text-xl ${activeTab === 'users' ? '' : 'group-hover:text-[#10B981] transition-colors'}`}>people_alt</span>
               <span>User Control</span>
@@ -1730,6 +1838,7 @@ export default function SuperAdminDashboard() {
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'restaurants' && renderRestaurants()}
         {activeTab === 'plans' && renderPlans()}
+        {activeTab === 'subscriptions' && renderSubscriptionsTab()}
         {activeTab === 'users' && renderUsers()}
         {activeTab === 'audit-logs' && renderAuditLogs()}
         {activeTab === 'settings' && renderSettings()}
@@ -2278,6 +2387,72 @@ export default function SuperAdminDashboard() {
             <DialogFooter>
               <Button variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800 dark:text-white" onClick={() => setPasswordResetOpen(false)}>Cancel</Button>
               <Button onClick={handlePasswordReset}>Reset Password</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Subscription Verification Dialog */}
+        <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+          <DialogContent className="dark:bg-slate-900 dark:border-slate-800 dark:text-white max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Review Subscription Upload</DialogTitle>
+              <DialogDescription className="dark:text-slate-400">
+                Verify the payment proof for {selectedSubscriptionForReview?.restaurant?.name || 'Unknown'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
+              {selectedSubscriptionForReview && (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-slate-500 font-semibold mb-1">Plan Requested</p>
+                    <p className="font-bold">{selectedSubscriptionForReview.planName}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 font-semibold mb-1">Amount</p>
+                    <p className="font-bold text-[#10B981]">Rp {selectedSubscriptionForReview.amount?.toLocaleString('id-ID')}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 font-semibold mb-1">Status</p>
+                    <p>{selectedSubscriptionForReview.status}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 font-semibold mb-1">Created At</p>
+                    <p>{new Date(selectedSubscriptionForReview.createdAt).toLocaleString()}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-slate-500 font-semibold mb-2">Payment Proof (QRIS / Bank Transfer)</p>
+                    {selectedSubscriptionForReview.proofImageUrl ? (
+                      <div className="border border-slate-700 rounded-xl overflow-hidden relative w-full h-[400px] bg-black/20">
+                        <Image
+                          src={selectedSubscriptionForReview.proofImageUrl}
+                          alt="Payment Proof"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-slate-800/50 rounded-lg text-slate-500 text-center italic">
+                        No proof image attached
+                      </div>
+                    )}
+                  </div>
+                  {selectedSubscriptionForReview.notes && (
+                    <div className="col-span-2">
+                      <p className="text-slate-500 font-semibold mb-1">Notes from Merchant</p>
+                      <p className="p-3 bg-slate-800/50 rounded-lg whitespace-pre-line">{selectedSubscriptionForReview.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0 mt-2">
+              <Button variant="outline" className="dark:border-slate-700" onClick={() => setReviewDialogOpen(false)}>Close</Button>
+              {selectedSubscriptionForReview?.status === 'PENDING' && (
+                <>
+                  <Button variant="outline" className="text-red-500 hover:text-red-400 dark:border-slate-700" onClick={() => handleReviewSubscription(selectedSubscriptionForReview.id, 'REJECTED')}>Reject</Button>
+                  <Button className="bg-[#10B981] text-white hover:bg-emerald-600" onClick={() => handleReviewSubscription(selectedSubscriptionForReview.id, 'PAID')}>Approve Payment</Button>
+                </>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>

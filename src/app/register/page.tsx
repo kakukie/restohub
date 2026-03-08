@@ -65,7 +65,13 @@ function RegisterContent() {
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
                     const all: PlanData[] = data.data
-                    const activePlans = all.filter(p => p.isActive !== false) // Handle potential missing or false isActive
+                    // Filter down to only Free Trial and Business plans
+                    const filtered = all.filter(p => p.isActive !== false && (
+                        p.name === 'FREE_TRIAL' || p.name === 'FREE TRIAL' ||
+                        p.name === 'BUSINESS' || p.name === 'Bisnis'
+                    ))
+                    // Ensure there's always something to show, but prioritize the filtered list
+                    const activePlans = filtered.length ? filtered : all.filter(p => p.isActive !== false)
                     setPlans(activePlans)
 
                     if (urlPlan) {
