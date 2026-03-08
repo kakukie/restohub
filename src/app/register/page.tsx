@@ -65,16 +65,12 @@ function RegisterContent() {
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
                     const all: PlanData[] = data.data
-                    const filtered = all.filter(p =>
-                        p.name === 'FREE_TRIAL' || p.name === 'FREE TRIAL' ||
-                        p.name === 'BUSINESS' || p.name === 'Bisnis'
-                    )
-                    const toShow = filtered.length ? filtered : all
-                    setPlans(toShow)
+                    const activePlans = all.filter(p => p.isActive !== false) // Handle potential missing or false isActive
+                    setPlans(activePlans)
 
                     if (urlPlan) {
                         const key = urlPlan.toUpperCase().replace(/[ -]/g, '_')
-                        const match = all.find((p: PlanData) =>
+                        const match = activePlans.find((p: PlanData) =>
                             p.name.toUpperCase().replace(/[ -]/g, '_').includes(key) ||
                             key.includes(p.name.toUpperCase().replace(/[ -]/g, '_'))
                         )
@@ -136,8 +132,17 @@ function RegisterContent() {
             if (!response.ok) throw new Error(data.error || 'Registrasi gagal')
 
             // If paid plan → redirect to payment page
-            const selectedPlan = plans.find(p => p.name === formData.package)
-            const needsPayment = selectedPlan && selectedPlan.price > 0
+            // The value of formData.package could be either the original name or the uppercased key based on the previous useEffect
+            const selectedPlan = plans.find(p => p.name === formData.package || p.name.toUpperCase().replace(/[ -]/g, '_') === formData.package)
+
+            // Log to debug plan mismatch
+            console.log('Selected Plan for Payment Check:', {
+                formDataPackage: formData.package,
+                foundPlan: selectedPlan,
+                price: selectedPlan?.price
+            })
+
+            const needsPayment = selectedPlan && (selectedPlan.price > 0 || (selectedPlan.price3Months && selectedPlan.price3Months > 0) || (selectedPlan.price6Months && selectedPlan.price6Months > 0) || (selectedPlan.price12Months && selectedPlan.price12Months > 0))
 
             toast({
                 title: 'Pendaftaran Berhasil! 🎉',
