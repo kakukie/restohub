@@ -1513,6 +1513,113 @@ export default function SuperAdminDashboard() {
           </div>
         </section>
 
+        {/* Payment Configuration */}
+        <section className="glass rounded-3xl overflow-hidden border border-white/5">
+          <div className="p-6 border-b border-white/5 flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl">
+              <span className="material-symbols-outlined">account_balance</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-white">Konfigurasi Pembayaran</h3>
+              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Bank Transfer & QRIS untuk aktivasi langganan</p>
+            </div>
+          </div>
+          <div className="p-8 space-y-6">
+            {/* Bank Transfer */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+                  <span className="material-symbols-outlined text-sm">account_balance</span>
+                </div>
+                <span className="font-bold text-sm text-white">Bank Transfer</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Nama Bank</label>
+                  <input
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    placeholder="contoh: BCA"
+                    type="text"
+                    value={helpdeskSettings?.bankName || ''}
+                    onChange={async (e) => {
+                      const val = e.target.value
+                      updateHelpdeskSettings({ ...helpdeskSettings, bankName: val })
+                      try {
+                        await fetch('/api/settings', { method: 'PUT', body: JSON.stringify({ bankName: val }) })
+                      } catch (err) { console.error(err) }
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Nomor Rekening</label>
+                  <input
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    placeholder="contoh: 1234567890"
+                    type="text"
+                    value={helpdeskSettings?.bankAccountNumber || ''}
+                    onChange={async (e) => {
+                      const val = e.target.value
+                      updateHelpdeskSettings({ ...helpdeskSettings, bankAccountNumber: val })
+                      try {
+                        await fetch('/api/settings', { method: 'PUT', body: JSON.stringify({ bankAccountNumber: val }) })
+                      } catch (err) { console.error(err) }
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase">Atas Nama</label>
+                  <input
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    placeholder="contoh: PT Meenuin Digital"
+                    type="text"
+                    value={helpdeskSettings?.bankAccountName || ''}
+                    onChange={async (e) => {
+                      const val = e.target.value
+                      updateHelpdeskSettings({ ...helpdeskSettings, bankAccountName: val })
+                      try {
+                        await fetch('/api/settings', { method: 'PUT', body: JSON.stringify({ bankAccountName: val }) })
+                      } catch (err) { console.error(err) }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-white/5 pt-6 space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center text-white">
+                  <span className="material-symbols-outlined text-sm">qr_code_2</span>
+                </div>
+                <span className="font-bold text-sm text-white">QRIS</span>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-slate-500 uppercase">URL Gambar QRIS</label>
+                <div className="flex gap-3">
+                  <input
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    placeholder="https://meenuin.biz.id/uploads/qris.png"
+                    type="url"
+                    value={helpdeskSettings?.qrisImageUrl || ''}
+                    onChange={async (e) => {
+                      const val = e.target.value
+                      updateHelpdeskSettings({ ...helpdeskSettings, qrisImageUrl: val })
+                      try {
+                        await fetch('/api/settings', { method: 'PUT', body: JSON.stringify({ qrisImageUrl: val }) })
+                      } catch (err) { console.error(err) }
+                    }}
+                  />
+                  {helpdeskSettings?.qrisImageUrl && (
+                    <a href={helpdeskSettings.qrisImageUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-slate-300 hover:text-[#10B981] transition-all">
+                      Preview
+                    </a>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500">Upload gambar QRIS ke halaman upload atau Supabase Storage, lalu paste URL-nya di sini.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <div className="mt-8 p-6 bg-red-500/5 border border-red-500/20 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
