@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/app-store'
 import { toast } from '@/hooks/use-toast'
 import QRCodeDialog from '@/components/common/QRCodeDialog'
+import { useTranslation } from '@/lib/i18n'
 
 // New Components
 import Sidebar from './restaurant/Sidebar'
@@ -52,6 +53,8 @@ export default function RestaurantAdminDashboard() {
         language,
         setLanguage
     } = useAppStore()
+
+    const t = useTranslation(language as 'en' | 'id')
 
     // --- STATE MANAGEMENT (Copied from Old) ---
     const [activeTab, setActiveTab] = useState('dashboard') // 'dashboard' | 'orders' | 'menu' | 'settings' | 'categories' | 'analytics'
@@ -649,9 +652,9 @@ export default function RestaurantAdminDashboard() {
                 </div>
                 <div className="space-y-8">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Payments</h2>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('payments')}</h2>
                         <Button size="sm" onClick={() => { setPaymentMethodForm({}); setPaymentMethodDialogOpen(true) }} className="bg-emerald-500 hover:bg-emerald-600">
-                            <Plus className="h-4 w-4 mr-2" /> Add
+                            <Plus className="h-4 w-4 mr-2" /> {t('add')}
                         </Button>
                     </div>
 
@@ -719,7 +722,7 @@ export default function RestaurantAdminDashboard() {
     }
 
     const handleDeleteMenuItem = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this item?")) return
+        if (!confirm(t('deleteMenuItemConfirm'))) return
         try {
             const res = await fetch(`/api/menu-items?id=${id}`, { method: 'DELETE' })
             if (res.ok) {
@@ -743,7 +746,7 @@ export default function RestaurantAdminDashboard() {
         })
 
         const handleBulkDelete = async () => {
-            if (!confirm(`Delete ${selectedMenuItems.length} selected items?`)) return
+            if (!confirm(t('deleteSelectedItemsConfirm').replace('{count}', selectedMenuItems.length.toString()))) return
             try {
                 await Promise.all(selectedMenuItems.map(id =>
                     fetch(`/api/menu-items?id=${id}`, { method: 'DELETE' }) // Fixed: use query parameter
@@ -792,7 +795,7 @@ export default function RestaurantAdminDashboard() {
                 {/* Header with Search and Filters */}
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Menu Items</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('menuItems')}</h2>
                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                             <span className={(currentRestaurant?.maxMenuItems && menuItems.length >= currentRestaurant.maxMenuItems) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
                                 {menuItems.length} / {currentRestaurant?.maxMenuItems === 0 || !currentRestaurant?.maxMenuItems ? 'Unlimited' : currentRestaurant.maxMenuItems} items
@@ -824,7 +827,7 @@ export default function RestaurantAdminDashboard() {
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
-                            placeholder="Search menu items..."
+                            placeholder={t('searchItems')}
                             value={menuSearchQuery}
                             onChange={(e) => setMenuSearchQuery(e.target.value)}
                             className="pl-10"
@@ -832,10 +835,10 @@ export default function RestaurantAdminDashboard() {
                     </div>
                     <Select value={menuCategoryFilter} onValueChange={setMenuCategoryFilter}>
                         <SelectTrigger className="w-full lg:w-48">
-                            <SelectValue placeholder="All Categories" />
+                            <SelectValue placeholder={t('allCategories')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="ALL">All Categories</SelectItem>
+                            <SelectItem value="ALL">{t('allCategories')}</SelectItem>
                             {categories.map(cat => (
                                 <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                             ))}
@@ -847,7 +850,7 @@ export default function RestaurantAdminDashboard() {
                 {selectedMenuItems.length > 0 && (
                     <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 mb-4 flex items-center justify-between">
                         <span className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
-                            {selectedMenuItems.length} item(s) selected
+                            {selectedMenuItems.length} {t('itemsSelected')}
                         </span>
                         <div className="flex gap-2">
                             <Button
@@ -856,7 +859,7 @@ export default function RestaurantAdminDashboard() {
                                 onClick={() => handleBulkToggleAvailability(true)}
                             >
                                 <Check className="h-4 w-4 mr-1" />
-                                Enable
+                                {t('enable')}
                             </Button>
                             <Button
                                 size="sm"
@@ -864,7 +867,7 @@ export default function RestaurantAdminDashboard() {
                                 onClick={() => handleBulkToggleAvailability(false)}
                             >
                                 <X className="h-4 w-4 mr-1" />
-                                Disable
+                                {t('disable')}
                             </Button>
                             <Button
                                 size="sm"
@@ -872,7 +875,7 @@ export default function RestaurantAdminDashboard() {
                                 onClick={handleBulkDelete}
                             >
                                 <Trash2 className="h-4 w-4 mr-1" />
-                                Delete
+                                {t('delete')}
                             </Button>
                         </div>
                     </div>
@@ -883,7 +886,7 @@ export default function RestaurantAdminDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredMenuItems.length === 0 ? (
                             <div className="col-span-full text-center py-12 text-slate-500">
-                                <p>No menu items found. {menuSearchQuery || menuCategoryFilter !== 'ALL' ? 'Try adjusting your filters.' : 'Add your first menu item to get started.'}</p>
+                                <p>{t('noItemsFound')} {menuSearchQuery || menuCategoryFilter !== 'ALL' ? t('tryAdjustingFilters') : t('addFirstItem')}</p>
                             </div>
                         ) : (
                             filteredMenuItems.map(item => (
@@ -903,7 +906,7 @@ export default function RestaurantAdminDashboard() {
                                         <CardTitle className="flex justify-between items-start">
                                             <span className="flex-1">{item.name}</span>
                                             <Badge variant={item.isAvailable ? 'default' : 'secondary'}>
-                                                {item.isAvailable ? 'Available' : 'Unavailable'}
+                                                {item.isAvailable ? t('available') : t('unavailable')}
                                             </Badge>
                                         </CardTitle>
                                     </CardHeader>
@@ -912,7 +915,7 @@ export default function RestaurantAdminDashboard() {
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{item.description}</p>
                                         )}
                                         <div className="flex justify-between items-center mb-3">
-                                            <span className="text-lg font-bold text-emerald-600">Rp {item.price.toLocaleString()}</span>
+                                            <span className="text-lg font-bold text-emerald-600">Rp {item.price.toLocaleString('id-ID')}</span>
                                             {item.stock !== null && item.stock !== undefined && (
                                                 <span className="text-xs text-slate-500">Stock: {item.stock}</span>
                                             )}
@@ -929,7 +932,7 @@ export default function RestaurantAdminDashboard() {
                                                 }}
                                             >
                                                 <Edit className="h-3 w-3 mr-1" />
-                                                Edit
+                                                {t('edit')}
                                             </Button>
                                             <Button
                                                 size="sm"
@@ -960,20 +963,20 @@ export default function RestaurantAdminDashboard() {
                                             className="h-4 w-4 rounded border-gray-300"
                                         />
                                     </th>
-                                    <th className="p-3 text-left text-sm font-semibold">Image</th>
-                                    <th className="p-3 text-left text-sm font-semibold">Name</th>
-                                    <th className="p-3 text-left text-sm font-semibold">Category</th>
-                                    <th className="p-3 text-left text-sm font-semibold">Price</th>
-                                    <th className="p-3 text-left text-sm font-semibold">Stock</th>
-                                    <th className="p-3 text-left text-sm font-semibold">Status</th>
-                                    <th className="p-3 text-left text-sm font-semibold">Actions</th>
+                                    <th className="p-3 text-left text-sm font-semibold">{t('image')}</th>
+                                    <th className="p-3 text-left text-sm font-semibold">{t('name')}</th>
+                                    <th className="p-3 text-left text-sm font-semibold">{t('category')}</th>
+                                    <th className="p-3 text-left text-sm font-semibold">{t('price')}</th>
+                                    <th className="p-3 text-left text-sm font-semibold">{t('stock')}</th>
+                                    <th className="p-3 text-left text-sm font-semibold">{t('status')}</th>
+                                    <th className="p-3 text-left text-sm font-semibold">{t('actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredMenuItems.length === 0 ? (
                                     <tr>
                                         <td colSpan={8} className="p-12 text-center text-slate-500">
-                                            No menu items found. {menuSearchQuery || menuCategoryFilter !== 'ALL' ? 'Try adjusting your filters.' : 'Add your first menu item to get started.'}
+                                            {t('noItemsFound')} {menuSearchQuery || menuCategoryFilter !== 'ALL' ? t('tryAdjustingFilters') : t('addFirstItem')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -1006,7 +1009,7 @@ export default function RestaurantAdminDashboard() {
                                                 {categories.find(c => c.id === item.categoryId)?.name || '-'}
                                             </td>
                                             <td className="p-3 text-sm font-medium text-emerald-600">
-                                                Rp {item.price.toLocaleString()}
+                                                Rp {item.price.toLocaleString('id-ID')}
                                             </td>
                                             <td className="p-3 text-sm">
                                                 {item.stock !== null && item.stock !== undefined ? item.stock : '-'}
@@ -1018,7 +1021,7 @@ export default function RestaurantAdminDashboard() {
                                                         onCheckedChange={(val) => handleToggleMenuItem(item.id, val)}
                                                     />
                                                     <span className={`text-xs font-medium ${item.isAvailable ? 'text-emerald-600' : 'text-slate-500'}`}>
-                                                        {item.isAvailable ? 'Active' : 'Disabled'}
+                                                        {item.isAvailable ? t('active') : t('disabled')}
                                                     </span>
                                                 </div>
                                             </td>
@@ -1059,10 +1062,10 @@ export default function RestaurantAdminDashboard() {
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Categories</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('categories')}</h2>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                         <span className={(currentRestaurant?.maxCategories && categories.length >= currentRestaurant.maxCategories) ? 'text-red-500 font-bold' : 'text-emerald-600 font-medium'}>
-                            {categories.length} / {currentRestaurant?.maxCategories === 0 || !currentRestaurant?.maxCategories ? 'Unlimited' : currentRestaurant.maxCategories} categories used
+                            {categories.length} / {currentRestaurant?.maxCategories === 0 || !currentRestaurant?.maxCategories ? t('unlimited') : currentRestaurant.maxCategories} {t('categoriesUsed')}
                         </span>
                     </p>
                 </div>
@@ -1076,13 +1079,13 @@ export default function RestaurantAdminDashboard() {
                     className="bg-emerald-500 hover:bg-emerald-600"
                 >
                     <Plus className="h-4 w-4 mr-2" />
-                    {currentRestaurant?.maxCategories !== 0 && categories.length >= (currentRestaurant?.maxCategories || 0) ? 'Limit Reached' : 'Add Category'}
+                    {currentRestaurant?.maxCategories !== 0 && categories.length >= (currentRestaurant?.maxCategories || 0) ? t('limitReached') : t('addCategory')}
                 </Button>
             </div>
 
             {categories.length === 0 ? (
                 <div className="text-center py-12 text-slate-500">
-                    <p>No categories yet. Create your first category to organize your menu.</p>
+                    <p>{t('noCategoriesYet')}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1118,7 +1121,7 @@ export default function RestaurantAdminDashboard() {
                                     <p className="text-sm text-slate-600 dark:text-slate-400">{category.description}</p>
                                 )}
                                 <p className="text-xs text-slate-500 mt-2">
-                                    {menuItems.filter(item => item.categoryId === category.id).length} items
+                                    {menuItems.filter(item => item.categoryId === category.id).length} {t('items')}
                                 </p>
                             </CardContent>
                         </Card>
@@ -1152,10 +1155,10 @@ export default function RestaurantAdminDashboard() {
         return (
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Orders</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('orders')}</h2>
                     <Button onClick={() => loadOrderData()} variant="outline" size="sm">
                         <RefreshCw className="h-4 w-4 mr-2" />
-                        Refresh
+                        {t('refresh')}
                     </Button>
                 </div>
 
@@ -1164,7 +1167,7 @@ export default function RestaurantAdminDashboard() {
                     <div className="relative flex-grow lg:max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
-                            placeholder="Search by order number or name..."
+                            placeholder={t('searchOrders')}
                             value={orderSearchQuery}
                             onChange={(e) => {
                                 setOrderSearchQuery(e.target.value)
@@ -1179,10 +1182,10 @@ export default function RestaurantAdminDashboard() {
                         setOrderCurrentPage(1)
                     }}>
                         <SelectTrigger className="w-full lg:w-40">
-                            <SelectValue placeholder="Filter by status" />
+                            <SelectValue placeholder={t('filterByStatus')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="ALL">All Status</SelectItem>
+                            <SelectItem value="ALL">{t('allStatus')}</SelectItem>
                             <SelectItem value="PENDING">Pending</SelectItem>
                             <SelectItem value="CONFIRMED">Confirmed</SelectItem>
                             <SelectItem value="PREPARING">Preparing</SelectItem>
@@ -1198,10 +1201,10 @@ export default function RestaurantAdminDashboard() {
                         setOrderCurrentPage(1)
                     }}>
                         <SelectTrigger className="w-full lg:w-40">
-                            <SelectValue placeholder="Payment Method" />
+                            <SelectValue placeholder={t('paymentMethod')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="ALL">All Payments</SelectItem>
+                            <SelectItem value="ALL">{t('allPayments')}</SelectItem>
                             <SelectItem value="QRIS">QRIS</SelectItem>
                             <SelectItem value="CASH">Cash</SelectItem>
                             <SelectItem value="GOPAY">GoPay</SelectItem>
@@ -1217,13 +1220,13 @@ export default function RestaurantAdminDashboard() {
                             type="date"
                             value={orderDateRange.start}
                             onChange={(e) => setOrderDateRange({ ...orderDateRange, start: e.target.value })}
-                            placeholder="Start date"
+                            placeholder={t('startDate')}
                         />
                         <Input
                             type="date"
                             value={orderDateRange.end}
                             onChange={(e) => setOrderDateRange({ ...orderDateRange, end: e.target.value })}
-                            placeholder="End date"
+                            placeholder={t('endDate')}
                         />
                     </div>
                 </div>
@@ -1232,7 +1235,7 @@ export default function RestaurantAdminDashboard() {
                 <div className="space-y-4">
                     {currentOrders.length === 0 ? (
                         <div className="text-center py-12 text-slate-500">
-                            <p>No orders found. {orderStatusFilter !== 'ALL' || orderDateRange.start || orderDateRange.end || orderSearchQuery ? 'Try adjusting your filters.' : 'Orders will appear here.'}</p>
+                            <p>{t('noOrdersFound')} {orderStatusFilter !== 'ALL' || orderDateRange.start || orderDateRange.end || orderSearchQuery ? t('tryAdjustingFilters') : t('ordersWillAppearHere')}</p>
                         </div>
                     ) : (
                         currentOrders.map(order => (
@@ -1240,9 +1243,9 @@ export default function RestaurantAdminDashboard() {
                                 <CardHeader>
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <CardTitle>Order #{order.orderNumber}</CardTitle>
+                                            <CardTitle>{t('order')} #{order.orderNumber}</CardTitle>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                                {order.customerName} • {new Date(order.createdAt).toLocaleString()}
+                                                {order.customerName} • {new Date(order.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short', hour12: false })}
                                             </p>
                                             {order.paymentMethod && (
                                                 <Badge variant="outline" className="mt-2">
@@ -1260,18 +1263,18 @@ export default function RestaurantAdminDashboard() {
                                         {order.items.map((item, idx) => (
                                             <div key={idx} className="flex justify-between text-sm">
                                                 <span>{item.quantity}x {item.menuItemName}</span>
-                                                <span>Rp {(item.price * item.quantity).toLocaleString()}</span>
+                                                <span>Rp {(item.price * item.quantity).toLocaleString('id-ID')}</span>
                                             </div>
                                         ))}
                                     </div>
                                     <div className="pt-4 border-t space-y-2">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm text-slate-600 dark:text-slate-400">Payment Method:</span>
+                                            <span className="text-sm text-slate-600 dark:text-slate-400">{t('paymentMethod')}:</span>
                                             <span className="text-sm font-medium">{order.paymentMethod || 'CASH'}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="font-bold">Total:</span>
-                                            <span className="font-bold">Rp {order.totalAmount.toLocaleString()}</span>
+                                            <span className="font-bold">Rp {order.totalAmount.toLocaleString('id-ID')}</span>
                                         </div>
                                     </div>
                                     <div className="flex gap-2 mt-4">
@@ -1282,7 +1285,7 @@ export default function RestaurantAdminDashboard() {
                                                 onClick={() => handleUpdateOrderStatus(order.id, 'CONFIRMED')}
                                                 disabled={updatingOrderId === order.id}
                                             >
-                                                Confirm
+                                                {t('confirm')}
                                             </Button>
                                         )}
                                         {order.status === 'CONFIRMED' && (
@@ -1291,7 +1294,7 @@ export default function RestaurantAdminDashboard() {
                                                 onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}
                                                 disabled={updatingOrderId === order.id}
                                             >
-                                                Prepare
+                                                {t('prepare')}
                                             </Button>
                                         )}
                                         {order.status === 'PREPARING' && (
@@ -1300,7 +1303,7 @@ export default function RestaurantAdminDashboard() {
                                                 onClick={() => handleUpdateOrderStatus(order.id, 'READY')}
                                                 disabled={updatingOrderId === order.id}
                                             >
-                                                Ready
+                                                {t('ready')}
                                             </Button>
                                         )}
                                         {order.status === 'READY' && (
@@ -1309,7 +1312,7 @@ export default function RestaurantAdminDashboard() {
                                                 onClick={() => handleUpdateOrderStatus(order.id, 'COMPLETED')}
                                                 disabled={updatingOrderId === order.id}
                                             >
-                                                Complete
+                                                {t('complete')}
                                             </Button>
                                         )}
                                         {['PENDING', 'CONFIRMED', 'PREPARING'].includes(order.status) && (
@@ -1317,13 +1320,13 @@ export default function RestaurantAdminDashboard() {
                                                 size="sm"
                                                 variant="destructive"
                                                 onClick={() => {
-                                                    if (confirm('Are you sure you want to cancel this order?')) {
+                                                    if (confirm(t('cancelOrderConfirm'))) {
                                                         handleUpdateOrderStatus(order.id, 'CANCELLED')
                                                     }
                                                 }}
                                                 disabled={updatingOrderId === order.id}
                                             >
-                                                Cancel
+                                                {t('cancel')}
                                             </Button>
                                         )}
                                         <Button
@@ -1344,7 +1347,7 @@ export default function RestaurantAdminDashboard() {
                 {totalPages > 1 && (
                     <div className="flex justify-between items-center mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
                         <p className="text-sm text-slate-500">
-                            Showing {(orderCurrentPage - 1) * ITEMS_PER_PAGE + 1} to {Math.min(orderCurrentPage * ITEMS_PER_PAGE, filteredOrders.length)} of {filteredOrders.length} orders
+                            {t('showing')} {(orderCurrentPage - 1) * ITEMS_PER_PAGE + 1} {t('to')} {Math.min(orderCurrentPage * ITEMS_PER_PAGE, filteredOrders.length)} {t('of')} {filteredOrders.length} {t('orders')}
                         </p>
                         <div className="flex gap-2">
                             <Button
@@ -1353,7 +1356,7 @@ export default function RestaurantAdminDashboard() {
                                 onClick={() => setOrderCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={orderCurrentPage === 1}
                             >
-                                Previous
+                                {t('previous')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -1361,7 +1364,7 @@ export default function RestaurantAdminDashboard() {
                                 onClick={() => setOrderCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                 disabled={orderCurrentPage === totalPages}
                             >
-                                Next
+                                {t('next')}
                             </Button>
                         </div>
                     </div>
@@ -1373,15 +1376,15 @@ export default function RestaurantAdminDashboard() {
     const renderAnalyticsContent = () => (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Report</h2>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('report')}</h2>
                 <div className="flex gap-2">
                     <Button onClick={() => handleExportReport()} variant="outline" size="sm">
                         <Download className="h-4 w-4 mr-2" />
-                        Export CSV
+                        {t('exportCsv')}
                     </Button>
                     <Button onClick={() => loadReportsData()} variant="outline" size="sm" disabled={loadingReports}>
                         <RefreshCw className={`h-4 w-4 mr-2 ${loadingReports ? 'animate-spin' : ''}`} />
-                        {loadingReports ? 'Loading...' : 'Refresh'}
+                        {loadingReports ? t('loading') : t('refresh')}
                     </Button>
                 </div>
             </div>
@@ -1390,7 +1393,7 @@ export default function RestaurantAdminDashboard() {
             <div className="flex flex-col lg:flex-row gap-4 mb-6">
                 <Select value={reportGranularity} onValueChange={(value: any) => setReportGranularity(value)}>
                     <SelectTrigger className="w-full lg:w-48">
-                        <SelectValue placeholder="Granularity" />
+                        <SelectValue placeholder={t('granularity')} />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="day">Daily</SelectItem>
@@ -1403,13 +1406,13 @@ export default function RestaurantAdminDashboard() {
                         type="date"
                         value={reportDateRange.start}
                         onChange={(e) => setReportDateRange({ ...reportDateRange, start: e.target.value })}
-                        placeholder="Start date"
+                        placeholder={t('startDate')}
                     />
                     <Input
                         type="date"
                         value={reportDateRange.end}
                         onChange={(e) => setReportDateRange({ ...reportDateRange, end: e.target.value })}
-                        placeholder="End date"
+                        placeholder={t('endDate')}
                     />
                 </div>
             </div>
@@ -1418,17 +1421,17 @@ export default function RestaurantAdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Revenue</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('totalRevenue')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold text-emerald-600">
-                            Rp {(reportStats?.stats?.totalRevenue || 0).toLocaleString()}
+                            Rp {(reportStats?.stats?.totalRevenue || 0).toLocaleString('id-ID')}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Orders</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('totalOrders')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">{reportStats?.stats?.totalOrders || 0}</p>
@@ -1436,17 +1439,17 @@ export default function RestaurantAdminDashboard() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Avg Order Value</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('avgOrderValue')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">
-                            Rp {(reportStats?.stats?.averageOrderValue || 0).toLocaleString()}
+                            Rp {(reportStats?.stats?.averageOrderValue || 0).toLocaleString('id-ID')}
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">Completed Orders</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('completedOrders')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-2xl font-bold">{reportStats?.stats?.completedOrders || 0}</p>
@@ -1459,7 +1462,7 @@ export default function RestaurantAdminDashboard() {
                 {reportStats?.topMenuItems && reportStats.topMenuItems.length > 0 && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Top Menu Items</CardTitle>
+                            <CardTitle>{t('topMenuItems')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
@@ -1467,8 +1470,8 @@ export default function RestaurantAdminDashboard() {
                                     <div key={idx} className="flex justify-between items-center">
                                         <span className="text-sm">{item.name}</span>
                                         <div className="flex gap-4 text-sm text-slate-600">
-                                            <span>{item.count} orders</span>
-                                            <span className="font-medium">Rp {item.revenue.toLocaleString()}</span>
+                                            <span>{item.count} {t('orders')}</span>
+                                            <span className="font-medium">Rp {item.revenue.toLocaleString('id-ID')}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -1480,7 +1483,7 @@ export default function RestaurantAdminDashboard() {
                 {reportStats?.topPaymentMethods && reportStats.topPaymentMethods.length > 0 && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Top Payment Methods</CardTitle>
+                            <CardTitle>{t('topPaymentMethods')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
@@ -1488,8 +1491,8 @@ export default function RestaurantAdminDashboard() {
                                     <div key={idx} className="flex justify-between items-center">
                                         <span className="text-sm">💳 {method.name}</span>
                                         <div className="flex gap-4 text-sm text-slate-600">
-                                            <span>{method.count} transactions</span>
-                                            <span className="font-medium">Rp {(method.revenue || 0).toLocaleString()}</span>
+                                            <span>{method.count} {t('transactions')}</span>
+                                            <span className="font-medium">Rp {(method.revenue || 0).toLocaleString('id-ID')}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -1501,7 +1504,7 @@ export default function RestaurantAdminDashboard() {
 
             {!reportStats || Object.keys(reportStats).length === 0 && (
                 <div className="text-center py-12 text-slate-500">
-                    <p>No analytics data available. Select a date range and click Refresh.</p>
+                    <p>{t('noAnalyticsData')}</p>
                 </div>
             )}
         </div>
@@ -1509,7 +1512,7 @@ export default function RestaurantAdminDashboard() {
 
     const renderSettingsContent = () => (
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Restaurant Settings</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('restaurantSettings')}</h2>
             {loadingRestaurant ? (
                 <div className="flex justify-center p-12"><RefreshCw className="h-8 w-8 animate-spin text-emerald-500" /></div>
             ) : (
@@ -1555,7 +1558,7 @@ export default function RestaurantAdminDashboard() {
                     className="bg-emerald-500 hover:bg-emerald-600 text-white"
                 >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Payment Method
+                    {t('addPaymentMethod')}
                 </Button>
             </div>
         </div>
@@ -1587,8 +1590,8 @@ export default function RestaurantAdminDashboard() {
 
                 {!user?.restaurantId && (
                     <div className="mb-6 p-4 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
-                        <p className="font-bold">⚠️ Warning: Restaurant ID not found.</p>
-                        <p className="text-sm mt-1">Please try logging out and logging in again. If the issue persists, contact support.</p>
+                        <p className="font-bold">⚠️ {t('warningRestaurantIdNotFound')}</p>
+                        <p className="text-sm mt-1">{t('pleaseRelogin')}</p>
                     </div>
                 )}
 
@@ -1622,18 +1625,18 @@ export default function RestaurantAdminDashboard() {
             <Dialog open={paymentMethodDialogOpen} onOpenChange={setPaymentMethodDialogOpen}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>{paymentMethodForm.id ? 'Edit Payment Method' : 'Add Payment Method'}</DialogTitle>
-                        <DialogDescription>Configure payment details</DialogDescription>
+                        <DialogTitle>{paymentMethodForm.id ? t('editPaymentMethod') : t('addPaymentMethod')}</DialogTitle>
+                        <DialogDescription>{t('configurePaymentDetails')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="payment-type">Payment Method *</Label>
+                            <Label htmlFor="payment-type">{t('paymentMethod')} *</Label>
                             <Select
                                 value={paymentMethodForm.type || ''}
                                 onValueChange={(value) => setPaymentMethodForm({ ...paymentMethodForm, type: value })}
                             >
                                 <SelectTrigger id="payment-type">
-                                    <SelectValue placeholder="Select payment method" />
+                                    <SelectValue placeholder={t('selectPaymentMethod')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="QRIS">QRIS</SelectItem>
@@ -1649,11 +1652,11 @@ export default function RestaurantAdminDashboard() {
 
                         {/* Account Number */}
                         <div className="space-y-2">
-                            <Label htmlFor="account-number">Account Number / ID</Label>
+                            <Label htmlFor="account-number">{t('accountNumberId')}</Label>
                             <Input
                                 id="account-number"
                                 type="text"
-                                placeholder="e.g., 08123456789 or account number"
+                                placeholder={t('accountNumberExample')}
                                 value={(paymentMethodForm as any).accountNumber || ''}
                                 onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, accountNumber: e.target.value })}
                             />
@@ -1661,11 +1664,11 @@ export default function RestaurantAdminDashboard() {
 
                         {/* Account Name */}
                         <div className="space-y-2">
-                            <Label htmlFor="account-name">Account Name</Label>
+                            <Label htmlFor="account-name">{t('accountName')}</Label>
                             <Input
                                 id="account-name"
                                 type="text"
-                                placeholder="e.g., Restaurant Name"
+                                placeholder={t('accountNameExample')}
                                 value={(paymentMethodForm as any).accountName || ''}
                                 onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, accountName: e.target.value })}
                             />
@@ -1674,7 +1677,7 @@ export default function RestaurantAdminDashboard() {
                         {/* QR Code Upload */}
                         {['QRIS', 'GOPAY', 'DANA', 'OVO', 'SHOPEEPAY', 'LINKAJA'].includes(paymentMethodForm.type || '') && (
                             <div className="space-y-2">
-                                <Label htmlFor="qr-image">QR Code Image</Label>
+                                <Label htmlFor="qr-image">{t('qrCodeImage')}</Label>
                                 <Input
                                     id="qr-image"
                                     type="file"
@@ -1707,18 +1710,18 @@ export default function RestaurantAdminDashboard() {
                             </div>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="merchant-id">Merchant ID (Optional)</Label>
+                            <Label htmlFor="merchant-id">{t('merchantIdOptional')}</Label>
                             <Input
                                 id="merchant-id"
                                 value={paymentMethodForm.merchantId || ''}
                                 onChange={(e) => setPaymentMethodForm({ ...paymentMethodForm, merchantId: e.target.value })}
-                                placeholder="Enter merchant ID"
+                                placeholder={t('enterMerchantId')}
                             />
                         </div>
                     </div>
                     <DialogFooter>
                         <Button onClick={handleSavePaymentMethod} className="bg-green-600 hover:bg-green-700">
-                            {paymentMethodForm.id ? 'Save Changes' : 'Add Payment Method'}
+                            {paymentMethodForm.id ? t('saveChanges') : t('addPaymentMethod')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1728,44 +1731,44 @@ export default function RestaurantAdminDashboard() {
             <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
+                        <DialogTitle>{editingCategory ? t('editCategory') : t('addCategory')}</DialogTitle>
                         <DialogDescription>
-                            {editingCategory ? 'Update category details' : 'Create a new category to organize your menu'}
+                            {editingCategory ? t('updateCategoryDetails') : t('createCategoryDesc')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="category-name">Category Name *</Label>
+                            <Label htmlFor="category-name">{t('categoryName')} *</Label>
                             <Input
                                 id="category-name"
                                 value={categoryForm.name || ''}
                                 onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                                placeholder="e.g., Appetizers, Main Course, Desserts"
+                                placeholder={t('categoryNameExample')}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="category-description">Description (Optional)</Label>
+                            <Label htmlFor="category-description">{t('descriptionOptional')}</Label>
                             <Input
                                 id="category-description"
                                 value={categoryForm.description || ''}
                                 onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
-                                placeholder="Brief description of this category"
+                                placeholder={t('briefCategoryDesc')}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="category-order">Display Order (Optional)</Label>
+                            <Label htmlFor="category-order">{t('displayOrderOptional')}</Label>
                             <Input
                                 id="category-order"
                                 type="number"
                                 value={categoryForm.displayOrder || ''}
                                 onChange={(e) => setCategoryForm({ ...categoryForm, displayOrder: parseInt(e.target.value) || 0 })}
-                                placeholder="Order in menu (lower numbers appear first)"
+                                placeholder={t('orderInMenuDesc')}
                             />
                         </div>
                     </div>
                     <DialogFooter>
                         <Button onClick={handleSaveCategory} className="bg-emerald-600 hover:bg-emerald-700">
-                            {editingCategory ? 'Save Changes' : 'Add Category'}
+                            {editingCategory ? t('saveChanges') : t('addCategory')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -1775,23 +1778,23 @@ export default function RestaurantAdminDashboard() {
             <Dialog open={menuItemDialogOpen} onOpenChange={setMenuItemDialogOpen}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>{editingMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
+                        <DialogTitle>{editingMenuItem ? t('editMenuItem') : t('addMenuItem')}</DialogTitle>
                         <DialogDescription>
-                            {editingMenuItem ? 'Update menu item details' : 'Create a new menu item'}
+                            {editingMenuItem ? t('updateMenuItemDetails') : t('createMenuItemDesc')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="menu-name">Name *</Label>
+                            <Label htmlFor="menu-name">{t('name')} *</Label>
                             <Input
                                 id="menu-name"
                                 value={menuItemForm.name || ''}
                                 onChange={(e) => setMenuItemForm({ ...menuItemForm, name: e.target.value })}
-                                placeholder="Menu item name"
+                                placeholder={t('menuItemName')}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="menu-description">Description</Label>
+                            <Label htmlFor="menu-description">{t('description')}</Label>
                             <Input
                                 id="menu-description"
                                 value={menuItemForm.description || ''}
@@ -1885,14 +1888,14 @@ export default function RestaurantAdminDashboard() {
             <Dialog open={!!validateOrderId} onOpenChange={(open) => !open && setValidateOrderId(null)}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Confirm Accept Order</DialogTitle>
+                        <DialogTitle>{t('confirmAcceptOrder')}</DialogTitle>
                         <DialogDescription>
-                            You can optionally enter customer contact details to send manual notification.
+                            {t('manualNotifyDesc')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
                         <div className="space-y-1">
-                            <Label>Manual Email (Optional)</Label>
+                            <Label>{t('manualEmail')}</Label>
                             <Input
                                 placeholder="customer@example.com"
                                 value={manualEmail}
@@ -1900,7 +1903,7 @@ export default function RestaurantAdminDashboard() {
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label>Manual WhatsApp (Optional)</Label>
+                            <Label>{t('manualPhone')}</Label>
                             <Input
                                 placeholder="62812..."
                                 value={manualPhone}
@@ -1909,8 +1912,8 @@ export default function RestaurantAdminDashboard() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setValidateOrderId(null)}>Cancel</Button>
-                        <Button className="bg-green-600 text-white" onClick={handleValidateOrder}>Confirm & Notify</Button>
+                        <Button variant="outline" onClick={() => setValidateOrderId(null)}>{t('cancelItem')}</Button>
+                        <Button className="bg-green-600 text-white" onClick={handleValidateOrder}>{t('confirmAndNotify')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -1919,27 +1922,27 @@ export default function RestaurantAdminDashboard() {
             <Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Order Details #{viewOrder?.orderNumber}</DialogTitle>
+                        <DialogTitle>{t('orderDetails')} #{viewOrder?.orderNumber}</DialogTitle>
                     </DialogHeader>
                     {viewOrder && (
                         <div className="space-y-4">
                             <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-500">Date:</span>
-                                <span className="font-medium">{new Date(viewOrder.createdAt).toLocaleString()}</span>
+                                <span className="text-gray-500">{t('date')}:</span>
+                                <span className="font-medium">{new Date(viewOrder.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short', hour12: false })}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-500">Customer:</span>
+                                <span className="text-gray-500">{t('customer')}:</span>
                                 <span className="font-medium">{viewOrder.customerName}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-500">Type:</span>
+                                <span className="text-gray-500">{t('type')}:</span>
                                 <Badge variant="outline">
-                                    {(!viewOrder.tableNumber || viewOrder.tableNumber === 'TAKEAWAY') ? 'Take Away' : 'Dine In'}
+                                    {(!viewOrder.tableNumber || viewOrder.tableNumber === 'TAKEAWAY') ? t('takeAway') : t('dineIn')}
                                 </Badge>
                             </div>
                             {viewOrder.tableNumber && viewOrder.tableNumber !== 'TAKEAWAY' && (
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-500">Table:</span>
+                                    <span className="text-gray-500">{t('table')}:</span>
                                     <span className="font-medium">{viewOrder.tableNumber}</span>
                                 </div>
                             )}
@@ -1948,14 +1951,14 @@ export default function RestaurantAdminDashboard() {
                                 {viewOrder.items.map((item: any, idx: number) => (
                                     <div key={idx} className="flex justify-between text-sm">
                                         <span>{item.quantity}x {item.menuItemName}</span>
-                                        <span>Rp {(item.price * item.quantity).toLocaleString()}</span>
+                                        <span>Rp {(item.price * item.quantity).toLocaleString('id-ID')}</span>
                                     </div>
                                 ))}
                             </div>
 
                             <div className="flex justify-between items-center font-bold text-lg">
-                                <span>Total:</span>
-                                <span>Rp {viewOrder.totalAmount.toLocaleString()}</span>
+                                <span>{t('total')}:</span>
+                                <span>Rp {viewOrder.totalAmount.toLocaleString('id-ID')}</span>
                             </div>
 
                             <div className="flex gap-2 justify-end pt-2">
@@ -1965,27 +1968,27 @@ export default function RestaurantAdminDashboard() {
                                         size="sm"
                                         className="text-red-500 hover:text-red-600 hover:bg-red-50"
                                         onClick={async () => {
-                                            if (confirm(`Are you sure you want to delete customer ${viewOrder.customerName}? This will also remove their associated account data.`)) {
+                                            if (confirm(`${t('deleteCustomerWarning')} ${viewOrder.customerName}? ${t('deleteCustomerWarningDesc')}`)) {
                                                 try {
                                                     const res = await fetch(`/api/users/${viewOrder.customerId}`, { method: 'DELETE' })
                                                     const data = await res.json()
                                                     if (data.success) {
-                                                        toast({ title: 'Success', description: data.message || 'Customer deleted' })
+                                                        toast({ title: 'Success', description: data.message || t('customerDeleted') })
                                                         setViewOrder(null) // Close dialog
                                                     } else {
-                                                        toast({ title: 'Error', variant: 'destructive', description: data.error || 'Failed to delete customer' })
+                                                        toast({ title: 'Error', variant: 'destructive', description: data.error || t('failedToDeleteCustomer') })
                                                     }
                                                 } catch (err) {
-                                                    toast({ title: 'Error', variant: 'destructive', description: 'Network error deleting customer' })
+                                                    toast({ title: 'Error', variant: 'destructive', description: t('networkErrorDeletingCustomer') })
                                                 }
                                             }
                                         }}
                                     >
-                                        <Trash2 className="h-4 w-4 mr-1" /> Delete Customer
+                                        <Trash2 className="h-4 w-4 mr-1" /> {t('deleteCustomer')}
                                     </Button>
                                 )}
                                 <Button variant="outline" onClick={() => handlePrintOrder(viewOrder)}>
-                                    <Printer className="h-4 w-4 mr-2" /> Print
+                                    <Printer className="h-4 w-4 mr-2" /> {t('print')}
                                 </Button>
                             </div>
                         </div>

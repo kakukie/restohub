@@ -13,7 +13,7 @@ export function ThemeProvider({
 
     if (pathname === '/') {
         forcedTheme = 'light'
-    } else if (pathname?.startsWith('/admin')) {
+    } else if (pathname?.startsWith('/dashboard')) {
         forcedTheme = 'light'
     }
 

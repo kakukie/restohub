@@ -1,5 +1,8 @@
 'use client'
 
+import { useAppStore } from '@/store/app-store'
+import { useTranslation } from '@/lib/i18n'
+
 import { ShoppingBag, Utensils, QrCode, Wallet, ExternalLink, RefreshCw } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Order } from '@/store/app-store'
@@ -12,6 +15,9 @@ interface RecentOrdersProps {
 }
 
 export default function RecentOrders({ orders, onViewOrder, onPrintOrder, onRefresh }: RecentOrdersProps) {
+    const { language } = useAppStore()
+    const t = useTranslation(language as 'en' | 'id')
+
     // Filter for active orders mostly, but for now just take recent 5
     const recentOrders = orders.slice(0, 5)
 
@@ -33,7 +39,7 @@ export default function RecentOrders({ orders, onViewOrder, onPrintOrder, onRefr
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                    Incoming Orders
+                    {t('incomingOrders')}
                     {orders.some(o => o.status === 'PENDING') && (
                         <span className="flex h-3 w-3 relative">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
@@ -54,7 +60,7 @@ export default function RecentOrders({ orders, onViewOrder, onPrintOrder, onRefr
             <div className="space-y-4">
                 {recentOrders.length === 0 && (
                     <div className="text-center py-10 text-slate-500 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-                        No recent orders found.
+                        {t('noRecentOrders')}
                     </div>
                 )}
 
@@ -78,7 +84,7 @@ export default function RecentOrders({ orders, onViewOrder, onPrintOrder, onRefr
                                             </span>
                                         </div>
                                         <p className="text-xs text-slate-500 mt-1">
-                                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {order.customerName} • {isDineIn ? `Dine In (Table ${order.tableNumber})` : 'Take Away'}
+                                            {new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })} • {order.customerName} • {isDineIn ? `${t('dineIn')} (${t('table')} ${order.tableNumber})` : t('takeAway')}
                                         </p>
                                     </div>
                                 </div>
@@ -102,7 +108,7 @@ export default function RecentOrders({ orders, onViewOrder, onPrintOrder, onRefr
                                         onClick={() => onPrintOrder(order)}
                                         className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-emerald-500 hover:text-white transition-all"
                                     >
-                                        Print
+                                        {t('print')}
                                     </button>
                                     <button
                                         onClick={() => onViewOrder(order)}

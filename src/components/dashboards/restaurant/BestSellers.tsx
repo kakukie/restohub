@@ -1,5 +1,8 @@
 'use client'
 
+import { useAppStore } from '@/store/app-store'
+import { useTranslation } from '@/lib/i18n'
+
 interface BestSellerItem {
     id: string
     name: string
@@ -13,10 +16,13 @@ interface BestSellersProps {
 }
 
 export default function BestSellers({ items }: BestSellersProps) {
+    const { language } = useAppStore()
+    const t = useTranslation(language as 'en' | 'id')
+
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Best Sellers</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('bestSellers')}</h2>
             </div>
             <div className="space-y-4">
                 {items.slice(0, 5).map((item) => (
@@ -32,12 +38,12 @@ export default function BestSellers({ items }: BestSellersProps) {
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">No Img</div>
+                                <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">{t('noImg')}</div>
                             )}
                         </div>
                         <div className="flex-1 min-w-0">
                             <h4 className="font-bold truncate text-sm text-slate-900 dark:text-white">{item.name}</h4>
-                            <p className="text-xs text-slate-500">{item.soldCount} sold this week</p>
+                            <p className="text-xs text-slate-500">{item.soldCount} {t('soldThisWeek')}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-emerald-500 font-bold text-sm">
@@ -47,7 +53,7 @@ export default function BestSellers({ items }: BestSellersProps) {
                     </div>
                 ))}
                 {items.length === 0 && (
-                    <div className="text-slate-500 text-sm">No best sellers yet. Mark items as &quot;Best Seller&quot; in Menu.</div>
+                    <div className="text-slate-500 text-sm">{t('noBestSellers')}</div>
                 )}
             </div>
         </div>

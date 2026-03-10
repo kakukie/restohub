@@ -163,7 +163,7 @@ export default function HelpdeskChat({ role }: { role: 'SUPER_ADMIN' | 'RESTAURA
                                     <div className="flex justify-between items-start mb-1">
                                         <p className="font-bold text-sm truncate pr-2">{session.restaurantName}</p>
                                         <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                                            {new Date(session.timestamp || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {new Date(session.timestamp || '').toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}
                                         </span>
                                     </div>
                                     <p className="text-xs text-slate-500 line-clamp-1">{session.lastMessage}</p>
@@ -257,7 +257,7 @@ export default function HelpdeskChat({ role }: { role: 'SUPER_ADMIN' | 'RESTAURA
                                                 </div>
                                             </div>
                                             <span className="text-[10px] text-slate-400 mt-1 px-10">
-                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(msg.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}
                                             </span>
                                         </div>
                                     )

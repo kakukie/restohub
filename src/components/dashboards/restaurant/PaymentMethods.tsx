@@ -1,5 +1,8 @@
 'use client'
 
+import { useAppStore } from '@/store/app-store'
+import { useTranslation } from '@/lib/i18n'
+
 import { Wallet, QrCode, Banknote } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 
@@ -17,6 +20,9 @@ interface PaymentMethodsProps {
 }
 
 export default function PaymentMethods({ methods, onToggle, onEdit, onDelete }: PaymentMethodsProps) {
+    const { language } = useAppStore()
+    const t = useTranslation(language as 'en' | 'id')
+
     const getIcon = (type: string) => {
         switch (type) {
             case 'OVO': return <Wallet className="h-6 w-6 text-purple-600" />
@@ -37,7 +43,7 @@ export default function PaymentMethods({ methods, onToggle, onEdit, onDelete }: 
 
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Payment Methods</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('paymentMethods')}</h2>
             <div className="grid grid-cols-1 gap-4">
                 {methods.map((method) => (
                     <div
@@ -69,20 +75,20 @@ export default function PaymentMethods({ methods, onToggle, onEdit, onDelete }: 
                                     onClick={() => onEdit(method)}
                                     className="text-slate-500 hover:text-blue-500 transition-colors"
                                 >
-                                    <span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Edit</span>
+                                    <span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{t('edit')}</span>
                                 </button>
                                 <button
                                     onClick={() => onDelete(method.id)}
                                     className="text-slate-500 hover:text-red-500 transition-colors"
                                 >
-                                    <span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Delete</span>
+                                    <span className="text-xs font-bold bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{t('delete')}</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 ))}
                 {methods.length === 0 && (
-                    <div className="text-slate-500 text-sm">No payment methods configured.</div>
+                    <div className="text-slate-500 text-sm">{t('noPaymentMethods')}</div>
                 )}
             </div>
         </div>

@@ -51,8 +51,13 @@ export default function SuperAdminDashboard() {
     broadcastAnnouncement,
     setSubscriptionPlans,
     setRestaurants,
-    setUsers
+    setUsers,
+    language
   } = useAppStore()
+
+  // Initialize translation hook
+  const { useTranslation } = require('@/lib/i18n')
+  const t = useTranslation(language || 'en')
 
   // Fetch Settings on Mount
   useEffect(() => {
@@ -722,8 +727,8 @@ export default function SuperAdminDashboard() {
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#F8FAFC]">Executive Dashboard</h2>
-          <p className="text-slate-400">Welcome back. Here's what's happening today.</p>
+          <h2 className="text-3xl font-extrabold text-[#F8FAFC]">Executive {t('dashboard')}</h2>
+          <p className="text-slate-400">{t('welcome')}. Here's what's happening today.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" className="bg-[#1A2235] border-[#2A344A] hover:bg-[#2A344A] text-[#F8FAFC] rounded-full text-sm font-medium transition-all">
@@ -993,7 +998,7 @@ export default function SuperAdminDashboard() {
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Restaurant Management</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">{t('restaurantSettings')}</h2>
           <p className="text-slate-500 dark:text-slate-400">Manage and monitor all restaurant merchants across the platform.</p>
         </div>
         <div className="flex items-center gap-3">
