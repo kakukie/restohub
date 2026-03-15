@@ -16,11 +16,26 @@ ensure_node() {
     return 0
   fi
 
-  # Try NODE_HOME hint
+  # Use NODE_HOME if provided
   if [ -n "${NODE_HOME:-}" ] && [ -x "$NODE_HOME/bin/node" ]; then
     export PATH="$NODE_HOME/bin:$PATH"
     return 0
   fi
+
+  # Search common install prefixes
+  for dir in \
+    /opt/node*/bin \
+    /usr/local/lib/nodejs/node-v*/bin \
+    /usr/local/node*/bin \
+    "$HOME"/node*/bin \
+    "$HOME"/.node/bin; do
+    for candidate in $dir; do
+      if [ -x "$candidate/node" ]; then
+        export PATH="$candidate:$PATH"
+        return 0
+      fi
+    done
+  done
 
   # Try NVM default (if available)
   if [ -s "$HOME/.nvm/nvm.sh" ]; then
@@ -30,7 +45,10 @@ ensure_node() {
     command -v node >/dev/null 2>&1 && return 0
   fi
 
-  echo "ERROR: 'node' not found in PATH. Set NODE_HOME or install Node 22."
+  echo "ERROR: 'node' not found in PATH."
+  echo "Hints:"
+  echo "  export NODE_HOME=/opt/node-v22.x.x-linux-x64"
+  echo "  export PATH=\"\$NODE_HOME/bin:\$PATH\""
   exit 1
 }
 
