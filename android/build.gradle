@@ -9,6 +9,8 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.7.2'
         classpath 'com.google.gms:google-services:4.4.2'
+        // Kotlin toolchain aligned to AGP 8.7 expectations
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -21,6 +23,11 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+    configurations.all {
+        resolutionStrategy.force "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
+        resolutionStrategy.force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22"
+        resolutionStrategy.force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22"
     }
 }
 
