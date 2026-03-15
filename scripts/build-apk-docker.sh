@@ -23,9 +23,10 @@ run_in_container() {
   docker exec -i "$c" /bin/bash -lc "
     set -euo pipefail
     export NODE_BIN=\"$NODE_BIN\"
-    if [ -d \"$JAVA_HOME_DOCKER\" ]; then
-      export JAVA_HOME=\"$JAVA_HOME_DOCKER\"
-      export PATH=\"$JAVA_HOME/bin:\$PATH\"
+    JHD=\"${JAVA_HOME_DOCKER:-}\"
+    if [ -n \"\$JHD\" ] && [ -d \"\$JHD\" ]; then
+      export JAVA_HOME=\"\$JHD\"
+      export PATH=\"\$JAVA_HOME/bin:\$PATH\"
     fi
     cd \"$APP_PATH\"
     chmod +x scripts/build-apk.sh
