@@ -6,82 +6,94 @@ fi
 
 set -euo pipefail
 
-# Run APK build inside specified Docker containers.
-# Defaults:
+# Run APK build inside specified Docker containers without requiring apt-get or
+# download tools inside the container. We copy a JDK tarball from the host.
+#
+# Defaults (override with env vars):
 #   CONTAINERS: "meenuin-app-1 meenuin-app-2"
-#   APP_PATH: "/app"   (path to repo inside container)
-#   NODE_BIN: "/usr/local/bin/node"
+#   APP_PATH: "/app"                  (path to repo inside container)
+#   NODE_BIN: "/usr/local/bin/node"   (node path inside container)
+#   JAVA_HOME_DOCKER: "/usr/lib/jvm/java-21-openjdk-amd64" (preinstalled JDK path)
+#   JDK_TARBALL_HOST: "/tmp/jdk21.tar.gz" (host path to tarball)
+#   JDK_DIR_IN_CONTAINER: "/tmp/jdk21"    (where tarball is extracted)
+#   JDK_URL_DEFAULT: Temurin 21.0.3 hotspot x64 Linux tarball
 
 CONTAINERS=${CONTAINERS:-"meenuin-app-1 meenuin-app-2"}
 APP_PATH=${APP_PATH:-"/app"}
 NODE_BIN=${NODE_BIN:-"/usr/local/bin/node"}
 JAVA_HOME_DOCKER=${JAVA_HOME_DOCKER:-"/usr/lib/jvm/java-21-openjdk-amd64"}
+JDK_TARBALL_HOST=${JDK_TARBALL_HOST:-"/tmp/jdk21.tar.gz"}
+JDK_DIR_IN_CONTAINER=${JDK_DIR_IN_CONTAINER:-"/tmp/jdk21"}
+JDK_URL_DEFAULT=${JDK_URL_DEFAULT:-"https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz"}
+
+ensure_host_jdk_tarball() {
+  if [ -f "$JDK_TARBALL_HOST" ]; then
+    return 0
+  fi
+  echo "Host: downloading JDK tarball to $JDK_TARBALL_HOST ..."
+  if command -v curl >/dev/null 2>&1; then
+    curl -L "$JDK_URL_DEFAULT" -o "$JDK_TARBALL_HOST"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -O "$JDK_TARBALL_HOST" "$JDK_URL_DEFAULT"
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 - <<PY
+import urllib.request
+url = "$JDK_URL_DEFAULT"
+urllib.request.urlretrieve(url, "$JDK_TARBALL_HOST")
+PY
+  else
+    echo "ERROR: need curl/wget/python3 on host to fetch JDK tarball (or set JDK_TARBALL_HOST to an existing file)." >&2
+    exit 1
+  fi
+}
+
+copy_tarball_into_container() {
+  local c="$1"
+  ensure_host_jdk_tarball
+  echo "Copying JDK tarball into container $c ..."
+  docker cp "$JDK_TARBALL_HOST" "${c}:/tmp/jdk21.tar.gz"
+}
 
 run_in_container() {
   local c="$1"
   echo "== Building inside container $c =="
+  copy_tarball_into_container "$c"
+
   docker exec -i "$c" /bin/bash -lc "
     set -euo pipefail
     export NODE_BIN=\"$NODE_BIN\"
-    JHD=\"${JAVA_HOME_DOCKER:-}\"
-    if [ -n \"\$JHD\" ] && [ -d \"\$JHD\" ]; then
-      export JAVA_HOME=\"\$JHD\"
+
+    # Prefer provided JAVA_HOME_DOCKER if it exists
+    if [ -n \"${JAVA_HOME_DOCKER}\" ] && [ -d \"${JAVA_HOME_DOCKER}\" ]; then
+      export JAVA_HOME=\"${JAVA_HOME_DOCKER}\"
       export PATH=\"\$JAVA_HOME/bin:\$PATH\"
     elif command -v javac >/dev/null 2>&1; then
       JBIN=\$(command -v javac)
       export JAVA_HOME=\$(cd \$(dirname \"\$JBIN\")/../.. && pwd)
       export PATH=\"\$JAVA_HOME/bin:\$PATH\"
     else
-      DOWNLOAD_JDK=0
-      if command -v apt-get >/dev/null 2>&1; then
-        echo \"Installing OpenJDK 21 inside container $c...\"
-        export DEBIAN_FRONTEND=noninteractive
-        if [ -w /var/lib/apt/lists ] && [ -w /var/cache/apt/archives ]; then
-          apt-get update -y && apt-get install -y openjdk-21-jdk
-        elif command -v sudo >/dev/null 2>&1; then
-          sudo apt-get update -y && sudo apt-get install -y openjdk-21-jdk
-        else
-          echo \"WARN: No permission to run apt-get; falling back to portable JDK download.\"
-          DOWNLOAD_JDK=1
-        fi
-      else
-        DOWNLOAD_JDK=1
+      # Extract host-provided tarball inside container
+      if [ ! -f /tmp/jdk21.tar.gz ]; then
+        echo \"ERROR: /tmp/jdk21.tar.gz missing inside container $c\" >&2
+        exit 1
       fi
-
-      if [ \"\$DOWNLOAD_JDK\" -eq 1 ]; then
-        TMP_JDK=/tmp/jdk21
-        mkdir -p \"\$TMP_JDK\"
-        echo \"Downloading portable Temurin JDK 21 to \$TMP_JDK ...\"
-        JDK_URL=\"https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz\"
-        if command -v curl >/dev/null 2>&1; then
-          curl -L \"\$JDK_URL\" -o /tmp/jdk21.tar.gz
-        elif command -v wget >/dev/null 2>&1; then
-          wget -O /tmp/jdk21.tar.gz \"\$JDK_URL\"
-        elif command -v python3 >/dev/null 2>&1; then
-          python3 - <<'PY'
-import urllib.request
-url = "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz"
-urllib.request.urlretrieve(url, "/tmp/jdk21.tar.gz")
-PY
-        else
-          echo \"ERROR: need curl/wget/python3 to fetch JDK. Set JAVA_HOME_DOCKER manually.\" && exit 1
-        fi
-        tar -xzf /tmp/jdk21.tar.gz -C \"\$TMP_JDK\" --strip-components=1
-        export JAVA_HOME=\"\$TMP_JDK\"
-        export PATH=\"\$JAVA_HOME/bin:\$PATH\"
-      fi
-
-      JBIN=\$(command -v javac || true)
-      if [ -z \"\$JBIN\" ]; then
-        echo \"ERROR: javac still not found in container $c\" && exit 1
-      fi
-      export JAVA_HOME=\$(cd \$(dirname \"\$JBIN\")/../.. && pwd)
+      rm -rf \"${JDK_DIR_IN_CONTAINER}\"
+      mkdir -p \"${JDK_DIR_IN_CONTAINER}\"
+      tar -xzf /tmp/jdk21.tar.gz -C \"${JDK_DIR_IN_CONTAINER}\" --strip-components=1
+      export JAVA_HOME=\"${JDK_DIR_IN_CONTAINER}\"
       export PATH=\"\$JAVA_HOME/bin:\$PATH\"
     fi
+
+    if ! command -v javac >/dev/null 2>&1; then
+      echo \"ERROR: javac not available after JDK setup in container $c\" >&2
+      exit 1
+    fi
+
     cd \"$APP_PATH\"
     chmod +x scripts/build-apk.sh
     ./scripts/build-apk.sh
   "
+
   echo "== Done in $c =="
 }
 
