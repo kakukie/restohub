@@ -16,6 +16,12 @@ ensure_node() {
     return 0
   fi
 
+  # Explicit NODE_BIN override
+  if [ -n "${NODE_BIN:-}" ] && [ -x "$NODE_BIN" ]; then
+    export PATH="$(dirname "$NODE_BIN"):$PATH"
+    return 0
+  fi
+
   # Use NODE_HOME if provided
   if [ -n "${NODE_HOME:-}" ] && [ -x "$NODE_HOME/bin/node" ]; then
     export PATH="$NODE_HOME/bin:$PATH"
@@ -27,6 +33,8 @@ ensure_node() {
     /opt/node*/bin \
     /usr/local/lib/nodejs/node-v*/bin \
     /usr/local/node*/bin \
+    /usr/local/bin \
+    /usr/bin \
     "$HOME"/node*/bin \
     "$HOME"/.node/bin; do
     for candidate in $dir; do
