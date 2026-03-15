@@ -15,6 +15,7 @@ set -euo pipefail
 CONTAINERS=${CONTAINERS:-"meenuin-app-1 meenuin-app-2"}
 APP_PATH=${APP_PATH:-"/app"}
 NODE_BIN=${NODE_BIN:-"/usr/local/bin/node"}
+JAVA_HOME_DOCKER=${JAVA_HOME_DOCKER:-"/usr/lib/jvm/java-21-openjdk-amd64"}
 
 run_in_container() {
   local c="$1"
@@ -22,6 +23,10 @@ run_in_container() {
   docker exec -i "$c" /bin/bash -lc "
     set -euo pipefail
     export NODE_BIN=\"$NODE_BIN\"
+    if [ -d \"$JAVA_HOME_DOCKER\" ]; then
+      export JAVA_HOME=\"$JAVA_HOME_DOCKER\"
+      export PATH=\"$JAVA_HOME/bin:\$PATH\"
+    fi
     cd \"$APP_PATH\"
     chmod +x scripts/build-apk.sh
     ./scripts/build-apk.sh

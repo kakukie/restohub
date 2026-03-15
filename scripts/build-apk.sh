@@ -73,6 +73,11 @@ echo "== Checking prerequisites =="
 ensure_node
 need npm
 need npx
+if ! command -v javac >/dev/null 2>&1; then
+  if [ -n "${JAVA_HOME:-}" ] && [ -x "$JAVA_HOME/bin/javac" ]; then
+    export PATH="$JAVA_HOME/bin:$PATH"
+  fi
+fi
 need javac
 need sdkmanager || echo "WARN: sdkmanager not found; assume SDK already installed."
 
