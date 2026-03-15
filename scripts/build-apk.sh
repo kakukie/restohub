@@ -73,12 +73,38 @@ echo "== Checking prerequisites =="
 ensure_node
 need npm
 need npx
-if ! command -v javac >/dev/null 2>&1; then
+ensure_javac() {
+  # Already in PATH?
+  if command -v javac >/dev/null 2>&1; then return 0; fi
+
+  # Try JAVA_HOME
   if [ -n "${JAVA_HOME:-}" ] && [ -x "$JAVA_HOME/bin/javac" ]; then
     export PATH="$JAVA_HOME/bin:$PATH"
+    return 0
   fi
-fi
-need javac
+
+  # Try common JDK paths
+  for jdk in /usr/lib/jvm/java-21-openjdk-amd64 /usr/lib/jvm/java-17-openjdk-amd64 /usr/lib/jvm/java-21-openjdk /opt/java/openjdk; do
+    if [ -x "$jdk/bin/javac" ]; then
+      export JAVA_HOME="$jdk"
+      export PATH="$JAVA_HOME/bin:$PATH"
+      return 0
+    fi
+  done
+
+  # Try installing if apt-get available
+  if command -v apt-get >/dev/null 2>&1; then
+    echo "Installing OpenJDK 21 via apt-get..."
+    export DEBIAN_FRONTEND=noninteractive
+    sudo apt-get update -y && sudo apt-get install -y openjdk-21-jdk
+    command -v javac >/dev/null 2>&1 && return 0
+  fi
+
+  echo "ERROR: 'javac' not found and could not install JDK. Set JAVA_HOME or install OpenJDK 21."
+  exit 1
+}
+
+ensure_javac
 need sdkmanager || echo "WARN: sdkmanager not found; assume SDK already installed."
 
 echo "== Installing JS deps (npm ci) =="
