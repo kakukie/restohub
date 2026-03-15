@@ -27,6 +27,19 @@ run_in_container() {
     if [ -n \"\$JHD\" ] && [ -d \"\$JHD\" ]; then
       export JAVA_HOME=\"\$JHD\"
       export PATH=\"\$JAVA_HOME/bin:\$PATH\"
+    elif command -v javac >/dev/null 2>&1; then
+      JBIN=\$(command -v javac)
+      export JAVA_HOME=\$(cd \$(dirname \"\$JBIN\")/../.. && pwd)
+      export PATH=\"\$JAVA_HOME/bin:\$PATH\"
+    elif command -v apt-get >/dev/null 2>&1; then
+      echo \"Installing OpenJDK 21 inside container $c...\"
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update -y && apt-get install -y openjdk-21-jdk
+      JBIN=\$(command -v javac)
+      export JAVA_HOME=\$(cd \$(dirname \"\$JBIN\")/../.. && pwd)
+      export PATH=\"\$JAVA_HOME/bin:\$PATH\"
+    else
+      echo \"ERROR: javac not found and apt-get not available in container $c\" && exit 1
     fi
     cd \"$APP_PATH\"
     chmod +x scripts/build-apk.sh

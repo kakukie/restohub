@@ -96,8 +96,18 @@ ensure_javac() {
   if command -v apt-get >/dev/null 2>&1; then
     echo "Installing OpenJDK 21 via apt-get..."
     export DEBIAN_FRONTEND=noninteractive
-    sudo apt-get update -y && sudo apt-get install -y openjdk-21-jdk
-    command -v javac >/dev/null 2>&1 && return 0
+    if command -v sudo >/dev/null 2>&1; then
+      sudo apt-get update -y && sudo apt-get install -y openjdk-21-jdk
+    else
+      apt-get update -y && apt-get install -y openjdk-21-jdk
+    fi
+    # try detect JAVA_HOME from javac path
+    if command -v javac >/dev/null 2>&1; then
+      local_javac="$(command -v javac)"
+      export JAVA_HOME="$(cd "$(dirname "$local_javac")/../.." && pwd)"
+      export PATH="$JAVA_HOME/bin:$PATH"
+      return 0
+    fi
   fi
 
   echo "ERROR: 'javac' not found and could not install JDK. Set JAVA_HOME or install OpenJDK 21."
