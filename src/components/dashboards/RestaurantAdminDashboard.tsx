@@ -12,7 +12,6 @@ import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/a
 import { toast } from '@/hooks/use-toast'
 import QRCodeDialog from '@/components/common/QRCodeDialog'
 import { useTranslation } from '@/lib/i18n'
-import { ThermalPrinter } from '@/lib/native-printer'
 
 // New Components
 import Sidebar from './restaurant/Sidebar'
@@ -373,19 +372,7 @@ export default function RestaurantAdminDashboard() {
                 phone: currentRestaurant?.phone || ''
             };
 
-            // 1) Native Capacitor plugin (Android/iOS)
-            try {
-                await ThermalPrinter.printReceipt({
-                    orderData: JSON.stringify(orderData),
-                    restaurantData: JSON.stringify(restaurantData)
-                })
-                toast({ title: "Mencetak", description: "Struk dikirim ke printer kasir (native)" });
-                return;
-            } catch (nativeErr) {
-                console.log("Native printer unavailable, fallback to web/bluetooth", nativeErr);
-            }
-
-            // 2) Legacy WebView injection if any
+            // 1) Legacy WebView injection (MainActivity JS interface)
             if (window.Android && window.Android.printReceipt) {
                 toast({ title: "Mencetak", description: "Mengirim format struk ke printer kasir..." });
                 window.Android.printReceipt(
@@ -395,7 +382,7 @@ export default function RestaurantAdminDashboard() {
                 return;
             }
             
-            // 3) Web Bluetooth fallback
+            // 2) Web Bluetooth fallback
             if (navigator.bluetooth) {
                  const printerAuth = new BluetoothPrinterService();
                  let isConnected = false;
@@ -413,7 +400,7 @@ export default function RestaurantAdminDashboard() {
                  }
             }
             
-            // 4) Fallback: Browser print dialog / PDF
+            // 3) Fallback: Browser print dialog / PDF
             const printWindow = window.open('', '_blank')
             if (printWindow) {
                 const logoHtml = currentRestaurant?.logoUrl

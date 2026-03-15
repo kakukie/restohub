@@ -7,6 +7,9 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    registerPlugin(ThermalPrinterPlugin.class);
+    // Expose JS interface for thermal printing
+    if (getBridge() != null && getBridge().getWebView() != null) {
+      getBridge().getWebView().addJavascriptInterface(new PrinterBridge(this), "Android");
+    }
   }
 }
