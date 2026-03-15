@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button'
 import { Copy, Download } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
+import { useAppStore } from '@/store/app-store'
+import { useTranslation } from '@/lib/i18n'
 
 interface QRCodeDialogProps {
   open: boolean
@@ -13,12 +15,15 @@ interface QRCodeDialogProps {
 }
 
 export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, restaurantName }: QRCodeDialogProps) {
+  const { language } = useAppStore()
+  const t = useTranslation(language as 'en' | 'id')
+
   // Use slug for the URL (properly formatted for sharing)
   const menuUrl = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/menu/${encodeURIComponent(restaurantSlug)}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(menuUrl)
-    toast({ title: 'Copied!', description: 'Menu link copied to clipboard' })
+    toast({ title: t('copied'), description: t('menuLinkCopied') })
   }
 
   const handleDownloadQR = () => {
@@ -28,16 +33,16 @@ export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, resta
     link.href = qrUrl
     link.download = `qr-${restaurantName}.png`
     link.click()
-    toast({ title: 'Downloaded!', description: 'QR code downloaded successfully' })
+    toast({ title: t('downloaded'), description: t('qrDownloaded') })
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>QR Code Menu</DialogTitle>
+          <DialogTitle>{t('qrCodeMenu')}</DialogTitle>
           <DialogDescription>
-            Share this QR code with your customers to view the menu
+            {t('shareQrCodeDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -53,7 +58,7 @@ export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, resta
 
           {/* Menu URL */}
           <div className="w-full">
-            <div className="text-sm font-medium mb-2">Menu URL:</div>
+            <div className="text-sm font-medium mb-2">{t('menuUrl')}</div>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -71,10 +76,10 @@ export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, resta
           <div className="flex gap-2 w-full">
             <Button onClick={handleDownloadQR} className="flex-1">
               <Download className="h-4 w-4 mr-2" />
-              Download QR
+              {t('downloadQr')}
             </Button>
             <Button variant="outline" onClick={() => window.open(menuUrl, '_blank')} className="flex-1">
-              Preview Menu
+              {t('previewMenu')}
             </Button>
           </div>
         </div>

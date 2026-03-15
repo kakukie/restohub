@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/hooks/use-toast'
-import { User } from '@/store/app-store'
+import { User, useAppStore } from '@/store/app-store'
+import { useTranslation } from '@/lib/i18n'
 
 interface StaffManagementProps {
     restaurantId: string
@@ -23,6 +24,8 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editingStaff, setEditingStaff] = useState<User | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
+    const { language } = useAppStore()
+    const t = useTranslation(language as 'en' | 'id')
 
     // Form State
     const [formData, setFormData] = useState({
@@ -123,7 +126,7 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to remove this staff member?')) return
+        if (!confirm(t('deleteStaffConfirm'))) return
 
         try {
             const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE' })
@@ -147,11 +150,11 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Staff Management</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('staffManagement')}</h2>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        Manage your restaurant team members.
+                        {t('manageStaffDesc')}
                         <span className={staff.length >= maxStaff ? "text-red-500 font-bold ml-1" : "text-emerald-600 font-medium ml-1"}>
-                            ({staff.length} / {maxStaff === 0 ? 'Unlimited' : maxStaff} used)
+                            ({staff.length} / {maxStaff === 0 ? t('unlimited') : maxStaff} {t('used')})
                         </span>
                     </p>
                 </div>
@@ -159,7 +162,7 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
                         <Input
-                            placeholder="Search staff..."
+                            placeholder={t('searchStaff')}
                             className="pl-9"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -171,16 +174,16 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
                         className="bg-emerald-500 hover:bg-emerald-600"
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Staff
+                        {t('addStaff')}
                     </Button>
                 </div>
             </div>
 
             {loading ? (
-                <div className="text-center py-12">Loading staff...</div>
+                <div className="text-center py-12">{t('loadingState')}</div>
             ) : filteredStaff.length === 0 ? (
                 <div className="text-center py-12 text-slate-500 border rounded-xl border-dashed">
-                    <p>No staff members found.</p>
+                    <p>{t('noStaffFound')}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -229,15 +232,15 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{editingStaff ? 'Edit Staff Member' : 'Add New Staff'}</DialogTitle>
+                        <DialogTitle>{editingStaff ? t('editStaff') : t('addNewStaff')}</DialogTitle>
                         <DialogDescription>
-                            {editingStaff ? 'Update staff details.' : 'Create a new account for your staff member.'}
+                            {editingStaff ? t('updateStaffDesc') : t('createStaffDesc')}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label>Full Name</Label>
+                            <Label>{t('fullName')}</Label>
                             <Input
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -245,7 +248,7 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Email</Label>
+                            <Label>{t('email')}</Label>
                             <Input
                                 type="email"
                                 value={formData.email}
@@ -254,7 +257,7 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Phone (Optional)</Label>
+                            <Label>{t('phone')} (Opsional)</Label>
                             <Input
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -262,7 +265,7 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{editingStaff ? 'New Password (leave blank to keep)' : 'Password'}</Label>
+                            <Label>{editingStaff ? t('newPasswordOptional') : t('password')}</Label>
                             <Input
                                 type="password"
                                 value={formData.password}
@@ -272,8 +275,8 @@ export default function StaffManagement({ restaurantId, maxStaff = 5 }: StaffMan
                     </div>
 
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSubmit} className="bg-emerald-500 hover:bg-emerald-600">Save Staff</Button>
+                        <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('cancelAction')}</Button>
+                        <Button onClick={handleSubmit} className="bg-emerald-500 hover:bg-emerald-600">{t('saveStaff')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

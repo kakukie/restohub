@@ -12,6 +12,7 @@ import { useAppStore, MenuItem, Category, PaymentMethod, Order } from '@/store/a
 import { toast } from '@/hooks/use-toast'
 import QRCodeDialog from '@/components/common/QRCodeDialog'
 import { useTranslation } from '@/lib/i18n'
+import { ThermalPrinter } from '@/lib/native-printer'
 
 // New Components
 import Sidebar from './restaurant/Sidebar'
@@ -29,9 +30,10 @@ import HelpdeskChat from './HelpdeskChat'
 import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' // Might still need for sub-tabs
-import { Plus, Edit, Trash2, Search, Filter, RefreshCw, Printer, Grid, List, Eye, Check, X, Download } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Plus, Minus, Search, Trash2, Edit2, Camera, Bell, CheckCircle2, XCircle, FileText, ChevronDown, ChevronUp, Clock, FileDown, Eye, Filter, Loader2, Printer, Grid, List, Check, X, Edit, RefreshCw, Download } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { BluetoothPrinterService } from '@/lib/bluetooth-printer'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
@@ -39,7 +41,17 @@ import { Checkbox } from '@/components/ui/checkbox'
 
 // ... (Import other necessary UI components like in Old file)
 
+// At the top of the file or in a separate definitions file
+declare global {
+    interface Window {
+        Android?: {
+            printReceipt: (orderData: string, restaurantData: string) => void;
+        };
+    }
+}
 
+interface RestaurantAdminDashboardProps {
+}
 
 export default function RestaurantAdminDashboard() {
     const {
@@ -336,89 +348,158 @@ export default function RestaurantAdminDashboard() {
 
 
 
-    const handlePrintOrder = (order: any) => {
-        const printWindow = window.open('', '_blank')
-        if (printWindow) {
-            const logoHtml = currentRestaurant?.logoUrl
-                ? `<div style="text-align: center; margin-bottom: 10px;"><img src="${currentRestaurant.logoUrl}" style="max-height: 50px; border-radius: 8px;" /></div>`
-                : '';
+    const handlePrintOrder = async (order: any) => {
+        try {
+            toast({ title: "Inisiasi Printer", description: "Mencari printer bluetooth..." });
+            
+            const orderData = {
+                id: order.id,
+                orderNumber: order.orderNumber,
+                createdAt: order.createdAt,
+                customerName: order.customerName || 'Guest',
+                tableNumber: order.tableNumber || '',
+                items: order.items.map((item: any) => ({
+                    menuItemName: item.menuItemName,
+                    quantity: item.quantity,
+                    price: item.price,
+                    notes: item.notes || ''
+                })),
+                totalAmount: order.totalAmount
+            };
+            
+            const restaurantData = {
+                name: currentRestaurant?.name || 'Restaurant',
+                address: currentRestaurant?.address || '',
+                phone: currentRestaurant?.phone || ''
+            };
 
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Order #${order.orderNumber}</title>
-                    <style>
-                        @page {
-                            size: 58mm auto; /* Fallback for many mobile printers */
-                            margin: 0;
-                        }
-                        @media print {
-                            body { margin: 0; padding: 5mm; }
-                            .no-print { display: none; }
-                            @page { margin: 0; }
-                        }
-                        body { 
-                            font-family: 'Courier New', Courier, monospace; 
-                            line-height: 1.2;
-                            font-size: 12px;
-                            width: 58mm; /* Default to 58mm width */
-                            margin: 0 auto;
-                            color: #000;
-                        }
-                        .header { text-align: center; margin-bottom: 10px; }
-                        .logo { max-height: 40px; margin-bottom: 5px; }
-                        .center { text-align: center; }
-                        .dashed-line { border-top: 1px dashed #000; margin: 8px 0; }
-                        .item { display: flex; justify-content: space-between; margin: 2px 0; }
-                        .item-name { flex: 1; padding-right: 5px; }
-                        .item-price { white-space: nowrap; }
-                        .total { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-top: 5px; }
-                        .footer { text-align: center; margin-top: 15px; font-size: 10px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        ${logoHtml}
-                        <div style="font-weight: bold; font-size: 16px;">${currentRestaurant?.name || 'Restaurant'}</div>
-                        <div>${currentRestaurant?.address || ''}</div>
-                        <div>${currentRestaurant?.phone || ''}</div>
-                    </div>
+            // 1) Native Capacitor plugin (Android/iOS)
+            try {
+                await ThermalPrinter.printReceipt({
+                    orderData: JSON.stringify(orderData),
+                    restaurantData: JSON.stringify(restaurantData)
+                })
+                toast({ title: "Mencetak", description: "Struk dikirim ke printer kasir (native)" });
+                return;
+            } catch (nativeErr) {
+                console.log("Native printer unavailable, fallback to web/bluetooth", nativeErr);
+            }
 
-                    <div class="dashed-line"></div>
-                    
-                    <div><strong>No: #${order.orderNumber}</strong></div>
-                    <div>Tgl: ${new Date(order.createdAt).toLocaleString('id-ID')}</div>
-                    <div>Cust: ${order.customerName || 'Guest'}</div>
-                    <div>Tipe: ${order.tableNumber ? `Meja ${order.tableNumber}` : 'Takeaway'}</div>
+            // 2) Legacy WebView injection if any
+            if (window.Android && window.Android.printReceipt) {
+                toast({ title: "Mencetak", description: "Mengirim format struk ke printer kasir..." });
+                window.Android.printReceipt(
+                    JSON.stringify(orderData),
+                    JSON.stringify(restaurantData)
+                );
+                return;
+            }
+            
+            // 3) Web Bluetooth fallback
+            if (navigator.bluetooth) {
+                 const printerAuth = new BluetoothPrinterService();
+                 let isConnected = false;
+                 try {
+                     isConnected = await printerAuth.connect();
+                 } catch(err) {
+                     console.log("Bluetooth connect failed or canceled, fallback to PDF", err);
+                 }
+                 
+                 if(isConnected) {
+                     toast({ title: "Mencetak", description: "Mengirim format ESC/POS ke printer restoran..." });
+                     await printerAuth.printReceipt(order, currentRestaurant);
+                     toast({ title: "Sukses", description: "Struk berhasil dicetak di thermal printer!" });
+                     return;
+                 }
+            }
+            
+            // 4) Fallback: Browser print dialog / PDF
+            const printWindow = window.open('', '_blank')
+            if (printWindow) {
+                const logoHtml = currentRestaurant?.logoUrl
+                    ? `<div style=\"text-align: center; margin-bottom: 10px;\"><img src=\"${currentRestaurant.logoUrl}\" style=\"max-height: 50px; border-radius: 8px;\" /></div>`
+                    : '';
 
-                    <div class="dashed-line"></div>
-
-                    ${order.items.map((item: any) => `
-                        <div class="item">
-                            <span class="item-name">${item.quantity}x ${item.menuItemName}</span>
-                            <span class="item-price">Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                printWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Order #${order.orderNumber}</title>
+                        <style>
+                            @page {
+                                size: 58mm auto; /* Fallback for many mobile printers */
+                                margin: 0;
+                            }
+                            @media print {
+                                body { margin: 0; padding: 5mm; }
+                                .no-print { display: none; }
+                                @page { margin: 0; }
+                            }
+                            body { 
+                                font-family: 'Courier New', Courier, monospace; 
+                                line-height: 1.2;
+                                font-size: 12px;
+                                width: 58mm; /* Default to 58mm width */
+                                margin: 0 auto;
+                                color: #000;
+                            }
+                            .header { text-align: center; margin-bottom: 10px; }
+                            .logo { max-height: 40px; margin-bottom: 5px; }
+                            .center { text-align: center; }
+                            .dashed-line { border-top: 1px dashed #000; margin: 8px 0; }
+                            .item { display: flex; justify-content: space-between; margin: 2px 0; }
+                            .item-name { flex: 1; padding-right: 5px; }
+                            .item-price { white-space: nowrap; }
+                            .total { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-top: 5px; }
+                            .footer { text-align: center; margin-top: 15px; font-size: 10px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class=\"header\">
+                            ${logoHtml}
+                            <div style=\"font-weight: bold; font-size: 16px;\">${currentRestaurant?.name || 'Restaurant'}</div>
+                            <div>${currentRestaurant?.address || ''}</div>
+                            <div>${currentRestaurant?.phone || ''}</div>
                         </div>
-                        ${item.notes ? `<div style="font-size: 10px; font-style: italic; margin-left: 10px;">- ${item.notes}</div>` : ''}
-                    `).join('')}
 
-                    <div class="dashed-line"></div>
+                        <div class=\"dashed-line\"></div>
+                        
+                        <div><strong>No: #${order.orderNumber}</strong></div>
+                        <div>Tgl: ${new Date(order.createdAt).toLocaleString('id-ID')}</div>
+                        <div>Cust: ${order.customerName || 'Guest'}</div>
+                        <div>Tipe: ${order.tableNumber ? `Meja ${order.tableNumber}` : 'Takeaway'}</div>
 
-                    <div class="total">
-                        <span>TOTAL</span>
-                        <span>Rp${order.totalAmount.toLocaleString('id-ID')}</span>
-                    </div>
+                        <div class="dashed-line"></div>
 
-                    <div class="dashed-line"></div>
-                    
-                    <div class="footer">
-                        <p>Terima kasih atas kunjungan Anda!</p>
-                        <p>Layanan Menu Digital oleh Meenuin</p>
-                    </div>
-                </body>
-                </html>
-            `)
-            printWindow.document.close()
-            setTimeout(() => { printWindow.print() }, 200) // Small delay for logo load
+                        ${order.items.map((item: any) => `
+                            <div class="item">
+                                <span class="item-name">${item.quantity}x ${item.menuItemName}</span>
+                                <span class="item-price">Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                            </div>
+                            ${item.notes ? `<div style="font-size: 10px; font-style: italic; margin-left: 10px;">- ${item.notes}</div>` : ''}
+                        `).join('')}
+
+                        <div class="dashed-line"></div>
+
+                        <div class="total">
+                            <span>TOTAL</span>
+                            <span>Rp${order.totalAmount.toLocaleString('id-ID')}</span>
+                        </div>
+
+                        <div class="dashed-line"></div>
+                        
+                        <div class="footer">
+                            <p>Terima kasih atas kunjungan Anda!</p>
+                            <p>Layanan Menu Digital oleh Meenuin</p>
+                        </div>
+                    </body>
+                    </html>
+                `)
+                printWindow.document.close()
+                setTimeout(() => { printWindow.print() }, 200) // Small delay for logo load
+            }
+        } catch (error: any) {
+             console.error("Print feature error", error);
+             toast({ title: "Gagal Cetak", description: error.message || "Pastikan Bluetooth On dan Support Thermal", variant: "destructive" });
         }
     }
 
@@ -1186,12 +1267,12 @@ export default function RestaurantAdminDashboard() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="ALL">{t('allStatus')}</SelectItem>
-                            <SelectItem value="PENDING">Pending</SelectItem>
-                            <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                            <SelectItem value="PREPARING">Preparing</SelectItem>
-                            <SelectItem value="READY">Ready</SelectItem>
-                            <SelectItem value="COMPLETED">Completed</SelectItem>
-                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                            <SelectItem value="PENDING">{t('statusPending')}</SelectItem>
+                            <SelectItem value="CONFIRMED">{t('statusConfirmed')}</SelectItem>
+                            <SelectItem value="PREPARING">{t('statusPreparing')}</SelectItem>
+                            <SelectItem value="READY">{t('statusReady')}</SelectItem>
+                            <SelectItem value="COMPLETED">{t('statusCompleted')}</SelectItem>
+                            <SelectItem value="CANCELLED">{t('statusCancelled')}</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -1205,13 +1286,13 @@ export default function RestaurantAdminDashboard() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="ALL">{t('allPayments')}</SelectItem>
-                            <SelectItem value="QRIS">QRIS</SelectItem>
-                            <SelectItem value="CASH">Cash</SelectItem>
-                            <SelectItem value="GOPAY">GoPay</SelectItem>
-                            <SelectItem value="OVO">OVO</SelectItem>
-                            <SelectItem value="DANA">Dana</SelectItem>
-                            <SelectItem value="SHOPEEPAY">ShopeePay</SelectItem>
-                            <SelectItem value="LINKAJA">LinkAja</SelectItem>
+                            <SelectItem value="QRIS">{t('qris')}</SelectItem>
+                            <SelectItem value="CASH">{t('cashPayment')}</SelectItem>
+                            <SelectItem value="GOPAY">{t('gopay')}</SelectItem>
+                            <SelectItem value="OVO">{t('ovo')}</SelectItem>
+                            <SelectItem value="DANA">{t('dana')}</SelectItem>
+                            <SelectItem value="SHOPEEPAY">{t('shopeepay')}</SelectItem>
+                            <SelectItem value="LINKAJA">{t('linkaja')}</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -1396,9 +1477,9 @@ export default function RestaurantAdminDashboard() {
                         <SelectValue placeholder={t('granularity')} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="day">Daily</SelectItem>
-                        <SelectItem value="month">Monthly</SelectItem>
-                        <SelectItem value="year">Yearly</SelectItem>
+                        <SelectItem value="day">{t('daily')}</SelectItem>
+                        <SelectItem value="month">{t('monthly')}</SelectItem>
+                        <SelectItem value="year">{t('yearly')}</SelectItem>
                     </SelectContent>
                 </Select>
                 <div className="flex gap-2">
@@ -1639,13 +1720,13 @@ export default function RestaurantAdminDashboard() {
                                     <SelectValue placeholder={t('selectPaymentMethod')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="QRIS">QRIS</SelectItem>
-                                    <SelectItem value="GOPAY">GoPay</SelectItem>
-                                    <SelectItem value="OVO">OVO</SelectItem>
-                                    <SelectItem value="DANA">DANA</SelectItem>
-                                    <SelectItem value="LINKAJA">LinkAja</SelectItem>
-                                    <SelectItem value="SHOPEEPAY">ShopeePay</SelectItem>
-                                    <SelectItem value="CASH">Cash</SelectItem>
+                                    <SelectItem value="QRIS">{t('qris')}</SelectItem>
+                                    <SelectItem value="GOPAY">{t('gopay')}</SelectItem>
+                                    <SelectItem value="OVO">{t('ovo')}</SelectItem>
+                                    <SelectItem value="DANA">{t('dana')}</SelectItem>
+                                    <SelectItem value="LINKAJA">{t('linkaja')}</SelectItem>
+                                    <SelectItem value="SHOPEEPAY">{t('shopeepay')}</SelectItem>
+                                    <SelectItem value="CASH">{t('cashPayment')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -1799,11 +1880,11 @@ export default function RestaurantAdminDashboard() {
                                 id="menu-description"
                                 value={menuItemForm.description || ''}
                                 onChange={(e) => setMenuItemForm({ ...menuItemForm, description: e.target.value })}
-                                placeholder="Menu item description"
+                                placeholder={t('briefItemDesc')}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="menu-price">Price *</Label>
+                            <Label htmlFor="menu-price">{t('priceInput')} *</Label>
                             <Input
                                 id="menu-price"
                                 type="number"
@@ -1813,13 +1894,13 @@ export default function RestaurantAdminDashboard() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="menu-category">Category *</Label>
+                            <Label htmlFor="menu-category">{t('categoryInput')} *</Label>
                             <Select
                                 value={menuItemForm.categoryId || ''}
                                 onValueChange={(value) => setMenuItemForm({ ...menuItemForm, categoryId: value })}
                             >
                                 <SelectTrigger id="menu-category">
-                                    <SelectValue placeholder="Select category" />
+                                    <SelectValue placeholder={t('selectCategory')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categories.map((category) => (
@@ -1831,7 +1912,7 @@ export default function RestaurantAdminDashboard() {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="menu-image">Menu Image</Label>
+                            <Label htmlFor="menu-image">{t('menuImage')}</Label>
                             <Input
                                 id="menu-image"
                                 type="file"
@@ -1862,7 +1943,7 @@ export default function RestaurantAdminDashboard() {
                                     checked={menuItemForm.isBestSeller || false}
                                     onChange={(e) => setMenuItemForm({ ...menuItemForm, isBestSeller: e.target.checked })}
                                 />
-                                <Label htmlFor="isBestSeller" className="cursor-pointer font-medium">Best Seller</Label>
+                                <Label htmlFor="isBestSeller" className="cursor-pointer font-medium">{t('bestSeller')}</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <input
@@ -1872,13 +1953,13 @@ export default function RestaurantAdminDashboard() {
                                     checked={menuItemForm.isRecommended || false}
                                     onChange={(e) => setMenuItemForm({ ...menuItemForm, isRecommended: e.target.checked })}
                                 />
-                                <Label htmlFor="isRecommended" className="cursor-pointer font-medium">Recommended</Label>
+                                <Label htmlFor="isRecommended" className="cursor-pointer font-medium">{t('recommended')}</Label>
                             </div>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button onClick={handleSaveMenuItem} className="bg-green-600 hover:bg-green-700">
-                            {editingMenuItem ? 'Update' : 'Add'}
+                            {editingMenuItem ? t('saveChanges') : t('add')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

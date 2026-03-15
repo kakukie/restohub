@@ -1,6 +1,8 @@
 'use client'
 
 import { ShoppingBag, DollarSign, Utensils, XCircle } from 'lucide-react'
+import { useAppStore } from '@/store/app-store'
+import { useTranslation } from '@/lib/i18n'
 
 interface StatsGridProps {
     stats: {
@@ -18,6 +20,8 @@ interface StatsGridProps {
 
 export default function StatsGrid({ stats }: StatsGridProps) {
     const { trends } = stats
+    const { language } = useAppStore()
+    const t = useTranslation(language as 'en' | 'id')
 
     const getTrendBadge = (value?: number, inverseGood = false) => {
         if (value === undefined) return null;
@@ -50,7 +54,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
                     </div>
                     {getTrendBadge(trends?.orders)}
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Orders</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t('totalOrders')}</p>
                 <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
                     {stats.totalOrders?.toLocaleString() || 0}
                 </h3>
@@ -64,7 +68,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
                     </div>
                     {getTrendBadge(trends?.revenue)}
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenue</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t('revenue')}</p>
                 <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
                     Rp {stats.revenue?.toLocaleString('id-ID') || 0}
                 </h3>
@@ -77,10 +81,10 @@ export default function StatsGrid({ stats }: StatsGridProps) {
                         <Utensils className="h-6 w-6" />
                     </div>
                     <span className="text-xs font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
-                        Active
+                        {t('active')}
                     </span>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Categories</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t('categories')}</p>
                 <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
                     {stats.totalCategories || 0}
                 </h3>
@@ -94,7 +98,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
                     </div>
                     {getTrendBadge(trends?.cancelled, true)}
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Cancelled</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t('cancelled')}</p>
                 <h3 className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">
                     {stats.cancelledOrders || 0}
                 </h3>

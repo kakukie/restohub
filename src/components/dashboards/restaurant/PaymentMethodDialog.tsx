@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { toast } from '@/hooks/use-toast'
+import { useAppStore } from '@/store/app-store'
+import { useTranslation } from '@/lib/i18n'
 
 interface PaymentMethodDialogProps {
     open: boolean
@@ -39,6 +41,9 @@ export default function PaymentMethodDialog({
         accountName: '',
         accountNumber: ''
     })
+    
+    const { language } = useAppStore()
+    const t = useTranslation(language as 'en' | 'id')
 
     useEffect(() => {
         if (open) {
@@ -109,21 +114,21 @@ export default function PaymentMethodDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{isEditing ? 'Edit Payment Method' : 'Add Payment Method'}</DialogTitle>
+                    <DialogTitle>{isEditing ? t('editPaymentMethod') : t('addPaymentMethod')}</DialogTitle>
                     <DialogDescription>
-                        Configure payment options for your customers.
+                        {t('configurePaymentDetails')}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="type">Payment Type</Label>
+                        <Label htmlFor="type">{t('type')}</Label>
                         <Select
                             value={formData.type}
                             onValueChange={(value) => setFormData({ ...formData, type: value })}
                             disabled={isEditing} // Often type shouldn't change after creation to keep history consistent, or allow it
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder={t('selectPaymentMethod')} />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="QRIS">QRIS</SelectItem>
@@ -138,30 +143,30 @@ export default function PaymentMethodDialog({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="accountName">Account Name (Optional)</Label>
+                        <Label htmlFor="accountName">{t('accountName')} (Opsional)</Label>
                         <Input
                             id="accountName"
                             value={formData.accountName}
                             onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
-                            placeholder="e.g. PT Resto Enak"
+                            placeholder={t('accountNameExample')}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="accountNumber">Account Number / ID (Optional)</Label>
+                        <Label htmlFor="accountNumber">{t('accountNumberId')} (Opsional)</Label>
                         <Input
                             id="accountNumber"
                             value={formData.accountNumber}
                             onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                            placeholder="e.g. 08123456789 or 123-456-789"
+                            placeholder={t('accountNumberExample')}
                         />
                     </div>
 
                     <div className="flex items-center justify-between space-x-2 border p-3 rounded-lg">
                         <Label htmlFor="isActive" className="flex flex-col space-y-1">
-                            <span>Active Status</span>
+                            <span>{t('statusCol')}</span>
                             <span className="font-normal text-xs text-muted-foreground">
-                                Enable this payment method for customers
+                                {t('enable')} {t('paymentMethod')}
                             </span>
                         </Label>
                         <Switch
@@ -173,10 +178,10 @@ export default function PaymentMethodDialog({
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
+                            {t('cancelAction')}
                         </Button>
                         <Button type="submit" disabled={loading}>
-                            {loading ? 'Saving...' : 'Save Changes'}
+                            {loading ? t('loadingState') : t('saveChanges')}
                         </Button>
                     </DialogFooter>
                 </form>
