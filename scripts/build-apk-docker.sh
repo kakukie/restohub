@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Ensure bash even if invoked via sh
+if [ -z "${BASH_VERSION:-}" ]; then
+  exec bash "$0" "$@"
+fi
+
 set -euo pipefail
 
 # Run APK build inside specified Docker containers.
@@ -24,5 +29,9 @@ run_in_container() {
 }
 
 for c in $CONTAINERS; do
+  if ! docker ps --format '{{.Names}}' | grep -q "^${c}\$"; then
+    echo "WARN: container ${c} not running, skip."
+    continue
+  }
   run_in_container "$c"
 done

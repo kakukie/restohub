@@ -61,6 +61,7 @@ ensure_node() {
   echo "Hints:"
   echo "  export NODE_HOME=/opt/node-v22.x.x-linux-x64"
   echo "  export PATH=\"\$NODE_HOME/bin:\$PATH\""
+  echo "  atau jalankan via Docker: scripts/build-apk-docker.sh"
   exit 1
 }
 
