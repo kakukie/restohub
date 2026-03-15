@@ -16,7 +16,11 @@ ensure_node() {
     return 0
   fi
 
-  # Explicit NODE_BIN override
+  # Explicit NODE_BIN override (default to /usr/local/bin/node)
+  if [ -z "${NODE_BIN:-}" ]; then
+    NODE_BIN="/usr/local/bin/node"
+  fi
+
   if [ -n "${NODE_BIN:-}" ] && [ -x "$NODE_BIN" ]; then
     export PATH="$(dirname "$NODE_BIN"):$PATH"
     return 0
