@@ -31,21 +31,46 @@ run_in_container() {
       JBIN=\$(command -v javac)
       export JAVA_HOME=\$(cd \$(dirname \"\$JBIN\")/../.. && pwd)
       export PATH=\"\$JAVA_HOME/bin:\$PATH\"
-    elif command -v apt-get >/dev/null 2>&1; then
-      echo \"Installing OpenJDK 21 inside container $c...\"
-      export DEBIAN_FRONTEND=noninteractive
-      if [ -w /var/lib/apt/lists ] && [ -w /var/cache/apt/archives ]; then
-        apt-get update -y && apt-get install -y openjdk-21-jdk
-      elif command -v sudo >/dev/null 2>&1; then
-        sudo apt-get update -y && sudo apt-get install -y openjdk-21-jdk
+    else
+      DOWNLOAD_JDK=0
+      if command -v apt-get >/dev/null 2>&1; then
+        echo \"Installing OpenJDK 21 inside container $c...\"
+        export DEBIAN_FRONTEND=noninteractive
+        if [ -w /var/lib/apt/lists ] && [ -w /var/cache/apt/archives ]; then
+          apt-get update -y && apt-get install -y openjdk-21-jdk
+        elif command -v sudo >/dev/null 2>&1; then
+          sudo apt-get update -y && sudo apt-get install -y openjdk-21-jdk
+        else
+          echo \"WARN: No permission to run apt-get; falling back to portable JDK download.\"
+          DOWNLOAD_JDK=1
+        fi
       else
-        echo \"ERROR: No permission to run apt-get inside $c; set JAVA_HOME_DOCKER to an existing JDK path.\" && exit 1
+        DOWNLOAD_JDK=1
       fi
-      JBIN=\$(command -v javac)
+
+      if [ \"\$DOWNLOAD_JDK\" -eq 1 ]; then
+        TMP_JDK=/tmp/jdk21
+        mkdir -p \"\$TMP_JDK\"
+        echo \"Downloading portable Temurin JDK 21 to \$TMP_JDK ...\"
+        JDK_URL=\"https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz\"
+        if command -v curl >/dev/null 2>&1; then
+          curl -L \"\$JDK_URL\" -o /tmp/jdk21.tar.gz
+        elif command -v wget >/dev/null 2>&1; then
+          wget -O /tmp/jdk21.tar.gz \"\$JDK_URL\"
+        else
+          echo \"ERROR: neither curl nor wget available to download JDK. Set JAVA_HOME_DOCKER manually.\" && exit 1
+        fi
+        tar -xzf /tmp/jdk21.tar.gz -C \"\$TMP_JDK\" --strip-components=1
+        export JAVA_HOME=\"\$TMP_JDK\"
+        export PATH=\"\$JAVA_HOME/bin:\$PATH\"
+      fi
+
+      JBIN=\$(command -v javac || true)
+      if [ -z \"\$JBIN\" ]; then
+        echo \"ERROR: javac still not found in container $c\" && exit 1
+      fi
       export JAVA_HOME=\$(cd \$(dirname \"\$JBIN\")/../.. && pwd)
       export PATH=\"\$JAVA_HOME/bin:\$PATH\"
-    else
-      echo \"ERROR: javac not found and apt-get not available in container $c\" && exit 1
     fi
     cd \"$APP_PATH\"
     chmod +x scripts/build-apk.sh
