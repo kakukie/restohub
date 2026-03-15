@@ -32,6 +32,6 @@ for c in $CONTAINERS; do
   if ! docker ps --format '{{.Names}}' | grep -q "^${c}\$"; then
     echo "WARN: container ${c} not running, skip."
     continue
-  }
+  fi
   run_in_container "$c"
 done
