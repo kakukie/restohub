@@ -23,6 +23,7 @@ run_in_container() {
     set -euo pipefail
     export NODE_BIN=\"$NODE_BIN\"
     cd \"$APP_PATH\"
+    chmod +x scripts/build-apk.sh
     ./scripts/build-apk.sh
   "
   echo "== Done in $c =="
