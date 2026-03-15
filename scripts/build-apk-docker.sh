@@ -57,8 +57,14 @@ run_in_container() {
           curl -L \"\$JDK_URL\" -o /tmp/jdk21.tar.gz
         elif command -v wget >/dev/null 2>&1; then
           wget -O /tmp/jdk21.tar.gz \"\$JDK_URL\"
+        elif command -v python3 >/dev/null 2>&1; then
+          python3 - <<'PY'
+import urllib.request
+url = "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz"
+urllib.request.urlretrieve(url, "/tmp/jdk21.tar.gz")
+PY
         else
-          echo \"ERROR: neither curl nor wget available to download JDK. Set JAVA_HOME_DOCKER manually.\" && exit 1
+          echo \"ERROR: need curl/wget/python3 to fetch JDK. Set JAVA_HOME_DOCKER manually.\" && exit 1
         fi
         tar -xzf /tmp/jdk21.tar.gz -C \"\$TMP_JDK\" --strip-components=1
         export JAVA_HOME=\"\$TMP_JDK\"
