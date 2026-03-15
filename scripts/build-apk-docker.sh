@@ -34,7 +34,13 @@ run_in_container() {
     elif command -v apt-get >/dev/null 2>&1; then
       echo \"Installing OpenJDK 21 inside container $c...\"
       export DEBIAN_FRONTEND=noninteractive
-      apt-get update -y && apt-get install -y openjdk-21-jdk
+      if [ -w /var/lib/apt/lists ] && [ -w /var/cache/apt/archives ]; then
+        apt-get update -y && apt-get install -y openjdk-21-jdk
+      elif command -v sudo >/dev/null 2>&1; then
+        sudo apt-get update -y && sudo apt-get install -y openjdk-21-jdk
+      else
+        echo \"ERROR: No permission to run apt-get inside $c; set JAVA_HOME_DOCKER to an existing JDK path.\" && exit 1
+      fi
       JBIN=\$(command -v javac)
       export JAVA_HOME=\$(cd \$(dirname \"\$JBIN\")/../.. && pwd)
       export PATH=\"\$JAVA_HOME/bin:\$PATH\"
