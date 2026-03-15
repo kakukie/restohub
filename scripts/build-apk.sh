@@ -69,6 +69,55 @@ need() {
   command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' not found in PATH"; exit 1; }
 }
 
+ensure_android_sdk() {
+  local candidate=""
+
+  if [ -n "${ANDROID_SDK_ROOT:-}" ] && [ -d "${ANDROID_SDK_ROOT}" ]; then
+    candidate="${ANDROID_SDK_ROOT}"
+  elif [ -n "${ANDROID_HOME:-}" ] && [ -d "${ANDROID_HOME}" ]; then
+    candidate="${ANDROID_HOME}"
+  else
+    for sdk in \
+      /opt/android-sdk \
+      /opt/android-sdk-linux \
+      /usr/lib/android-sdk \
+      /usr/local/android-sdk \
+      /sdk \
+      "$HOME/Android/Sdk"; do
+      if [ -d "$sdk" ]; then
+        candidate="$sdk"
+        break
+      fi
+    done
+  fi
+
+  if [ -z "$candidate" ]; then
+    echo "ERROR: Android SDK not found. Set ANDROID_HOME or ANDROID_SDK_ROOT inside the build environment."
+    exit 1
+  fi
+
+  export ANDROID_HOME="$candidate"
+  export ANDROID_SDK_ROOT="$candidate"
+
+  for sdk_bin in \
+    "$candidate/cmdline-tools/latest/bin" \
+    "$candidate/cmdline-tools/bin" \
+    "$candidate/tools/bin" \
+    "$candidate/platform-tools"; do
+    if [ -d "$sdk_bin" ]; then
+      export PATH="$sdk_bin:$PATH"
+    fi
+  done
+
+  if command -v sdkmanager >/dev/null 2>&1; then
+    echo "Using Android SDK: $candidate"
+  else
+    echo "WARN: 'sdkmanager' not found in PATH; continuing with existing SDK at $candidate"
+  fi
+
+  printf 'sdk.dir=%s\n' "$candidate" > "$ANDROID_APP_DIR/local.properties"
+}
+
 echo "== Checking prerequisites =="
 ensure_node
 need npm
@@ -115,7 +164,7 @@ ensure_javac() {
 }
 
 ensure_javac
-need sdkmanager || echo "WARN: sdkmanager not found; assume SDK already installed."
+ensure_android_sdk
 
 echo "== Installing JS deps (npm ci) =="
 cd "$ROOT_DIR"
