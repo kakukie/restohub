@@ -188,6 +188,9 @@ echo "== Installing JS deps (npm ci) =="
 cd "$ROOT_DIR"
 npm ci
 
+echo "== Generating Android icons from web app icon =="
+node ./scripts/generate-android-icons.js
+
 echo "== Sync Capacitor Android =="
 npx cap sync android
 

@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Meenuin',
   webDir: 'out',
   server: {
-    url: 'https://admin.meenuin.com',
+    url: 'https://meenuin.biz.id/login',
     cleartext: true
   }
 };
