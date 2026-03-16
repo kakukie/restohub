@@ -6,6 +6,8 @@ const rootDir = path.join(__dirname, '..');
 const androidResDir = path.join(rootDir, 'android', 'app', 'src', 'main', 'res');
 const sourceCandidates = [
   path.join(rootDir, 'public', 'icon-512x512.png'),
+  path.join(rootDir, 'public', 'icon-192x192.png'),
+  path.join(rootDir, 'public', 'logo.svg'),
   path.join(rootDir, 'public', 'logo.png'),
 ];
 
