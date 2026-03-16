@@ -81,6 +81,11 @@ need() {
   command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' not found in PATH"; exit 1; }
 }
 
+ensure_android_project_dirs() {
+  mkdir -p "$ANDROID_APP_DIR/app/src/main/assets"
+  mkdir -p "$ANDROID_APP_DIR/app/src/main/assets/public"
+}
+
 ensure_android_sdk() {
   local candidate=""
 
@@ -177,6 +182,7 @@ ensure_javac() {
 
 ensure_javac
 ensure_android_sdk
+ensure_android_project_dirs
 
 echo "== Installing JS deps (npm ci) =="
 cd "$ROOT_DIR"
