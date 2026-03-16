@@ -86,6 +86,39 @@ ensure_android_project_dirs() {
   mkdir -p "$ANDROID_APP_DIR/app/src/main/assets/public"
 }
 
+ensure_release_signing_env() {
+  if [ "$APK_MODE" != "release" ]; then
+    return 0
+  fi
+
+  if [ -n "${ANDROID_KEYSTORE_PATH:-}" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ] && [ -n "${ANDROID_KEY_PASSWORD:-}" ]; then
+    return 0
+  fi
+
+  local ks_dir="$ROOT_DIR/.cache/keystore"
+  local ks_path="$ks_dir/release-fallback.jks"
+  mkdir -p "$ks_dir"
+
+  if [ ! -f "$ks_path" ]; then
+    need keytool
+    keytool -genkeypair \
+      -keystore "$ks_path" \
+      -storepass android \
+      -alias meenuin-release \
+      -keypass android \
+      -keyalg RSA \
+      -keysize 2048 \
+      -validity 3650 \
+      -dname "CN=Meenuin, OU=Engineering, O=Meenuin, L=Jakarta, ST=DKI Jakarta, C=ID" \
+      >/dev/null 2>&1
+  fi
+
+  export ANDROID_KEYSTORE_PATH="$ks_path"
+  export ANDROID_KEYSTORE_PASSWORD="android"
+  export ANDROID_KEY_ALIAS="meenuin-release"
+  export ANDROID_KEY_PASSWORD="android"
+}
+
 ensure_android_sdk() {
   local candidate=""
 
@@ -183,6 +216,7 @@ ensure_javac() {
 ensure_javac
 ensure_android_sdk
 ensure_android_project_dirs
+ensure_release_signing_env
 
 echo "== Installing JS deps (npm ci) =="
 cd "$ROOT_DIR"
