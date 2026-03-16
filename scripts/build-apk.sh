@@ -204,6 +204,18 @@ chmod +x ./gradlew
 
 echo "== Collecting APK =="
 mkdir -p "$DIST_DIR"
+
+if [ ! -f "$APK_OUT" ]; then
+  OUTPUT_DIR="$ANDROID_APP_DIR/app/build/outputs/apk/$APK_MODE"
+  CANDIDATE_APK="$(find "$OUTPUT_DIR" -maxdepth 1 -type f -name '*.apk' | sort | tail -n 1 || true)"
+  if [ -n "${CANDIDATE_APK:-}" ] && [ -f "$CANDIDATE_APK" ]; then
+    APK_OUT="$CANDIDATE_APK"
+  else
+    echo "ERROR: APK output not found in $OUTPUT_DIR"
+    exit 1
+  fi
+fi
+
 cp "$APK_OUT" "$DIST_APK"
 
 echo "Build complete."
