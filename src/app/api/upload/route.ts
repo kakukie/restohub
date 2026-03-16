@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const filename = Date.now() + "_" + file.name.replaceAll(" ", "_");
 
-        // Ensure upload directory exists
-        const uploadDir = path.join(process.cwd(), "public/uploads");
+        // Ensure upload directory exists (supports custom persistent path via UPLOAD_DIR)
+        const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), "public/uploads");
 
         try {
             await mkdir(uploadDir, { recursive: true });

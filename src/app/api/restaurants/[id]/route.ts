@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { normalizeMediaUrl } from '@/lib/media-url'
 
 import { getCache, setCache, invalidateCache } from '@/lib/redis'
 
@@ -68,6 +69,8 @@ export async function GET(
         // Transform data
         const transformedData = {
             ...restaurant,
+            logo: normalizeMediaUrl(restaurant.logo, request),
+            banner: normalizeMediaUrl(restaurant.banner, request),
             // Ensure scalars are present (though ...restaurant should have them)
             maxCategories: restaurant.maxCategories,
             slugChangeCount: restaurant.slugChangeCount,
@@ -75,6 +78,7 @@ export async function GET(
             maxBranches: restaurant.maxBranches,
             menuItems: restaurant.menuItems.map(item => ({
                 ...item,
+                image: normalizeMediaUrl(item.image, request),
                 categoryName: item.category?.name || 'Other'
             }))
         }

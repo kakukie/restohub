@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth'
+import { normalizeMediaUrl } from '@/lib/media-url'
 
 export const revalidate = 60 // Cache for 60 seconds
 
@@ -41,6 +42,8 @@ export async function GET(request: NextRequest) {
     // Transform data to match expected frontend format
     const formattedRestaurants = restaurants.map(r => ({
       ...r,
+      logo: normalizeMediaUrl(r.logo, request),
+      banner: normalizeMediaUrl(r.banner, request),
       adminEmail: r.admin?.email || '', // Map relation to flat property
       totalMenuItems: r._count.menuItems,
       totalOrders: r._count.orders,

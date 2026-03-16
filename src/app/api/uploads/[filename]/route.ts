@@ -22,10 +22,16 @@ export async function GET(
 
         // Sanitize filename to prevent path traversal
         const sanitized = path.basename(filename);
-        const uploadDir = path.join(process.cwd(), "public/uploads");
-        const filePath = path.join(uploadDir, sanitized);
+        const uploadDirPrimary = process.env.UPLOAD_DIR || path.join(process.cwd(), "public/uploads");
+        const uploadDirFallback = path.join(process.cwd(), "upload");
+        const candidatePaths = [
+            path.join(uploadDirPrimary, sanitized),
+            path.join(uploadDirFallback, sanitized),
+            path.join(process.cwd(), "public/uploads", sanitized),
+        ];
+        const filePath = candidatePaths.find((candidate) => existsSync(candidate));
 
-        if (!existsSync(filePath)) {
+        if (!filePath) {
             return NextResponse.json({ error: "File not found" }, { status: 404 });
         }
 

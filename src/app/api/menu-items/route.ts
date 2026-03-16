@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { normalizeMediaUrl } from '@/lib/media-url'
 
 async function getRestaurantId(idOrSlug: string) {
   if (!idOrSlug) return null
@@ -45,7 +46,12 @@ export async function GET(request: NextRequest) {
       orderBy: { displayOrder: 'asc' }
     })
 
-    return NextResponse.json({ success: true, data: menuItems })
+    const normalizedItems = menuItems.map(item => ({
+      ...item,
+      image: normalizeMediaUrl(item.image, request)
+    }))
+
+    return NextResponse.json({ success: true, data: normalizedItems })
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed' }, { status: 500 })
   }
