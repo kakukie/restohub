@@ -39,12 +39,17 @@ run_builder() {
     -v "$NPM_CACHE_DIR:/root/.npm" \
     -w "$WORKDIR_IN_CONTAINER" \
     -e CI=1 \
+    -e APK_MODE="${APK_MODE:-debug}" \
     "$IMAGE_NAME" \
     bash ./scripts/build-apk.sh
 }
 
 print_result() {
-  local apk_path="$ROOT_DIR/dist/app-release.apk"
+  local apk_name="app-debug.apk"
+  if [ "${APK_MODE:-debug}" = "release" ]; then
+    apk_name="app-release.apk"
+  fi
+  local apk_path="$ROOT_DIR/dist/$apk_name"
   if [ -f "$apk_path" ]; then
     echo "== APK ready =="
     echo "APK: $apk_path"

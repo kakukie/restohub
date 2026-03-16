@@ -7,9 +7,21 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ANDROID_APP_DIR="$ROOT_DIR/android"
-APK_OUT="$ANDROID_APP_DIR/app/build/outputs/apk/release/app-release.apk"
+APK_MODE="${APK_MODE:-debug}"
+if [ "$APK_MODE" = "release" ]; then
+  GRADLE_TASK="assembleRelease"
+  APK_OUT="$ANDROID_APP_DIR/app/build/outputs/apk/release/app-release.apk"
+  DIST_APK_NAME="app-release.apk"
+elif [ "$APK_MODE" = "debug" ]; then
+  GRADLE_TASK="assembleDebug"
+  APK_OUT="$ANDROID_APP_DIR/app/build/outputs/apk/debug/app-debug.apk"
+  DIST_APK_NAME="app-debug.apk"
+else
+  echo "ERROR: APK_MODE must be 'debug' or 'release', got: $APK_MODE"
+  exit 1
+fi
 DIST_DIR="$ROOT_DIR/dist"
-DIST_APK="$DIST_DIR/app-release.apk"
+DIST_APK="$DIST_DIR/$DIST_APK_NAME"
 
 ensure_node() {
   if command -v node >/dev/null 2>&1; then
@@ -173,9 +185,9 @@ npm ci
 echo "== Sync Capacitor Android =="
 npx cap sync android
 
-echo "== Building APK release =="
+echo "== Building APK ($APK_MODE) =="
 cd "$ANDROID_APP_DIR"
-./gradlew assembleRelease
+./gradlew "$GRADLE_TASK"
 
 echo "== Collecting APK =="
 mkdir -p "$DIST_DIR"

@@ -71,7 +71,7 @@ Platform modern untuk mengelola restoran, menu digital, pesanan online, dan QR c
 - **Build APK dari Host**: Lihat [APK-HOST-BUILD.md](APK-HOST-BUILD.md) untuk:
   - Build APK tanpa masuk ke container production
   - Builder Android terpisah berbasis Docker
-  - Lokasi hasil `dist/app-release.apk`
+  - Output default `dist/app-debug.apk` untuk testing device
 
 ## 🚀 Cara Deploy
 

@@ -29,11 +29,23 @@ Script akan:
 
 1. Build image `restohub-apk-builder:latest` bila belum ada
 2. Menjalankan build Android di container builder terpisah
-3. Menyimpan hasil APK ke `dist/app-release.apk`
+3. Secara default menghasilkan APK `debug` yang bisa langsung di-install untuk testing
 
 ## Lokasi File APK
 
-Hasil build ada di:
+Hasil default untuk testing ada di:
+
+```bash
+dist/app-debug.apk
+```
+
+Jika ingin build release:
+
+```bash
+APK_MODE=release bash ./scripts/build-apk-host.sh
+```
+
+Output release:
 
 ```bash
 dist/app-release.apk
