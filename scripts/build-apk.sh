@@ -197,6 +197,9 @@ node ./scripts/generate-android-icons.js
 echo "== Sync Capacitor Android =="
 npx cap sync android
 
+echo "== Re-applying Android launcher icons after Capacitor sync =="
+node ./scripts/generate-android-icons.js
+
 echo "== Building APK ($APK_MODE) =="
 cd "$ANDROID_APP_DIR"
 chmod +x ./gradlew
