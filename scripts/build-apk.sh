@@ -193,6 +193,7 @@ npx cap sync android
 
 echo "== Building APK ($APK_MODE) =="
 cd "$ANDROID_APP_DIR"
+chmod +x ./gradlew
 ./gradlew "$GRADLE_TASK"
 
 echo "== Collecting APK =="
