@@ -16,7 +16,7 @@ export async function PUT(
         }
 
         const body = await request.json()
-        const { status, planName, amount } = body
+        const { status, planName, amount, activeUntil } = body
 
         if (status && !['PAID', 'REJECTED', 'PENDING'].includes(status)) {
             return NextResponse.json({ success: false, error: 'Invalid status' }, { status: 400 })
@@ -73,6 +73,11 @@ export async function PUT(
                 await tx.restaurant.update({
                     where: { id: subscription.restaurantId },
                     data: updateData
+                })
+            } else if (activeUntil) {
+                await tx.restaurant.update({
+                    where: { id: subscription.restaurantId },
+                    data: { activeUntil: new Date(activeUntil) }
                 })
             }
 

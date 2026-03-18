@@ -158,6 +158,7 @@ export default function SuperAdminDashboard() {
   const [subscriptionsData, setSubscriptionsData] = useState<any[]>([])
   const [selectedSubscriptionForReview, setSelectedSubscriptionForReview] = useState<any>(null)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
+  const [activeUntilInput, setActiveUntilInput] = useState<string>('')
 
   // Helper for image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
@@ -179,6 +180,21 @@ export default function SuperAdminDashboard() {
   const [newSubscriptionType, setNewSubscriptionType] = useState<'BASIC' | 'PRO' | 'ENTERPRISE'>('BASIC')
   const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false)
   const [qrCodeRestaurant, setQrCodeRestaurant] = useState<Restaurant | null>(null)
+
+  const toInputDateTime = (date?: string | Date | null) => {
+    if (!date) return ''
+    const d = new Date(date)
+    const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString()
+    return iso.slice(0, 16)
+  }
+
+  useEffect(() => {
+    if (selectedSubscriptionForReview?.restaurant?.activeUntil) {
+      setActiveUntilInput(toInputDateTime(selectedSubscriptionForReview.restaurant.activeUntil))
+    } else {
+      setActiveUntilInput('')
+    }
+  }, [selectedSubscriptionForReview])
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<'dashboard' | 'restaurants' | 'plans' | 'users' | 'settings' | 'landing-editor' | 'helpdesk' | 'audit-logs' | 'subscriptions'>('dashboard')
@@ -649,6 +665,51 @@ export default function SuperAdminDashboard() {
     }
   }
 
+  const handleUpdateActivePeriod = async () => {
+    try {
+      if (!selectedSubscriptionForReview?.restaurant?.id || !activeUntilInput) {
+        toast({ title: 'Error', description: 'Pilih tanggal aktif dan restoran', variant: 'destructive' })
+        return
+      }
+      const res = await fetch('/api/admin/restaurants/active-period', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId: selectedSubscriptionForReview.restaurant.id,
+          activeUntil: activeUntilInput
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Berhasil', description: 'Masa aktif restoran diperbarui' })
+        fetchDashboardData()
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+    }
+  }
+
+  const handleExportMenu = async (restaurantId?: string, name?: string) => {
+    if (!restaurantId) {
+      toast({ title: 'Error', description: 'RestaurantId tidak ditemukan', variant: 'destructive' })
+      return
+    }
+    try {
+      const res = await fetch(`/api/admin/export-menu?restaurantId=${restaurantId}`)
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `menu-${name || restaurantId}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+    }
+  }
+
   const renderSubscriptionsTab = () => (
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 mt-4">
@@ -699,15 +760,25 @@ export default function SuperAdminDashboard() {
                     )}
                   </td>
                   <td className="py-4 px-2 text-right">
-                    <Button
-                      onClick={() => {
-                        setSelectedSubscriptionForReview(sub)
-                        setReviewDialogOpen(true)
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8"
-                    >
-                      Review
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        className="text-xs h-8 dark:border-slate-700"
+                        onClick={() => handleExportMenu(sub.restaurant?.id, sub.restaurant?.name)}
+                      >
+                        Export Menu
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setSelectedSubscriptionForReview(sub)
+                          setActiveUntilInput(toInputDateTime(sub.restaurant?.activeUntil))
+                          setReviewDialogOpen(true)
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8"
+                      >
+                        Review
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -2423,6 +2494,22 @@ export default function SuperAdminDashboard() {
                   <div>
                     <p className="text-slate-500 font-semibold mb-1">Created At</p>
                     <p>{new Date(selectedSubscriptionForReview.createdAt).toLocaleString()}</p>
+                  </div>
+                  <div className="col-span-2 grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-slate-500 font-semibold mb-1">Active Until</p>
+                      <input
+                        type="datetime-local"
+                        value={activeUntilInput}
+                        onChange={(e) => setActiveUntilInput(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button className="bg-emerald-700 hover:bg-emerald-600 text-white w-full" onClick={handleUpdateActivePeriod}>
+                        Save Active Period
+                      </Button>
+                    </div>
                   </div>
                   <div className="col-span-2">
                     <p className="text-slate-500 font-semibold mb-2">Payment Proof (QRIS / Bank Transfer)</p>
