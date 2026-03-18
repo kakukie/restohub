@@ -4,8 +4,9 @@ const path = require('path');
 
 const publicDir = path.join(__dirname, '../public');
 const sourceCandidates = [
-    path.join(publicDir, 'logo.svg'),
+    path.join(publicDir, 'icon-base.png'),
     path.join(publicDir, 'logo.png'),
+    path.join(publicDir, 'logo.svg'),
 ];
 
 function resolveSource() {
