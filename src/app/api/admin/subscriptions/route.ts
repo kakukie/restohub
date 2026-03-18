@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
                         email: true,
                         package: true,
                         status: true,
+                        activeUntil: true
                     }
                 }
             },

@@ -247,7 +247,8 @@ export default function SuperAdminDashboard() {
       maxCategories: restaurant.maxCategories,
       allowMaps: restaurant.allowMaps,
       enableAnalytics: restaurant.enableAnalytics,
-      maxSlugChanges: restaurant.maxSlugChanges
+      maxSlugChanges: restaurant.maxSlugChanges,
+      activeUntil: restaurant.activeUntil ? toInputDateTime(restaurant.activeUntil) : ''
     })
     setRestaurantDialogOpen(true)
   }
@@ -301,19 +302,11 @@ export default function SuperAdminDashboard() {
     try {
       if (editingRestaurant) {
         // Update
-        const res = await fetch('/api/restaurants', {
+        const res = await fetch(`/api/restaurants/${editingRestaurant.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ...restaurantForm,
-            id: editingRestaurant.id,
-            maxMenuItems: restaurantForm.maxMenuItems,
-            maxAdmins: restaurantForm.maxAdmins,
-            maxStaff: restaurantForm.maxStaff,
-            allowBranches: restaurantForm.allowBranches,
-            maxCategories: restaurantForm.maxCategories,
-            allowMaps: restaurantForm.allowMaps,
-            enableAnalytics: restaurantForm.enableAnalytics
+            ...restaurantForm
           })
         })
         const data = await res.json()
@@ -343,6 +336,7 @@ export default function SuperAdminDashboard() {
             maxCategories: restaurantForm.maxCategories,
             allowMaps: restaurantForm.allowMaps,
             enableAnalytics: restaurantForm.enableAnalytics,
+            activeUntil: restaurantForm.activeUntil,
             logo: restaurantForm.logo
           })
         })
@@ -2062,6 +2056,33 @@ export default function SuperAdminDashboard() {
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, phone: e.target.value })}
                     placeholder="Contact number"
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="dark:text-white">License / Plan</Label>
+                    <Select
+                      value={restaurantForm.package || 'FREE_TRIAL'}
+                      onValueChange={(val) => setRestaurantForm({ ...restaurantForm, package: val as any })}
+                    >
+                      <SelectTrigger className="dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                        <SelectValue placeholder="Select plan" />
+                      </SelectTrigger>
+                      <SelectContent className="dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                        {subscriptionPlans.map(p => (
+                          <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="dark:text-white">Active Until</Label>
+                    <Input
+                      className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                      type="datetime-local"
+                      value={(restaurantForm as any).activeUntil || ''}
+                      onChange={(e) => setRestaurantForm({ ...restaurantForm, activeUntil: e.target.value as any })}
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">

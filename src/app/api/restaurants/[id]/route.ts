@@ -171,7 +171,8 @@ export async function PUT(
             'detailAddress', 'googleMapsUrl', 'latitude', 'longitude',
             // Configs (Allowed for Super Admin updates via this route)
             'allowMaps', 'enableAnalytics', 'printerSettings',
-            'maxCategories', 'maxMenuItems', 'maxBranches', 'maxStaff', 'maxAdmins', 'package', 'allowBranches', 'maxSlugChanges'
+            'maxCategories', 'maxMenuItems', 'maxBranches', 'maxStaff', 'maxAdmins', 'package', 'allowBranches', 'maxSlugChanges',
+            'activeUntil'
         ]
 
         // Filter updates

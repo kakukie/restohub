@@ -136,6 +136,7 @@ export default function RestaurantAdminDashboard() {
     const [printerPaperSize, setPrinterPaperSize] = useState<'58mm' | '80mm'>('58mm')
     const [printerAddress, setPrinterAddress] = useState<string>('')
     const [printerAutoPrint, setPrinterAutoPrint] = useState<boolean>(false)
+    const [settingsError, setSettingsError] = useState<string>('')
 
     // --- DATA FETCHING (Copied from Old) ---
     // ... (Refer to Old file for loadRestaurantDetails, loadMenuData, loadOrderData)
@@ -166,6 +167,7 @@ export default function RestaurantAdminDashboard() {
         } catch (error) {
             console.error("Failed to load details", error)
             toast({ title: 'Error', description: 'Failed to load restaurant data', variant: 'destructive' })
+            setSettingsError('Failed to load restaurant data')
         } finally {
             setLoadingRestaurant(false)
         }
@@ -1610,6 +1612,10 @@ export default function RestaurantAdminDashboard() {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('restaurantSettings')}</h2>
             {loadingRestaurant ? (
                 <div className="flex justify-center p-12"><RefreshCw className="h-8 w-8 animate-spin text-emerald-500" /></div>
+            ) : settingsError ? (
+                <div className="p-6 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl">{settingsError}</div>
+            ) : !currentRestaurant ? (
+                <div className="p-6 text-slate-500">Restaurant data unavailable.</div>
             ) : (
                 <div className="space-y-8">
                     <RestaurantSettingsForm
