@@ -67,17 +67,29 @@ function RegisterContent() {
                     const all: PlanData[] = data.data
                     const active = all.filter(p => p.isActive !== false)
 
-                    // Pastikan Free Trial selalu ada di pilihan
-                    const freePlan: PlanData = {
+                    const isAllowed = (name: string) => {
+                        const key = name.toUpperCase()
+                        return key.includes('FREE') || key.includes('BUSINESS') || key.includes('BISNIS')
+                    }
+
+                    // Pisahkan paket yang diizinkan (Free Trial & Bisnis), lainnya ditandai disabled
+                    const allowedPlans = active.filter(p => isAllowed(p.name))
+                    const disabledPlans = active.filter(p => !isAllowed(p.name)).map(p => ({ ...p, disabled: true }))
+
+                    // Pastikan Free Trial selalu ada
+                    const freePlan: any = allowedPlans.find(p => p.name.toUpperCase().includes('FREE')) || {
                         id: 'FREE_TRIAL_LOCAL',
                         name: 'FREE_TRIAL',
                         price: 0,
                         description: 'Free trial 30 hari',
                         features: []
                     }
-                    const merged = [freePlan, ...active.filter(p =>
-                        p.name.toUpperCase().includes('FREE') ? false : true
-                    )]
+
+                    const merged = [
+                        freePlan,
+                        ...allowedPlans.filter(p => p.id !== freePlan.id),
+                        ...disabledPlans
+                    ]
 
                     setPlans(merged)
 
@@ -290,18 +302,18 @@ function RegisterContent() {
                                         {/* Dynamic Plan Selector */}
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Pilih Paket</label>
-                                            <select name="package" value={formData.package} onChange={handleChange} required disabled={plansLoading}
-                                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all disabled:opacity-50">
-                                                {plansLoading ? (
-                                                    <option>Memuat paket...</option>
-                                                ) : plans.length > 0 ? (
-                                                    plans.map(plan => (
-                                                        <option key={plan.id} value={plan.name}>
-                                                            {plan.price === 0
-                                                                ? `Free Trial (Gratis)`
-                                                                : `${plan.name} (Rp ${plan.price.toLocaleString('id-ID')} / bln)`}
-                                                        </option>
-                                                    ))
+                <select name="package" value={formData.package} onChange={handleChange} required disabled={plansLoading}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all disabled:opacity-50">
+                    {plansLoading ? (
+                        <option>Memuat paket...</option>
+                    ) : plans.length > 0 ? (
+                        plans.map(plan => (
+                            <option key={plan.id} value={plan.name} disabled={(plan as any).disabled}>
+                                {plan.price === 0
+                                    ? `Free Trial (Gratis)`
+                                    : `${plan.name} (Rp ${plan.price.toLocaleString('id-ID')} / bln)`}
+                            </option>
+                        ))
                                                 ) : (
                                                     <>
                                                         <option value="FREE_TRIAL">Free Trial (Gratis)</option>
