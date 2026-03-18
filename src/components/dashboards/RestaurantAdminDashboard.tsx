@@ -133,6 +133,9 @@ export default function RestaurantAdminDashboard() {
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
     const [loadingRestaurant, setLoadingRestaurant] = useState(true) // Add loading state
+    const [printerPaperSize, setPrinterPaperSize] = useState<'58mm' | '80mm'>('58mm')
+    const [printerAddress, setPrinterAddress] = useState<string>('')
+    const [printerAutoPrint, setPrinterAutoPrint] = useState<boolean>(false)
 
     // --- DATA FETCHING (Copied from Old) ---
     // ... (Refer to Old file for loadRestaurantDetails, loadMenuData, loadOrderData)
@@ -153,6 +156,10 @@ export default function RestaurantAdminDashboard() {
                 setMenuItems(data.data.menuItems || [])
                 setPaymentMethods(data.data.paymentMethods || [])
                 setMyBranches(data.data.branches || [])
+                const ps = data.data.printerSettings || {}
+                setPrinterPaperSize(ps.paperSize === '80mm' ? '80mm' : '58mm')
+                setPrinterAddress(ps.bluetoothName || '')
+                setPrinterAutoPrint(!!ps.autoPrint)
             } else {
                 toast({ title: 'Error', description: 'Failed to load restaurant data', variant: 'destructive' })
             }
@@ -163,6 +170,26 @@ export default function RestaurantAdminDashboard() {
             setLoadingRestaurant(false)
         }
     }, [user?.restaurantId])
+
+    const savePrinterSettings = async () => {
+        if (!restaurantId) return
+        const newSettings = {
+            paperSize: printerPaperSize,
+            bluetoothName: printerAddress,
+            autoPrint: printerAutoPrint
+        }
+        try {
+            await fetch(`/api/restaurants/${restaurantId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ printerSettings: newSettings })
+            })
+            toast({ title: t('success'), description: t('settingsUpdated') })
+            setCurrentRestaurant((prev: any) => prev ? { ...prev, printerSettings: newSettings } : prev)
+        } catch (error) {
+            toast({ title: 'Error', description: t('updateFailed'), variant: 'destructive' })
+        }
+    }
 
     // Lightweight menu-only reload for faster saves
     const loadMenuItems = useCallback(async () => {
@@ -1584,10 +1611,55 @@ export default function RestaurantAdminDashboard() {
             {loadingRestaurant ? (
                 <div className="flex justify-center p-12"><RefreshCw className="h-8 w-8 animate-spin text-emerald-500" /></div>
             ) : (
-                <RestaurantSettingsForm
-                    restaurantId={user?.restaurantId || ''}
-                    initialData={currentRestaurant}
-                />
+                <div className="space-y-8">
+                    <RestaurantSettingsForm
+                        restaurantId={user?.restaurantId || ''}
+                        initialData={currentRestaurant}
+                    />
+
+                    <div className="border-t border-slate-200 dark:border-slate-800 pt-6">
+                        <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                            <Printer className="h-5 w-5" /> {t('printerSettings')}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                            Atur koneksi printer thermal (Bluetooth). Sesuaikan ukuran kertas dan nama perangkat.
+                        </p>
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label className="dark:text-white">Ukuran Kertas</Label>
+                                <Select value={printerPaperSize} onValueChange={(v: '58mm' | '80mm') => setPrinterPaperSize(v)}>
+                                    <SelectTrigger className="dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="58mm">58 mm</SelectItem>
+                                        <SelectItem value="80mm">80 mm</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="dark:text-white">Nama/Alamat Bluetooth</Label>
+                                <Input
+                                    className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                    placeholder="Contoh: InnerPrinter / BT-Printer"
+                                    value={printerAddress}
+                                    onChange={(e) => setPrinterAddress(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2 flex items-center md:items-end">
+                                <label className="flex items-center gap-3">
+                                    <Switch checked={printerAutoPrint} onCheckedChange={(v) => setPrinterAutoPrint(v)} />
+                                    <span className="text-sm text-slate-700 dark:text-slate-200">Auto Print Struk</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div className="mt-4">
+                            <Button onClick={savePrinterSettings} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                                <Save className="h-4 w-4 mr-2" /> Simpan Pengaturan Printer
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     )

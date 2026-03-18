@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
             include: {
                 restaurant: {
                     select: {
+                        id: true,
                         name: true,
                         email: true,
                         package: true,
