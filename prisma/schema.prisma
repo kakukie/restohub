@@ -104,6 +104,7 @@ model Restaurant {
   // Relations
   adminId        String
   admin          User            @relation(fields: [adminId], references: [id])
+  freeTrialEndsAt DateTime?
   parentId       String? // For Multi-branch support
   parent         Restaurant?     @relation("BranchParent", fields: [parentId], references: [id])
   branches       Restaurant[]    @relation("BranchParent")

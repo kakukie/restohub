@@ -65,26 +65,42 @@ function RegisterContent() {
             .then(data => {
                 if (data.success && Array.isArray(data.data)) {
                     const all: PlanData[] = data.data
-                    // Filter down to only Free Trial and Business plans
-                    const filtered = all.filter(p => p.isActive !== false && (
-                        p.name === 'FREE_TRIAL' || p.name === 'FREE TRIAL' ||
-                        p.name === 'BUSINESS' || p.name === 'Bisnis'
-                    ))
-                    // Ensure there's always something to show, but prioritize the filtered list
-                    const activePlans = filtered.length ? filtered : all.filter(p => p.isActive !== false)
-                    setPlans(activePlans)
+                    const active = all.filter(p => p.isActive !== false)
+
+                    // Pastikan Free Trial selalu ada di pilihan
+                    const freePlan: PlanData = {
+                        id: 'FREE_TRIAL_LOCAL',
+                        name: 'FREE_TRIAL',
+                        price: 0,
+                        description: 'Free trial 30 hari',
+                        features: []
+                    }
+                    const merged = [freePlan, ...active.filter(p =>
+                        p.name.toUpperCase().includes('FREE') ? false : true
+                    )]
+
+                    setPlans(merged)
 
                     if (urlPlan) {
                         const key = urlPlan.toUpperCase().replace(/[ -]/g, '_')
-                        const match = activePlans.find((p: PlanData) =>
+                        const match = merged.find((p: PlanData) =>
                             p.name.toUpperCase().replace(/[ -]/g, '_').includes(key) ||
                             key.includes(p.name.toUpperCase().replace(/[ -]/g, '_'))
                         )
                         if (match) setFormData(prev => ({ ...prev, package: match.name }))
+                    } else {
+                        // default ke Free Trial
+                        setFormData(prev => ({ ...prev, package: 'FREE_TRIAL', billingCycle: '1' }))
                     }
                 }
             })
-            .catch(() => { /* keep hardcoded fallback */ })
+            .catch(() => {
+                // fallback tetap ada Free Trial
+                setPlans([
+                    { id: 'FREE_TRIAL_LOCAL', name: 'FREE_TRIAL', price: 0, description: '', features: [] },
+                    { id: 'BUSINESS_LOCAL', name: 'BUSINESS', price: 19000, description: '', features: [] },
+                ])
+            })
             .finally(() => setPlansLoading(false))
     }, [])
 
@@ -293,36 +309,36 @@ function RegisterContent() {
                                                     </>
                                                 )}
                                             </select>
-                                            {!plansLoading && (() => {
-                                                const sel = plans.find(p => p.name === formData.package)
-                                                if (!sel) return null
+                                        {!plansLoading && (() => {
+                                            const sel = plans.find(p => p.name === formData.package)
+                                            if (!sel) return null
 
-                                                return (
-                                                    <div className="mt-4 space-y-4">
-                                                        {sel.price === 0 ? (
+                                            return (
+                                                <div className="mt-4 space-y-4">
+                                                    {sel.price === 0 ? (
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                            ✅ Free Trial aktif langsung selama 30 hari.
+                                                        </p>
+                                                    ) : (
+                                                        <>
+                                                            <div className="space-y-2">
+                                                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Siklus Tagihan</label>
+                                                                <select name="billingCycle" value={formData.billingCycle} onChange={handleChange} required
+                                                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all">
+                                                                    <option value="1">1 Bulan</option>
+                                                                    <option value="3">3 Bulan</option>
+                                                                    <option value="6">6 Bulan</option>
+                                                                    <option value="12">1 Tahun</option>
+                                                                </select>
+                                                            </div>
                                                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                                ✅ Gratis, aktivasi manual oleh tim kami
+                                                                💳 Perlu pembayaran setelah daftar untuk mengaktifkan akun.
                                                             </p>
-                                                        ) : (
-                                                            <>
-                                                                <div className="space-y-2">
-                                                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Siklus Tagihan</label>
-                                                                    <select name="billingCycle" value={formData.billingCycle} onChange={handleChange} required
-                                                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#00a669] focus:border-[#00a669] px-4 py-3 dark:text-white transition-all">
-                                                                        <option value="1">1 Bulan</option>
-                                                                        <option value="3">3 Bulan</option>
-                                                                        <option value="6">6 Bulan</option>
-                                                                        <option value="12">1 Tahun</option>
-                                                                    </select>
-                                                                </div>
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                                    💳 Perlu pembayaran setelah daftar untuk mengaktifkan akun.
-                                                                </p>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                )
-                                            })()}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )
+                                        })()}
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Jumlah Meja</label>

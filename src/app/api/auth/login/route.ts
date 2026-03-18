@@ -144,6 +144,14 @@ export async function POST(request: NextRequest) {
                     { status: 403 }
                 )
             }
+            // Free trial expiry check
+            const isFree = (restaurant.package || '').toUpperCase().includes('FREE')
+            if (isFree && restaurant.freeTrialEndsAt && new Date(restaurant.freeTrialEndsAt) < new Date()) {
+                return NextResponse.json(
+                    { success: false, error: 'Masa Free Trial telah berakhir. Silakan hubungi admin untuk upgrade.' },
+                    { status: 403 }
+                )
+            }
         }
 
         // ── Generate Tokens ───────────────────────────────────────────────

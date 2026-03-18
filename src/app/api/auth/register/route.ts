@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
         const slug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') + '-' + Math.floor(Math.random() * 1000)
 
         const isFreePlan = (plan || '').toUpperCase().includes('FREE')
+        const trialEndsAt = isFreePlan ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
 
         // Transaction: Create User + Restaurant
         // Note: Since Prisma's nested writes are powerful, we can do this in one go.
@@ -64,7 +65,8 @@ export async function POST(request: NextRequest) {
                     package: plan,
                     status: isFreePlan ? 'ACTIVE' : 'PENDING', // Free trial langsung aktif untuk ujicoba
                     slug,
-                    isActive: true
+                    isActive: true,
+                    freeTrialEndsAt: trialEndsAt
                 }
             })
 
