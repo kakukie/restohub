@@ -159,6 +159,8 @@ export default function SuperAdminDashboard() {
   const [selectedSubscriptionForReview, setSelectedSubscriptionForReview] = useState<any>(null)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
   const [activeUntilInput, setActiveUntilInput] = useState<string>('')
+  const importFileInputRef = useRef<HTMLInputElement>(null)
+  const [importTargetRestaurant, setImportTargetRestaurant] = useState<{ id: string, name?: string } | null>(null)
 
   // Helper for image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
@@ -710,6 +712,43 @@ export default function SuperAdminDashboard() {
     }
   }
 
+  const handleImportMenu = (restaurantId?: string, name?: string) => {
+    if (!restaurantId) {
+      toast({ title: 'Error', description: 'RestaurantId tidak ditemukan', variant: 'destructive' })
+      return
+    }
+    setImportTargetRestaurant({ id: restaurantId, name })
+    importFileInputRef.current?.click()
+  }
+
+  const onImportFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !importTargetRestaurant) return
+    try {
+      const text = await file.text()
+      const res = await fetch('/api/admin/import-menu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId: importTargetRestaurant.id,
+          csv: text
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: 'Berhasil', description: `Import ${data.data.count} menu untuk ${importTargetRestaurant.name || ''}` })
+        fetchDashboardData()
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+    } finally {
+      e.target.value = ''
+      setImportTargetRestaurant(null)
+    }
+  }
+
   const renderSubscriptionsTab = () => (
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 mt-4">
@@ -767,6 +806,13 @@ export default function SuperAdminDashboard() {
                         onClick={() => handleExportMenu(sub.restaurant?.id, sub.restaurant?.name)}
                       >
                         Export Menu
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="text-xs h-8 dark:border-slate-700"
+                        onClick={() => handleImportMenu(sub.restaurant?.id, sub.restaurant?.name)}
+                      >
+                        Import Menu
                       </Button>
                       <Button
                         onClick={() => {
@@ -2549,6 +2595,7 @@ export default function SuperAdminDashboard() {
           </DialogContent>
         </Dialog>
       </main>
+      <input type="file" accept=".csv,text/csv" className="hidden" ref={importFileInputRef} onChange={onImportFileChange} />
 
       {/* Mobile Bottom Navigation Bar (Visible only on lg:hidden) */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 glass px-6 py-3 rounded-2xl lg:hidden flex gap-8 items-center border border-white/10 shadow-2xl z-[100] bg-[#0B0F1A]/90 backdrop-blur-xl">
