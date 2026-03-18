@@ -163,6 +163,14 @@ export async function PUT(
         // Map keys if they exist
         if (logoUrl) updates.logo = logoUrl
         if (bannerUrl) updates.banner = bannerUrl
+        // Normalize dates
+        if (updates.activeUntil) {
+            const dt = new Date(updates.activeUntil)
+            if (isNaN(dt.getTime())) {
+                return NextResponse.json({ success: false, error: 'Invalid activeUntil date' }, { status: 400 })
+            }
+            updates.activeUntil = dt
+        }
 
         // White-list allowed fields to prevent schema errors
         const allowedFields = [

@@ -29,7 +29,7 @@ import HelpdeskChat from './HelpdeskChat'
 import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' // Might still need for sub-tabs
-import { Plus, Minus, Search, Trash2, Edit2, Camera, Bell, CheckCircle2, XCircle, FileText, ChevronDown, ChevronUp, Clock, FileDown, Eye, Filter, Loader2, Printer, Grid, List, Check, X, Edit, RefreshCw, Download } from 'lucide-react'
+import { Plus, Minus, Search, Trash2, Edit2, Camera, Bell, CheckCircle2, XCircle, FileText, ChevronDown, ChevronUp, Clock, FileDown, Eye, Filter, Loader2, Printer, Grid, List, Check, X, Edit, RefreshCw, Download, Save } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { BluetoothPrinterService } from '@/lib/bluetooth-printer'
