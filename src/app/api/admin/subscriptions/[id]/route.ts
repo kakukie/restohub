@@ -16,9 +16,9 @@ export async function PUT(
         }
 
         const body = await request.json()
-        const { status } = body
+        const { status, planName, amount } = body
 
-        if (!['PAID', 'REJECTED'].includes(status)) {
+        if (status && !['PAID', 'REJECTED', 'PENDING'].includes(status)) {
             return NextResponse.json({ success: false, error: 'Invalid status' }, { status: 400 })
         }
 
@@ -35,8 +35,10 @@ export async function PUT(
             const updatedSubscription = await tx.subscriptionPayment.update({
                 where: { id },
                 data: {
-                    status,
-                    validatedAt: new Date()
+                    status: status || subscription.status,
+                    planName: planName || subscription.planName,
+                    amount: typeof amount === 'number' ? amount : subscription.amount,
+                    validatedAt: status && status !== 'PENDING' ? new Date() : subscription.validatedAt
                 }
             })
 

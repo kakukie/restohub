@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
         // Create slug from restaurant name
         const slug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') + '-' + Math.floor(Math.random() * 1000)
 
+        const isFreePlan = (plan || '').toUpperCase().includes('FREE')
+
         // Transaction: Create User + Restaurant
         // Note: Since Prisma's nested writes are powerful, we can do this in one go.
         // However, the schema relations are:
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
                     adminId: user.id,
                     email,
                     package: plan,
-                    status: 'PENDING', // Default to PENDING
+                    status: isFreePlan ? 'ACTIVE' : 'PENDING', // Free trial langsung aktif untuk ujicoba
                     slug,
                     isActive: true
                 }

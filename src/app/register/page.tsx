@@ -156,7 +156,7 @@ function RegisterContent() {
                 title: 'Pendaftaran Berhasil! 🎉',
                 description: needsPayment
                     ? 'Silakan lanjutkan ke halaman pembayaran.'
-                    : 'Akun Anda sedang direview oleh tim kami.',
+                    : 'Akun Free Trial aktif, silakan login untuk mulai mencoba.',
             })
 
             if (needsPayment && data.data?.restaurant?.id) {
