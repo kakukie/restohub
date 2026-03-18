@@ -6,6 +6,12 @@ import Link from 'next/link'
 import { useAppStore } from '@/store/app-store'
 import { toast } from '@/hooks/use-toast'
 
+declare global {
+    interface Window {
+        snap?: any
+    }
+}
+
 interface SystemSettings {
     bankName?: string
     bankAccountNumber?: string
@@ -32,9 +38,16 @@ function PaymentContent() {
     const [settings, setSettings] = useState<SystemSettings>({})
     const [settingsLoading, setSettingsLoading] = useState(true)
     const [paymentId, setPaymentId] = useState<string | null>(null)
+    const [snapReady, setSnapReady] = useState(false)
+    const [midtransLoading, setMidtransLoading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const platformName = helpdeskSettings?.platformName || settings.platformName || 'Meenuin'
+    const snapClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
+    const isProdSnap = (process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION || '').toString() === 'true'
+    const snapUrl = isProdSnap
+        ? 'https://app.midtrans.com/snap/snap.js'
+        : 'https://app.sandbox.midtrans.com/snap/snap.js'
 
     // Fetch system settings (bank info, QRIS image)
     useEffect(() => {
@@ -81,6 +94,25 @@ function PaymentContent() {
         fetchPlanPrice()
     }, [plan, cycle])
 
+    // Load Midtrans Snap script (client-side only)
+    useEffect(() => {
+        if (!snapClientKey) return
+        const existing = document.querySelector(`script[src*=\"midtrans.com/snap/snap.js\"]`)
+        if (existing) {
+            setSnapReady(true)
+            return
+        }
+        const script = document.createElement('script')
+        script.src = `${snapUrl}?client-key=${snapClientKey}`
+        script.dataset.clientKey = snapClientKey
+        script.onload = () => setSnapReady(true)
+        script.onerror = () => toast({ title: 'Midtrans', description: 'Gagal memuat Snap JS', variant: 'destructive' })
+        document.body.appendChild(script)
+        return () => {
+            script.remove()
+        }
+    }, [snapClientKey, snapUrl])
+
     // Check existing payment status
     useEffect(() => {
         if (!restaurantId) return
@@ -106,6 +138,60 @@ function PaymentContent() {
         const reader = new FileReader()
         reader.onloadend = () => setProofPreview(reader.result as string)
         reader.readAsDataURL(file)
+    }
+
+    const handleMidtransPay = async () => {
+        if (!restaurantId) {
+            toast({ title: 'Error', description: 'Restaurant ID tidak ditemukan', variant: 'destructive' })
+            return
+        }
+        if (!snapClientKey) {
+            toast({ title: 'Midtrans', description: 'Client key belum diatur', variant: 'destructive' })
+            return
+        }
+        setMidtransLoading(true)
+        try {
+            const res = await fetch('/api/payment/midtrans', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ restaurantId, plan, cycle })
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Gagal membuat transaksi')
+
+            const { token, redirectUrl, paymentId: pid } = data.data || {}
+            if (pid) setPaymentId(pid)
+
+            const onSuccess = () => {
+                setSubmitted(true)
+                toast({ title: 'Pembayaran berhasil', description: 'Akun akan aktif otomatis setelah konfirmasi Midtrans.' })
+            }
+            const onPending = () => {
+                setSubmitted(true)
+                toast({ title: 'Menunggu pembayaran', description: 'Kami menunggu konfirmasi Midtrans.' })
+            }
+            const onError = (err: any) => {
+                console.error(err)
+                toast({ title: 'Midtrans error', description: err?.message || 'Gagal memproses pembayaran', variant: 'destructive' })
+            }
+
+            if (typeof window !== 'undefined' && window.snap?.pay) {
+                window.snap.pay(token, {
+                    onSuccess,
+                    onPending,
+                    onError,
+                    onClose: () => toast({ title: 'Pembayaran dibatalkan', description: 'Anda dapat mencoba lagi.' })
+                })
+            } else if (redirectUrl) {
+                window.location.href = redirectUrl
+            } else {
+                toast({ title: 'Midtrans', description: 'Token diterima tetapi Snap belum siap', variant: 'destructive' })
+            }
+        } catch (err: any) {
+            toast({ title: 'Error', description: err.message, variant: 'destructive' })
+        } finally {
+            setMidtransLoading(false)
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -200,6 +286,31 @@ function PaymentContent() {
                     </div>
                 ) : (
                     <div className="space-y-6">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-green-200 dark:border-green-800 shadow-sm space-y-3">
+                            <div className="flex items-center gap-3">
+                                <span className="material-symbols-rounded text-3xl text-[#00a669]">payment</span>
+                                <div>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">Pembayaran otomatis</p>
+                                    <h3 className="text-lg font-bold text-[#064e3b] dark:text-white">Midtrans Snap (disarankan)</h3>
+                                </div>
+                            </div>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Klik tombol di bawah, pop-up Snap akan muncul. Anda dapat memilih VA, QRIS, kartu, dll sesuai kanal yang diaktifkan di dashboard Midtrans.</p>
+                            <button
+                                type="button"
+                                onClick={handleMidtransPay}
+                                disabled={midtransLoading || !snapReady || !snapClientKey}
+                                className="w-full py-4 bg-[#00a669] text-white font-bold rounded-2xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {midtransLoading ? (
+                                    <><span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> Menghubungkan ke Midtrans...</>
+                                ) : (
+                                    <><span className="material-symbols-rounded">bolt</span> Bayar lewat Midtrans</>
+                                )}
+                            </button>
+                            {!snapClientKey && (
+                                <p className="text-xs text-amber-600">Client key Midtrans belum diisi. Tambahkan di env `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`.</p>
+                            )}
+                        </div>
+
                         {/* Method Selector */}
                         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
                             <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-4">Pilih Metode Pembayaran</h3>

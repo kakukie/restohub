@@ -305,10 +305,21 @@ model SubscriptionPayment {
   restaurant     Restaurant                @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   planName       String
   amount         Float
-  method         String                    @default("BANK_TRANSFER") // BANK_TRANSFER | QRIS
+  method         String                    @default("BANK_TRANSFER") // BANK_TRANSFER | QRIS | MIDTRANS
   status         SubscriptionPaymentStatus @default(PENDING)
   proofImageUrl  String?
   notes          String?
+  // Midtrans metadata (optional)
+  orderId        String?
+  snapToken      String?
+  redirectUrl    String?
+  paymentType    String?
+  paymentChannel String?
+  cycleMonths    Int?
+  grossAmount    Float?
+  midtransStatus String?
+  paidAt         DateTime?
+  expiredAt      DateTime?
   validatedAt    DateTime?
   validatedBy    String?
   createdAt      DateTime                  @default(now())
