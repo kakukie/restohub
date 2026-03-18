@@ -169,7 +169,9 @@ export async function PUT(
             if (isNaN(dt.getTime())) {
                 return NextResponse.json({ success: false, error: 'Invalid activeUntil date' }, { status: 400 })
             }
-            updates.activeUntil = dt
+            // preserve local wall-clock time by converting to UTC without shift
+            const dtUtc = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
+            updates.activeUntil = dtUtc
         }
 
         // White-list allowed fields to prevent schema errors
