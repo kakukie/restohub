@@ -149,18 +149,8 @@ function RegisterContent() {
             })
 
             const isFreePlan = (formData.package || '').toUpperCase().includes('FREE')
-            const needsPayment =
-                (!isFreePlan) &&
-                (
-                    (selectedPlan && (
-                        selectedPlan.price > 0 ||
-                        (selectedPlan.price3Months && selectedPlan.price3Months > 0) ||
-                        (selectedPlan.price6Months && selectedPlan.price6Months > 0) ||
-                        (selectedPlan.price12Months && selectedPlan.price12Months > 0)
-                    )) ||
-                    // fallback: if selected plan tidak ter-load, tapi bukan FREE, anggap berbayar
-                    !selectedPlan
-                )
+            // Asumsi: semua paket non-FREE wajib pembayaran, tanpa melihat nilai price
+            const needsPayment = !isFreePlan
 
             toast({
                 title: 'Pendaftaran Berhasil! 🎉',
