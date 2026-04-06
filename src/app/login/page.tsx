@@ -5,7 +5,8 @@ import { useAppStore } from '@/store/app-store'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from '@/hooks/use-toast'
-
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 function LoginPageContent() {
     const { setUser, user, isInitialized, helpdeskSettings } = useAppStore()
     const router = useRouter()
@@ -22,6 +23,11 @@ function LoginPageContent() {
     const [captchaNum1, setCaptchaNum1] = useState(0)
     const [captchaNum2, setCaptchaNum2] = useState(0)
     const [captchaAnswer, setCaptchaAnswer] = useState('')
+
+    const [requires2FA, setRequires2FA] = useState(false)
+    const [preAuthToken, setPreAuthToken] = useState('')
+    const [otpToken, setOtpToken] = useState('')
+
 
     useEffect(() => {
         setMounted(true)
@@ -88,6 +94,13 @@ function LoginPageContent() {
                 throw new Error(data.error || 'Login failed')
             }
 
+            if (data.requires2FA) {
+                setRequires2FA(true)
+                setPreAuthToken(data.preAuthToken)
+                toast({ title: '2FA Dibutuhkan', description: 'Silahkan masukkan kode OTP dari aplikasi authenticator Anda.' })
+                return
+            }
+
             const userData = data.user
             setUser(userData)
             toast({ title: 'Selamat Datang!', description: `Login sebagai ${userData.name}` })
@@ -106,6 +119,62 @@ function LoginPageContent() {
                 variant: 'destructive',
             })
             generateCaptcha()
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleGoogleLogin = async (credential: string | undefined) => {
+        if (!credential) return
+        setLoading(true)
+        try {
+            const response = await fetch('/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential })
+            })
+            const data = await response.json()
+            if (!response.ok) throw new Error(data.error || 'Google Login failed')
+
+            if (data.requires2FA) {
+                setRequires2FA(true)
+                setPreAuthToken(data.preAuthToken)
+                toast({ title: '2FA Dibutuhkan', description: 'Silahkan masukkan kode OTP dari aplikasi authenticator Anda.' })
+                return
+            }
+
+            const userData = data.user
+            setUser(userData)
+            toast({ title: 'Selamat Datang!', description: `Login sebagai ${userData.name}` })
+            if (userData.role === 'SUPER_ADMIN') router.push('/admin')
+            else if (userData.role === 'RESTAURANT_ADMIN') router.push('/dashboard')
+        } catch (error: any) {
+            toast({ title: 'Sistem Google Login', description: error.message, variant: 'destructive' })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleVerify2FA = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault()
+        if (otpToken.length < 6) return
+        setLoading(true)
+        try {
+            const response = await fetch('/api/auth/2fa/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ preAuthToken, token: otpToken })
+            })
+            const data = await response.json()
+            if (!response.ok) throw new Error(data.error || 'Verifikasi gagal')
+
+            const userData = data.user
+            setUser(userData)
+            toast({ title: 'Verifikasi Berhasil', description: `Login sebagai ${userData.name}` })
+            if (userData.role === 'SUPER_ADMIN') router.push('/admin')
+            else if (userData.role === 'RESTAURANT_ADMIN') router.push('/dashboard')
+        } catch (error: any) {
+            toast({ title: 'Verifikasi Gagal', description: error.message, variant: 'destructive' })
         } finally {
             setLoading(false)
         }
@@ -164,7 +233,34 @@ function LoginPageContent() {
                 <div
                     className="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 md:px-12 py-12 bg-white dark:bg-slate-900">
                     <div className="max-w-md w-full">
-                        <div className="lg:hidden flex justify-center mb-8">
+                        {requires2FA ? (
+                            <div className="space-y-6">
+                                <div className="text-center mb-8">
+                                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Verifikasi 2-Langkah</h2>
+                                    <p className="text-slate-500 mt-2">Masukkan kode OTP dari aplikasi Google Authenticator Anda.</p>
+                                </div>
+                                <form onSubmit={handleVerify2FA} className="space-y-6 flex flex-col items-center">
+                                    <InputOTP maxLength={6} value={otpToken} onChange={(val) => setOtpToken(val)}>
+                                      <InputOTPGroup>
+                                        <InputOTPSlot index={0} />
+                                        <InputOTPSlot index={1} />
+                                        <InputOTPSlot index={2} />
+                                        <InputOTPSlot index={3} />
+                                        <InputOTPSlot index={4} />
+                                        <InputOTPSlot index={5} />
+                                      </InputOTPGroup>
+                                    </InputOTP>
+                                    <button
+                                        className="w-full bg-[#00a669] hover:bg-opacity-90 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center"
+                                        type="submit" disabled={loading || otpToken.length < 6}>
+                                        {loading ? 'Memverifikasi...' : 'Verifikasi OTP'}
+                                    </button>
+                                    <button type="button" onClick={() => setRequires2FA(false)} className="text-sm font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Kembali ke Login</button>
+                                </form>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="lg:hidden flex justify-center mb-8">
                             <Link href="/" className="flex items-center gap-2">
                                 <div className="bg-[#00a669] p-2 rounded-lg">
                                     <span className="material-symbols-rounded text-white text-2xl">restaurant</span>
@@ -231,6 +327,29 @@ function LoginPageContent() {
                             </div>
                         </div>
 
+                        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+                            <div className="mb-6">
+                                <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
+                                    <div className="flex justify-center w-full [&>div]:w-full [&>div]:flex [&>div]:justify-center">
+                                        <GoogleLogin
+                                            onSuccess={res => handleGoogleLogin(res.credential)}
+                                            onError={() => toast({ title: 'Error', description: 'Google Login Gagal', variant: 'destructive' })}
+                                            useOneTap
+                                            shape="rectangular"
+                                            theme="filled_blue"
+                                            text="signin_with"
+                                            size="large"
+                                        />
+                                    </div>
+                                </GoogleOAuthProvider>
+                                <div className="mt-6 flex items-center justify-center gap-4">
+                                    <hr className="w-1/3 border-slate-200 dark:border-slate-700" />
+                                    <span className="text-xs text-slate-400 font-semibold uppercase">Atau Email</span>
+                                    <hr className="w-1/3 border-slate-200 dark:border-slate-700" />
+                                </div>
+                            </div>
+                        )}
+
                         <form className="space-y-5" onSubmit={handleLogin}>
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
@@ -293,6 +412,8 @@ function LoginPageContent() {
                                 Protected by {platformName} Secure Login
                             </div>
                         </div>
+                        </>
+                        )}
                     </div>
                 </div>
             </div>

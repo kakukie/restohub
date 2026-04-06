@@ -54,6 +54,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // SSO & 2FA
+  googleId           String?   @unique
+  isTwoFactorEnabled Boolean   @default(false)
+  twoFactorSecret    String?
+
   // Relations
   restaurants   Restaurant[]
   orders        Order[]

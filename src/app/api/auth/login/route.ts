@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { comparePassword } from '@/lib/auth'
-import { signAccessToken, signRefreshToken } from '@/lib/jwt'
+import { signAccessToken, signRefreshToken, signPreAuthToken } from '@/lib/jwt'
 import { cookies } from 'next/headers'
 import {
     checkRateLimit,
@@ -160,6 +160,26 @@ export async function POST(request: NextRequest) {
             email: user.email,
             role: user.role,
             restaurantId: restaurant?.id
+        }
+
+        if (user.isTwoFactorEnabled && user.twoFactorSecret) {
+            const preAuthToken = await signPreAuthToken(tokenPayload)
+            return NextResponse.json({
+                success: true,
+                message: '2FA verification required',
+                requires2FA: true,
+                preAuthToken
+            })
+        }
+
+        if ((user as any).isTwoFactorEnabled && (user as any).twoFactorSecret) {
+            const preAuthToken = await signPreAuthToken(tokenPayload)
+            return NextResponse.json({
+                success: true,
+                message: '2FA verification required',
+                requires2FA: true,
+                preAuthToken
+            })
         }
 
         const accessToken = await signAccessToken(tokenPayload)

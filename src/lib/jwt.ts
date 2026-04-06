@@ -30,6 +30,18 @@ export async function signRefreshToken(payload: any) {
         .sign(KEY)
 }
 
+export async function signPreAuthToken(payload: any) {
+    const iat = Math.floor(Date.now() / 1000)
+    const exp = iat + 5 * 60 // 5 minutes
+
+    return new SignJWT({ ...payload, preAuth: true })
+        .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+        .setExpirationTime(exp)
+        .setIssuedAt(iat)
+        .setNotBefore(iat)
+        .sign(KEY)
+}
+
 export async function verifyJwt(token: string) {
     try {
         const { payload } = await jwtVerify(token, KEY, {
