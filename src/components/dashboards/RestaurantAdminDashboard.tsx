@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' 
 import { Plus, Minus, Search, Trash2, Edit2, Camera, Bell, CheckCircle2, XCircle, FileText, ChevronDown, ChevronUp, Clock, FileDown, Eye, Filter, Loader2, Printer, Grid, List, Check, X, Edit, RefreshCw, Download, Save } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { BluetoothPrinterService } from '@/lib/bluetooth-printer'
+import { CapacitorBluetoothPrinterService, printerService } from '@/lib/bluetooth-printer'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
@@ -411,22 +411,21 @@ export default function RestaurantAdminDashboard() {
                 return;
             }
             
-            // 2) Web Bluetooth fallback
-            if (navigator.bluetooth) {
-                 const printerAuth = new BluetoothPrinterService();
-                 let isConnected = false;
-                 try {
-                     isConnected = await printerAuth.connect();
-                 } catch(err) {
-                     console.log("Bluetooth connect failed or canceled, fallback to PDF", err);
-                 }
-                 
-                 if(isConnected) {
-                     toast({ title: "Mencetak", description: "Mengirim format ESC/POS ke printer restoran..." });
-                     await printerAuth.printReceipt(order, currentRestaurant);
-                     toast({ title: "Sukses", description: "Struk berhasil dicetak di thermal printer!" });
-                     return;
-                 }
+            // 2) Capacitor BLE / Web Bluetooth
+            try {
+                toast({ title: "Koneksi Printer", description: "Mencari dan menghubungkan ke printer..." });
+                const savedName = currentRestaurant?.printerSettings?.bluetoothName || '';
+                
+                if (!printerService.isConnected) {
+                    await printerService.autoConnect(savedName);
+                }
+                
+                toast({ title: "Mencetak", description: "Mengirim struk ke printer..." });
+                await printerService.printReceipt(orderData, restaurantData);
+                toast({ title: "Sukses", description: "Struk berhasil dicetak!" });
+                return;
+            } catch (bleErr: any) {
+                console.log("BLE print failed, falling back to PDF:", bleErr.message);
             }
             
             // 3) Fallback: Browser print dialog / PDF

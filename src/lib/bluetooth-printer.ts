@@ -1,62 +1,256 @@
+/**
+ * Capacitor BLE Bluetooth Printer Service
+ * 
+ * Uses @capacitor-community/bluetooth-le for native BLE access on Android.
+ * Falls back to Web Bluetooth API for browser/desktop.
+ * 
+ * This service can auto-connect to a saved printer without user interaction.
+ */
 import EscPosEncoder from 'esc-pos-encoder';
 
-export class BluetoothPrinterService {
-    private device: any = null;
-    private server: any = null;
-    private service: any = null;
-    private characteristic: any = null;
+// Common thermal printer BLE service UUIDs
+const PRINTER_SERVICE_UUIDS = [
+    '000018f0-0000-1000-8000-00805f9b34fb',
+    'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+    '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+];
 
-    /**
-     * Connect to a Bluetooth Thermal Printer using Web Bluetooth API.
-     */
-    async connect() {
+// Common name prefixes for thermal printers
+const PRINTER_NAME_PREFIXES = ['MPT', 'PT', 'Blue', 'Inner', 'Printer', 'POS', 'RPP', 'MTP', 'TSC', 'XP', 'ZJ'];
+
+interface PrinterDevice {
+    deviceId: string;
+    name: string;
+    serviceUUID: string;
+    characteristicUUID: string;
+}
+
+export class CapacitorBluetoothPrinterService {
+    private connectedDevice: PrinterDevice | null = null;
+    private BleClient: any = null;
+    private isNative = false;
+
+    constructor() {
+        this.detectPlatform();
+    }
+
+    private async detectPlatform() {
         try {
-            if (!navigator.bluetooth) {
-                throw new Error("Pencetakan Bluetooth tidak didukung di browser/perangkat ini.");
-            }
-
-            // Minta izin ke user untuk memilih perangkat Bluetooth printer
-            this.device = await (navigator as any).bluetooth.requestDevice({
-                filters: [
-                    { services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, // Standard printer service UUID
-                    { namePrefix: 'MPT' },
-                    { namePrefix: 'PT' },
-                    { namePrefix: 'Blue' },
-                    { namePrefix: 'Inner' }, // Sunmi inner printer usually
-                ],
-                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', 'e7810a71-73ae-499d-8c15-faa9aef0c3f2'] 
-            });
-
-            this.server = await this.device.gatt.connect();
-            
-            // Try standard services first 
-            try {
-                this.service = await this.server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-            } catch(e) {
-                // fallback to finding any available service with write capabilities 
-                const services = await this.server.getPrimaryServices();
-                this.service = services[0]; 
-            }
-
-            const characteristics = await this.service.getCharacteristics();
-            // Temukan characteristic yang mendukung format 'write' atau 'writeWithoutResponse'
-            this.characteristic = characteristics.find(
-                (c: any) => c.properties.write || c.properties.writeWithoutResponse
-            );
-
-            if (!this.characteristic) {
-                throw new Error("Tidak menemukan port write yang valid pada printer ini.");
-            }
-
-            return true;
-        } catch (error: any) {
-            console.error("Bluetooth Connect Error:", error);
-            throw new Error(error.message || "Gagal terkoneksi ke printer Bluetooth.");
+            const { BleClient } = await import('@capacitor-community/bluetooth-le');
+            this.BleClient = BleClient;
+            // Check if running in native Capacitor context
+            const { Capacitor } = await import('@capacitor/core');
+            this.isNative = Capacitor.isNativePlatform();
+        } catch {
+            this.isNative = false;
         }
     }
 
     /**
-     * Build ESC/POS Byte Array dari Data Order
+     * Initialize BLE - must be called before scan/connect.
+     */
+    async initialize(): Promise<void> {
+        if (!this.BleClient) {
+            try {
+                const { BleClient } = await import('@capacitor-community/bluetooth-le');
+                this.BleClient = BleClient;
+            } catch {
+                console.warn('BleClient not available, falling back to Web Bluetooth');
+                return;
+            }
+        }
+        try {
+            await this.BleClient.initialize({ androidNeverForLocation: true });
+        } catch (e) {
+            console.warn('BLE initialize warning:', e);
+        }
+    }
+
+    /**
+     * Scan for nearby BLE thermal printers.
+     * Returns a list of discovered devices.
+     */
+    async scanForPrinters(timeoutMs = 5000): Promise<{ deviceId: string; name: string }[]> {
+        if (!this.isNative || !this.BleClient) {
+            throw new Error('Native BLE scan hanya tersedia di aplikasi Android/iOS.');
+        }
+
+        await this.initialize();
+
+        const devices: { deviceId: string; name: string }[] = [];
+
+        await this.BleClient.requestLEScan(
+            { allowDuplicates: false },
+            (result: any) => {
+                const name = result.device?.name || result.localName || '';
+                const deviceId = result.device?.deviceId || '';
+                if (
+                    name &&
+                    deviceId &&
+                    PRINTER_NAME_PREFIXES.some(p => name.toUpperCase().startsWith(p.toUpperCase())) &&
+                    !devices.find(d => d.deviceId === deviceId)
+                ) {
+                    devices.push({ deviceId, name });
+                }
+            }
+        );
+
+        // Wait for scan duration
+        await new Promise(resolve => setTimeout(resolve, timeoutMs));
+        await this.BleClient.stopLEScan();
+
+        return devices;
+    }
+
+    /**
+     * Connect to a specific printer by deviceId (Capacitor native).
+     * Can auto-connect without user interaction.
+     */
+    async connectByDeviceId(deviceId: string): Promise<boolean> {
+        if (!this.isNative || !this.BleClient) {
+            throw new Error('Native BLE connect hanya tersedia di APK.');
+        }
+
+        await this.initialize();
+
+        try {
+            await this.BleClient.connect(deviceId, (disconnectedDeviceId: string) => {
+                console.log('Printer disconnected:', disconnectedDeviceId);
+                if (this.connectedDevice?.deviceId === disconnectedDeviceId) {
+                    this.connectedDevice = null;
+                }
+            });
+
+            // Discover services and find writable characteristic
+            const services = await this.BleClient.getServices(deviceId);
+            
+            for (const service of services) {
+                const svcUuid = service.uuid.toLowerCase();
+                // Check if it's a known printer service
+                const isKnownService = PRINTER_SERVICE_UUIDS.some(u => svcUuid.includes(u));
+                if (!isKnownService && !svcUuid.startsWith('0000')) continue;
+
+                for (const char of (service.characteristics || [])) {
+                    const props = char.properties;
+                    if (props?.write || props?.writeWithoutResponse) {
+                        this.connectedDevice = {
+                            deviceId,
+                            name: '',
+                            serviceUUID: service.uuid,
+                            characteristicUUID: char.uuid
+                        };
+                        return true;
+                    }
+                }
+            }
+
+            // If no known service found, try all services
+            for (const service of services) {
+                for (const char of (service.characteristics || [])) {
+                    const props = char.properties;
+                    if (props?.write || props?.writeWithoutResponse) {
+                        this.connectedDevice = {
+                            deviceId,
+                            name: '',
+                            serviceUUID: service.uuid,
+                            characteristicUUID: char.uuid
+                        };
+                        return true;
+                    }
+                }
+            }
+
+            throw new Error('Tidak menemukan characteristic yang bisa ditulis pada printer.');
+        } catch (error: any) {
+            console.error('BLE Connect Error:', error);
+            throw new Error(error.message || 'Gagal terkoneksi ke printer.');
+        }
+    }
+
+    /**
+     * Auto-connect: scan then connect to first matching printer,
+     * or connect by saved name.
+     */
+    async autoConnect(savedPrinterName?: string): Promise<boolean> {
+        if (!this.isNative) {
+            // Fallback to Web Bluetooth (requires user gesture)
+            return this.connectWebBluetooth();
+        }
+
+        await this.initialize();
+
+        const devices = await this.scanForPrinters(4000);
+
+        if (devices.length === 0) {
+            throw new Error('Tidak ditemukan printer Bluetooth di sekitar. Pastikan printer menyala dan Bluetooth HP aktif.');
+        }
+
+        // Prefer saved printer name
+        let target = devices[0];
+        if (savedPrinterName) {
+            const saved = devices.find(d => d.name.toLowerCase().includes(savedPrinterName.toLowerCase()));
+            if (saved) target = saved;
+        }
+
+        return this.connectByDeviceId(target.deviceId);
+    }
+
+    /**
+     * Fallback: Web Bluetooth (requires user click/gesture, shows browser dialog).
+     */
+    private async connectWebBluetooth(): Promise<boolean> {
+        if (!navigator.bluetooth) {
+            throw new Error('Bluetooth tidak didukung di browser ini.');
+        }
+
+        const device = await (navigator as any).bluetooth.requestDevice({
+            filters: [
+                { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
+                ...PRINTER_NAME_PREFIXES.map(p => ({ namePrefix: p }))
+            ],
+            optionalServices: PRINTER_SERVICE_UUIDS
+        });
+
+        const server = await device.gatt.connect();
+
+        let service: any = null;
+        for (const uuid of PRINTER_SERVICE_UUIDS) {
+            try {
+                service = await server.getPrimaryService(uuid);
+                break;
+            } catch { /* try next */ }
+        }
+        if (!service) {
+            const services = await server.getPrimaryServices();
+            service = services[0];
+        }
+
+        const characteristics = await service.getCharacteristics();
+        const writableChar = characteristics.find(
+            (c: any) => c.properties.write || c.properties.writeWithoutResponse
+        );
+
+        if (!writableChar) {
+            throw new Error('Tidak menemukan port write pada printer.');
+        }
+
+        // Store as a pseudo-connected device for the write methods
+        this.connectedDevice = {
+            deviceId: '__web_bluetooth__',
+            name: device.name || 'Printer',
+            serviceUUID: service.uuid,
+            characteristicUUID: writableChar.uuid
+        };
+
+        // Store web bluetooth references
+        (this as any)._webDevice = device;
+        (this as any)._webCharacteristic = writableChar;
+
+        return true;
+    }
+
+    /**
+     * Build ESC/POS receipt bytes.
      */
     buildReceipt(order: any, restaurant: any): Uint8Array {
         const encoder = new EscPosEncoder();
@@ -64,7 +258,6 @@ export class BluetoothPrinterService {
             .codepage('cp858')
             .align('center');
 
-        // ==== Header Restoran ====
         if (restaurant?.name) {
             receipt = receipt.bold(true).text(restaurant.name).newline().bold(false);
         }
@@ -76,8 +269,6 @@ export class BluetoothPrinterService {
         }
 
         receipt = receipt.newline().line('-').newline();
-
-        // ==== Info Pesanan ====
         receipt = receipt.align('left')
             .text(`No: #${order.orderNumber}`).newline()
             .text(`Tgl: ${new Date(order.createdAt).toLocaleString('id-ID')}`).newline()
@@ -86,16 +277,11 @@ export class BluetoothPrinterService {
 
         receipt = receipt.newline().line('-').newline();
 
-        // ==== Item Pesanan ====
         if (order.items && order.items.length > 0) {
             order.items.forEach((item: any) => {
                 const itemTotal = item.price * item.quantity;
-                const qtyStr = `${item.quantity}x`;
-                
-                // Format simpel: 2x Nasi Goreng  Rp 40.000
-                receipt = receipt.text(`${qtyStr} ${item.menuItemName}`).newline();
+                receipt = receipt.text(`${item.quantity}x ${item.menuItemName || item.name || ''}`).newline();
                 receipt = receipt.align('right').text(`Rp ${(itemTotal).toLocaleString('id-ID')}`).newline().align('left');
-                
                 if (item.notes) {
                     receipt = receipt.text(`  catatan: ${item.notes}`).newline();
                 }
@@ -103,54 +289,90 @@ export class BluetoothPrinterService {
         }
 
         receipt = receipt.newline().line('-').newline();
-
-        // ==== Total ====
         receipt = receipt.align('right').bold(true)
             .text(`TOTAL: Rp ${order.totalAmount.toLocaleString('id-ID')}`).newline()
             .bold(false).align('center');
 
         receipt = receipt.newline().line('-').newline();
-
-        // ==== Footer ====
         receipt = receipt.text("Terima kasih atas kunjungan Anda!").newline()
             .text("Layanan Menu Digital oleh Meenuin").newline();
 
-        // Cut paper and open cash drawer if supported
         receipt = receipt.newline().newline().newline().cut().encode();
-
         return receipt;
     }
 
     /**
-     * Send Byte Array ke Printer Characteristic per potongan kecil (MTU size)
+     * Send data to the connected printer.
      */
-    async printReceipt(order: any, restaurant: any) {
-        if (!this.characteristic) {
-            await this.connect();
+    async writeData(data: Uint8Array): Promise<void> {
+        if (!this.connectedDevice) {
+            throw new Error('Printer belum terkoneksi.');
         }
-        
-        try {
-            const data = this.buildReceipt(order, restaurant);
-            
-            // Pengiriman bluetooth sering terbatas 20-512 byte (disarankan potong 100 byte jika gagal)
-            const chunkSize = 100; 
+
+        const chunkSize = 100;
+
+        if (this.connectedDevice.deviceId === '__web_bluetooth__') {
+            // Web Bluetooth path
+            const char = (this as any)._webCharacteristic;
             for (let i = 0; i < data.length; i += chunkSize) {
                 const chunk = data.slice(i, i + chunkSize);
-                if (this.characteristic.properties.writeWithoutResponse) {
-                   await this.characteristic.writeValueWithoutResponse(chunk);
+                if (char.properties.writeWithoutResponse) {
+                    await char.writeValueWithoutResponse(chunk);
                 } else {
-                   await this.characteristic.writeValue(chunk);
+                    await char.writeValue(chunk);
                 }
             }
-            
-            // disconnect gracefully
-            if (this.device && this.device.gatt.connected) {
-                this.device.gatt.disconnect();
+        } else {
+            // Capacitor BLE path
+            for (let i = 0; i < data.length; i += chunkSize) {
+                const chunk = data.slice(i, i + chunkSize);
+                const dataView = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+                
+                await this.BleClient.write(
+                    this.connectedDevice.deviceId,
+                    this.connectedDevice.serviceUUID,
+                    this.connectedDevice.characteristicUUID,
+                    dataView
+                );
             }
-            return true;
-        } catch (error: any) {
-            console.error("Bluetooth Print Error:", error);
-            throw new Error(error.message || "Gagal mencetak struk.");
         }
     }
+
+    /**
+     * Print a receipt.
+     */
+    async printReceipt(order: any, restaurant: any): Promise<void> {
+        const data = this.buildReceipt(order, restaurant);
+        await this.writeData(data);
+    }
+
+    /**
+     * Disconnect from the printer.
+     */
+    async disconnect(): Promise<void> {
+        if (!this.connectedDevice) return;
+
+        try {
+            if (this.connectedDevice.deviceId === '__web_bluetooth__') {
+                const device = (this as any)._webDevice;
+                if (device?.gatt?.connected) device.gatt.disconnect();
+            } else if (this.BleClient) {
+                await this.BleClient.disconnect(this.connectedDevice.deviceId);
+            }
+        } catch (e) {
+            console.warn('Disconnect warning:', e);
+        }
+        this.connectedDevice = null;
+    }
+
+    get isConnected(): boolean {
+        return this.connectedDevice !== null;
+    }
+
+    get deviceName(): string {
+        return this.connectedDevice?.name || '';
+    }
 }
+
+// Singleton instance
+export const printerService = new CapacitorBluetoothPrinterService();
