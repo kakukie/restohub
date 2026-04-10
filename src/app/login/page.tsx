@@ -327,18 +327,22 @@ function LoginPageContent() {
                             </div>
                         </div>
 
-                        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+                        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? (
                             <div className="mb-6">
                                 <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
-                                    <div className="flex justify-center w-full [&>div]:w-full [&>div]:flex [&>div]:justify-center">
+                                    <div className="flex justify-center w-full min-h-[44px] [&>div]:w-full [&>div]:flex [&>div]:justify-center">
                                         <GoogleLogin
                                             onSuccess={res => handleGoogleLogin(res.credential)}
-                                            onError={() => toast({ title: 'Error', description: 'Google Login Gagal', variant: 'destructive' })}
-                                            useOneTap
+                                            onError={() => {
+                                                console.error('Google Login Error');
+                                                toast({ title: 'Sistem Google', description: 'Google Login mungkin diblokir di dalam aplikasi. Gunakan browser luar jika tidak muncul.', variant: 'destructive' });
+                                            }}
+                                            useOneTap={false} // Disable one-tap in WebView as it often fails
                                             shape="rectangular"
                                             theme="filled_blue"
                                             text="signin_with"
                                             size="large"
+                                            width="100%"
                                         />
                                     </div>
                                 </GoogleOAuthProvider>
@@ -347,6 +351,10 @@ function LoginPageContent() {
                                     <span className="text-xs text-slate-400 font-semibold uppercase">Atau Email</span>
                                     <hr className="w-1/3 border-slate-200 dark:border-slate-700" />
                                 </div>
+                            </div>
+                        ) : (
+                            <div className="mb-6 p-3 bg-red-50 text-red-500 rounded-lg text-xs font-medium text-center">
+                                Google Client ID belum dikonfigurasi (.env)
                             </div>
                         )}
 

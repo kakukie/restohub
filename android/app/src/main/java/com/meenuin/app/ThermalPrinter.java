@@ -142,6 +142,7 @@ public class ThermalPrinter {
             writeln(out, "No: #" + order.optString("orderNumber"));
             writeln(out, "Tgl: " + order.optString("createdAt"));
             writeln(out, "Cust: " + order.optString("customerName", "Guest"));
+            writeln(out, "Bayar: " + order.optString("paymentMethod", "-"));
             String tipe = order.optString("tableNumber", "").isEmpty()
                 ? "Takeaway" : "Meja " + order.optString("tableNumber");
             writeln(out, "Tipe: " + tipe);

@@ -397,7 +397,8 @@ export default function RestaurantAdminDashboard() {
                     price: item.price || 0,
                     notes: item.notes || ''
                 })),
-                totalAmount: order.totalAmount
+                totalAmount: order.totalAmount,
+                paymentMethod: order.paymentMethod || '-'
             };
 
             const restaurantData = {
