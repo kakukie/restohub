@@ -385,6 +385,8 @@ export default function RestaurantAdminDashboard() {
     const handlePrintOrder = async (order: any) => {
         if (isPrinting) return;
         setIsPrinting(true);
+        const resetPrinting = () => setTimeout(() => setIsPrinting(false), 2000);
+
         try {
             toast({ title: "Inisiasi Printer", description: "Mencari printer Bluetooth..." });
 
@@ -429,6 +431,7 @@ export default function RestaurantAdminDashboard() {
                 const cbId = 'cb_print_' + Date.now();
                 await new Promise<void>((resolve) => {
                     window.__printerCallbacks![cbId] = (success: boolean, message: string) => {
+                        resetPrinting();
                         if (success) {
                             toast({ title: "Cetak Berhasil", description: "Struk telah dikirim ke printer." });
                         } else {
@@ -456,6 +459,7 @@ export default function RestaurantAdminDashboard() {
                     setTimeout(() => {
                         if (window.__printerCallbacks?.[cbId]) {
                             delete window.__printerCallbacks![cbId];
+                            resetPrinting();
                             toast({ title: "Timeout", description: "Printer tidak merespons dalam 15 detik.", variant: "destructive" });
                             resolve();
                         }
@@ -466,6 +470,7 @@ export default function RestaurantAdminDashboard() {
                     } catch {
                         // Fallback: old bridge without callbackId (silent)
                         window.Android!.printReceipt(JSON.stringify(orderData), JSON.stringify(restaurantData));
+                        resetPrinting();
                         setTimeout(() => resolve(), 2000);
                     }
                 });
@@ -484,10 +489,10 @@ export default function RestaurantAdminDashboard() {
                 toast({ title: "Mencetak", description: "Mengirim struk ke printer..." });
                 await printerService.printReceipt(orderData, restaurantData);
                 toast({ title: "Sukses", description: "Struk berhasil dicetak!" });
+                resetPrinting();
                 return;
-            } finally {
-                // Add a small cooldown before allowing another print
-                setTimeout(() => setIsPrinting(false), 2000);
+            } catch (bleErr: any) {
+                console.warn("BLE print failed, falling back to PDF:", bleErr.message);
             }
             
             // 3) Fallback: Browser print dialog / PDF
@@ -577,6 +582,8 @@ export default function RestaurantAdminDashboard() {
         } catch (error: any) {
              console.error("Print feature error", error);
              toast({ title: "Gagal Cetak", description: error.message || "Pastikan Bluetooth On dan Support Thermal", variant: "destructive" });
+        } finally {
+             resetPrinting();
         }
     }
 
