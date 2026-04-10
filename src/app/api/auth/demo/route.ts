@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
             userId: user.id,
             email: user.email,
             role: user.role,
-            restaurantId: restaurant.id
+            restaurantId: restaurant.id,
+            isDemo: true
         }
 
         const accessToken = await signAccessToken(tokenPayload)

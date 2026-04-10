@@ -36,6 +36,24 @@ export async function middleware(request: NextRequest) {
         if (!isAccessValid && !isRefreshValid) {
             return NextResponse.redirect(new URL('/', request.url))
         }
+
+        // ─── Global Demo Protection ───
+        // If it's an API call and we're in Demo mode, block state changes.
+        const activePayload = isAccessValid || isRefreshValid
+        const isDemoUser = activePayload?.isDemo === true
+        const isApi = pathname.startsWith('/api')
+        const isStateChange = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)
+
+        if (isDemoUser && isApi && isStateChange) {
+            // Exceptions: allow demo to login/logout or specific non-harmful APIs
+            if (!pathname.includes('/api/auth/logout')) {
+                return NextResponse.json(
+                    { success: false, error: '🚦 Mode Demo: Anda tidak diizinkan mengubah data.' },
+                    { status: 403 }
+                )
+            }
+        }
+
         return NextResponse.next()
     }
 
@@ -45,6 +63,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         '/dashboard/:path*',
-        '/admin/:path*'
+        '/admin/:path*',
+        '/api/:path*'
     ]
 }

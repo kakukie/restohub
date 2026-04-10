@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { v4 as uuidv4 } from 'uuid'
+import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
 // GET /api/orders
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const restaurantId = searchParams.get('restaurantId')
     const customerId = searchParams.get('customerId') // For customer history if needed
     const paymentMethodParam = searchParams.get('paymentMethod') // NEW: filter by payment method
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
     const where: any = {}
-    if (restaurantId) where.restaurantId = restaurantId
+    
+    // Safety: Always filter by the user's restaurantId if not Super Admin
+    if (user.role !== 'SUPER_ADMIN') {
+      where.restaurantId = user.restaurantId
+    } else {
+      // Super Admin can filter by any restaurantId
+      const targetRid = searchParams.get('restaurantId')
+      if (targetRid) where.restaurantId = targetRid
+    }
+
     if (customerId) where.customerId = customerId
 
     // Date Filtering
@@ -194,6 +205,21 @@ export async function PUT(request: NextRequest) {
     if (!orderId) {
       return NextResponse.json({ success: false, error: 'Order ID required' }, { status: 400 })
     }
+
+    // 1. Fetch Order and Check Ownership
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId }
+    })
+
+    if (!existingOrder) {
+      return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 })
+    }
+
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
+    const auth = authorizeAction(user, existingOrder.restaurantId, 'PUT')
+    if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 
     const updates: any = {}
     if (status) {

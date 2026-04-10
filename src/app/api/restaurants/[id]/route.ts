@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { normalizeMediaUrl } from '@/lib/media-url'
+import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
 import { getCache, setCache, invalidateCache } from '@/lib/redis'
 
@@ -100,6 +101,24 @@ export async function GET(
 }
 
 export async function DELETE(
+
+        // 3. Set Cache (TTL 60s)
+        await setCache(cacheKey, transformedData, 60)
+
+        return NextResponse.json({
+            success: true,
+            data: transformedData
+        })
+    } catch (error) {
+        console.error('Error fetching restaurant:', error)
+        return NextResponse.json(
+            { success: false, error: 'Internal Server Error' },
+            { status: 500 }
+        )
+    }
+}
+
+export async function DELETE(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
 ) {
@@ -107,6 +126,9 @@ export async function DELETE(
     const idOrSlug = params.id
 
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
         const restaurant = await prisma.restaurant.findFirst({
             where: {
                 OR: [
@@ -120,6 +142,10 @@ export async function DELETE(
         if (!restaurant) {
             return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
         }
+
+        // Authorize: Block Demo + Ensure Ownership
+        const auth = authorizeAction(user, restaurant.id, 'DELETE')
+        if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 
         // Hard Delete (Cascade takes care of children as defined in Schema)
         await prisma.restaurant.delete({
@@ -190,30 +216,6 @@ export async function PUT(
         Object.keys(updates).forEach(key => {
             if (allowedFields.includes(key)) {
                 cleanUpdates[key] = updates[key]
-            }
-        })
-
-        // 1. Resolve to actual ID
-        const restaurant = await prisma.restaurant.findFirst({
-            where: {
-                OR: [
-                    { id: idOrSlug },
-                    { slug: idOrSlug }
-                ]
-            },
-            select: { id: true, slug: true, slugChangeCount: true, maxSlugChanges: true }
-        })
-
-        if (!restaurant) {
-            console.log(`[PUT] Restaurant not found for: ${idOrSlug}`) // DEBUG LOG
-            return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
-        }
-
-        // Check Slug Limit
-        if (cleanUpdates.slug && cleanUpdates.slug !== restaurant.slug) {
-            const currentCount = restaurant.slugChangeCount || 0
-            const maxLimit = restaurant.maxSlugChanges ?? 3
-
             if (currentCount >= maxLimit) {
                 return NextResponse.json({
                     success: false,
