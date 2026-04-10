@@ -138,6 +138,7 @@ export default function RestaurantAdminDashboard() {
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
     const [loadingRestaurant, setLoadingRestaurant] = useState(true) // Add loading state
+    const [isPrinting, setIsPrinting] = useState(false)
     const [printerPaperSize, setPrinterPaperSize] = useState<'58mm' | '80mm'>('58mm')
     const [printerAddress, setPrinterAddress] = useState<string>('')
     const [printerAutoPrint, setPrinterAutoPrint] = useState<boolean>(false)
@@ -382,6 +383,8 @@ export default function RestaurantAdminDashboard() {
 
 
     const handlePrintOrder = async (order: any) => {
+        if (isPrinting) return;
+        setIsPrinting(true);
         try {
             toast({ title: "Inisiasi Printer", description: "Mencari printer Bluetooth..." });
 
@@ -482,8 +485,9 @@ export default function RestaurantAdminDashboard() {
                 await printerService.printReceipt(orderData, restaurantData);
                 toast({ title: "Sukses", description: "Struk berhasil dicetak!" });
                 return;
-            } catch (bleErr: any) {
-                console.warn("BLE print failed, falling back to PDF:", bleErr.message);
+            } finally {
+                // Add a small cooldown before allowing another print
+                setTimeout(() => setIsPrinting(false), 2000);
             }
             
             // 3) Fallback: Browser print dialog / PDF

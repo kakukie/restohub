@@ -60,7 +60,7 @@ public class ThermalPrinter {
                 }
 
                 Log.d(TAG, "Connecting to printer: " + target.getName());
-                socket = target.createRfcommSocketToServiceRecord(SPP_UUID);
+                socket = target.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
 
                 adapter.cancelDiscovery();
                 socket.connect();
@@ -81,6 +81,10 @@ public class ThermalPrinter {
                 if (callback != null) callback.onError("Error: " + e.getMessage());
             } finally {
                 if (socket != null) {
+                    try { 
+                        // Small delay to ensure hardware buffer clears
+                        Thread.sleep(500); 
+                    } catch (Exception ignored) {}
                     try { socket.close(); } catch (IOException ignored) {}
                 }
             }
