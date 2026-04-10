@@ -393,8 +393,8 @@ export default function RestaurantAdminDashboard() {
                 tableNumber: order.tableNumber || '',
                 items: order.items.map((item: any) => ({
                     menuItemName: item.menuItemName || item.name || '-',
-                    quantity: item.quantity,
-                    price: item.price,
+                    quantity: item.quantity || 1,
+                    price: item.price || 0,
                     notes: item.notes || ''
                 })),
                 totalAmount: order.totalAmount
@@ -426,9 +426,24 @@ export default function RestaurantAdminDashboard() {
                 await new Promise<void>((resolve) => {
                     window.__printerCallbacks![cbId] = (success: boolean, message: string) => {
                         if (success) {
-                            toast({ title: "Sukses", description: message || "Struk berhasil dicetak!" });
+                            toast({ title: "Cetak Berhasil", description: "Struk telah dikirim ke printer." });
                         } else {
-                            toast({ title: "Gagal Cetak", description: message, variant: "destructive" });
+                            // Check for common error types to give better UX
+                            let title = "Gagal Cetak";
+                            let desc = message;
+                            
+                            if (message.includes("Izin Bluetooth ditolak")) {
+                                title = "Izin Diperlukan";
+                                desc = "Mohon berikan izin Bluetooth di Pengaturan HP Anda agar aplikasi bisa mendeteksi printer.";
+                            } else if (message.includes("belum di-pair")) {
+                                title = "Printer Tidak Ditemukan";
+                                desc = "Pastikan printer menyala dan sudah di-'Pair' melalui Pengaturan Bluetooth Android.";
+                            } else if (message.includes("Nyalakan Bluetooth")) {
+                                title = "Bluetooth Mati";
+                                desc = "Harap aktifkan Bluetooth di HP Anda.";
+                            }
+                            
+                            toast({ title, description: desc, variant: "destructive" });
                         }
                         resolve();
                     };

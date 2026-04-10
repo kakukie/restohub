@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 /**
  * Minimal ESC/POS text sender for bonded Bluetooth thermal printers.
  * Runs on background thread to avoid NetworkOnMainThreadException.
+ * Supports Android 10+ (permissions handled in MainActivity).
  */
 public class ThermalPrinter {
     private static final String TAG = "ThermalPrinter";
@@ -30,37 +31,38 @@ public class ThermalPrinter {
         void onError(String message);
     }
 
-    /**
-     * Print receipt asynchronously (background thread).
-     * Calls callback on completion.
-     */
     public void print(String orderJson, String restaurantJson, PrintCallback callback) {
         executor.execute(() -> {
             BluetoothSocket socket = null;
             try {
                 BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
                 if (adapter == null) {
-                    if (callback != null) callback.onError("Perangkat tidak mendukung Bluetooth");
+                    if (callback != null) callback.onError("Device tidak support Bluetooth");
                     return;
                 }
                 if (!adapter.isEnabled()) {
-                    if (callback != null) callback.onError("Bluetooth tidak aktif. Aktifkan Bluetooth terlebih dahulu.");
+                    if (callback != null) callback.onError("Bluetooth OFF. Nyalakan Bluetooth.");
                     return;
                 }
 
-                Set<BluetoothDevice> bonded = adapter.getBondedDevices();
+                Set<BluetoothDevice> bonded = null;
+                try {
+                    bonded = adapter.getBondedDevices();
+                } catch (SecurityException e) {
+                    if (callback != null) callback.onError("Izin Bluetooth ditolak. Berikan izin di Pengaturan App.");
+                    return;
+                }
+
                 BluetoothDevice target = pickPrinter(bonded);
                 if (target == null) {
-                    if (callback != null) callback.onError("Printer thermal belum di-pair. Pair printer Bluetooth terlebih dahulu di Pengaturan Bluetooth.");
+                    if (callback != null) callback.onError("Printer belum di-pair. Masuk Ke Pengaturan Bluetooth HP, pilih printer thermal lalu 'Pair/Sandingkan'.");
                     return;
                 }
 
                 Log.d(TAG, "Connecting to printer: " + target.getName());
                 socket = target.createRfcommSocketToServiceRecord(SPP_UUID);
 
-                // Cancel discovery to avoid interference before connect
                 adapter.cancelDiscovery();
-
                 socket.connect();
 
                 OutputStream os = socket.getOutputStream();
@@ -73,10 +75,10 @@ public class ThermalPrinter {
 
             } catch (IOException e) {
                 Log.e(TAG, "Bluetooth connect/write error", e);
-                if (callback != null) callback.onError("Gagal koneksi ke printer: " + e.getMessage());
+                if (callback != null) callback.onError("Gagal koneksi: " + e.getMessage());
             } catch (Exception e) {
                 Log.e(TAG, "Print error", e);
-                if (callback != null) callback.onError("Error cetak: " + e.getMessage());
+                if (callback != null) callback.onError("Error: " + e.getMessage());
             } finally {
                 if (socket != null) {
                     try { socket.close(); } catch (IOException ignored) {}
@@ -85,64 +87,58 @@ public class ThermalPrinter {
         });
     }
 
-    /**
-     * Pick printer from bonded devices.
-     * Priority: known thermal printer name prefixes → first bonded device.
-     */
     private BluetoothDevice pickPrinter(Set<BluetoothDevice> bonded) {
         if (bonded == null || bonded.isEmpty()) return null;
 
+        // Keywords common for EDC internal printers & portable thermal printers
         String[] printerPrefixes = {
             "MPT", "PT-", "Blue", "Inner", "Printer", "POS", "RPP", "MTP",
-            "TSC", "XP", "ZJ", "BT", "GP", "TBP", "58", "80"
+            "TSC", "XP", "ZJ", "BT", "GP", "TBP", "58", "80",
+            "SUNMI", "IMIN", "PAX", "SZST", "WRE" // Added EDC specific brands
         };
 
         for (BluetoothDevice d : bonded) {
             String name = d.getName() != null ? d.getName().toUpperCase() : "";
             for (String prefix : printerPrefixes) {
-                if (name.startsWith(prefix.toUpperCase()) || name.contains(prefix.toUpperCase())) {
-                    Log.d(TAG, "Found printer by name: " + d.getName());
+                if (name.contains(prefix.toUpperCase())) {
+                    Log.d(TAG, "Matched printer: " + d.getName());
                     return d;
                 }
             }
         }
 
-        // fallback: first bonded device
-        BluetoothDevice first = bonded.iterator().next();
-        Log.d(TAG, "Using first bonded device as fallback: " + first.getName());
-        return first;
+        // fallback: first bonded device if no keyword matched
+        return bonded.iterator().next();
     }
 
     private byte[] buildReceipt(String orderJson, String restaurantJson) {
-        // ESC/POS byte helpers
-        byte[] ESC_INIT    = {0x1B, 0x40};           // Initialize printer
-        byte[] ALIGN_CTR   = {0x1B, 0x61, 0x01};     // Center align
-        byte[] ALIGN_LEFT  = {0x1B, 0x61, 0x00};     // Left align
-        byte[] ALIGN_RIGHT = {0x1B, 0x61, 0x02};     // Right align
-        byte[] BOLD_ON     = {0x1B, 0x45, 0x01};     // Bold on
-        byte[] BOLD_OFF    = {0x1B, 0x45, 0x00};     // Bold off
-        byte[] BIG_ON      = {0x1D, 0x21, 0x11};     // Double width & height
-        byte[] BIG_OFF     = {0x1D, 0x21, 0x00};     // Normal size
-        byte[] CUT         = {0x1D, 0x56, 0x41, 0x00}; // Paper cut
-        byte[] LF          = {0x0A};                  // Line feed
+        byte[] ESC_INIT    = {0x1B, 0x40};
+        byte[] ALIGN_CTR   = {0x1B, 0x61, 0x01};
+        byte[] ALIGN_LEFT  = {0x1B, 0x61, 0x00};
+        byte[] ALIGN_RIGHT = {0x1B, 0x61, 0x02};
+        byte[] BOLD_ON     = {0x1B, 0x45, 0x01};
+        byte[] BOLD_OFF    = {0x1B, 0x45, 0x00};
+        byte[] BIG_ON      = {0x1D, 0x21, 0x11};
+        byte[] BIG_OFF     = {0x1D, 0x21, 0x00};
+        byte[] CUT         = {0x1D, 0x56, 0x41, 0x00};
+        byte[] LF          = {0x0A};
 
-        StringBuilder sb = new StringBuilder();
         java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
 
         try {
             JSONObject resto = new JSONObject(restaurantJson);
             JSONObject order = new JSONObject(orderJson);
 
-            write(out, ESC_INIT);
-            write(out, ALIGN_CTR);
-            write(out, BIG_ON);
+            out.write(ESC_INIT);
+            out.write(ALIGN_CTR);
+            out.write(BIG_ON);
             writeln(out, resto.optString("name", "Restaurant"));
-            write(out, BIG_OFF);
+            out.write(BIG_OFF);
             if (resto.has("address")) writeln(out, resto.optString("address"));
             if (resto.has("phone"))   writeln(out, resto.optString("phone"));
             writeln(out, "--------------------------------");
 
-            write(out, ALIGN_LEFT);
+            out.write(ALIGN_LEFT);
             writeln(out, "No: #" + order.optString("orderNumber"));
             writeln(out, "Tgl: " + order.optString("createdAt"));
             writeln(out, "Cust: " + order.optString("customerName", "Guest"));
@@ -157,12 +153,10 @@ public class ThermalPrinter {
                     JSONObject it = items.getJSONObject(i);
                     int qty = it.optInt("quantity", 1);
                     double price = it.optDouble("price", 0);
-                    double total = qty * price;
                     writeln(out, qty + "x " + it.optString("menuItemName", it.optString("name", "-")));
-                    // right-align price
-                    write(out, ALIGN_RIGHT);
-                    writeln(out, "Rp " + String.format("%,.0f", total));
-                    write(out, ALIGN_LEFT);
+                    out.write(ALIGN_RIGHT);
+                    writeln(out, "Rp " + String.format("%,.0f", qty * price));
+                    out.write(ALIGN_LEFT);
                     if (it.has("notes") && !it.optString("notes").isEmpty()) {
                         writeln(out, "  catatan: " + it.optString("notes"));
                     }
@@ -170,37 +164,31 @@ public class ThermalPrinter {
             }
 
             writeln(out, "--------------------------------");
-            write(out, ALIGN_RIGHT);
-            write(out, BOLD_ON);
+            out.write(ALIGN_RIGHT);
+            out.write(BOLD_ON);
             writeln(out, "TOTAL: Rp " + String.format("%,.0f", order.optDouble("totalAmount", 0)));
-            write(out, BOLD_OFF);
-            write(out, ALIGN_CTR);
+            out.write(BOLD_OFF);
+            out.write(ALIGN_CTR);
             writeln(out, "--------------------------------");
             writeln(out, "Terima kasih atas kunjungan Anda!");
             writeln(out, "Layanan Menu Digital oleh Meenuin");
 
-            // Feed & cut
-            write(out, LF);
-            write(out, LF);
-            write(out, LF);
-            write(out, CUT);
+            out.write(LF);
+            out.write(LF);
+            out.write(LF);
+            out.write(CUT);
 
         } catch (Exception e) {
             Log.e(TAG, "Receipt build error", e);
-            writeln(out, "Error: " + e.getMessage());
         }
 
         return out.toByteArray();
     }
 
-    private void write(java.io.ByteArrayOutputStream out, byte[] data) {
-        try { out.write(data); } catch (Exception ignored) {}
-    }
-
     private void writeln(java.io.ByteArrayOutputStream out, String text) {
         try {
             out.write(text.getBytes(StandardCharsets.UTF_8));
-            out.write(0x0A); // LF
+            out.write(0x0A);
         } catch (Exception ignored) {}
     }
 }
