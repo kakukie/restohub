@@ -101,24 +101,6 @@ export async function GET(
 }
 
 export async function DELETE(
-
-        // 3. Set Cache (TTL 60s)
-        await setCache(cacheKey, transformedData, 60)
-
-        return NextResponse.json({
-            success: true,
-            data: transformedData
-        })
-    } catch (error) {
-        console.error('Error fetching restaurant:', error)
-        return NextResponse.json(
-            { success: false, error: 'Internal Server Error' },
-            { status: 500 }
-        )
-    }
-}
-
-export async function DELETE(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
 ) {
@@ -136,7 +118,7 @@ export async function DELETE(
                     { slug: idOrSlug }
                 ]
             },
-            select: { id: true, name: true, slug: true }
+            select: { id: true }
         })
 
         if (!restaurant) {
@@ -154,7 +136,7 @@ export async function DELETE(
 
         // Also invalidate the cache so it doesn't show up again
         await invalidateCache(`dashboard:${restaurant.id}`)
-        await invalidateCache(`dashboard:${restaurant.slug}`)
+        await invalidateCache(`dashboard:${idOrSlug}`)
 
         return NextResponse.json({ success: true, message: 'Restaurant deleted successfully' })
     } catch (error) {
@@ -164,73 +146,83 @@ export async function DELETE(
 }
 
 // PUT /api/restaurants/[id] - Update Restaurant
-// Note: We also have PUT /api/restaurants (root) for updates without ID in URL if passed in body?
-// But standard is PUT /api/restaurants/[id].
-// The dashboard used PUT /api/restaurants with body { id, ... }.
-// We can support both or prefer this one.
-// Let's implement this one to be standard REST.
 export async function PUT(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params;
     const idOrSlug = params.id
-    console.log(`[PUT] Request for idOrSlug: ${idOrSlug}`) // DEBUG LOG
 
     try {
         const body = await request.json()
-        // Extract 'theme' and 'id' to exclude them from the update payload
-        // Also map legacy frontend keys if present (logoUrl -> logo, bannerUrl -> banner)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, logoUrl, bannerUrl, ...otherUpdates } = body
 
         const updates: any = { ...otherUpdates }
 
-        // Map keys if they exist
         if (logoUrl) updates.logo = logoUrl
         if (bannerUrl) updates.banner = bannerUrl
-        // Normalize dates
+        
         if (updates.activeUntil) {
             const dt = new Date(updates.activeUntil)
             if (isNaN(dt.getTime())) {
                 return NextResponse.json({ success: false, error: 'Invalid activeUntil date' }, { status: 400 })
             }
-            // preserve local wall-clock time by converting to UTC without shift
             const dtUtc = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
             updates.activeUntil = dtUtc
         }
 
-        // White-list allowed fields to prevent schema errors
         const allowedFields = [
             'name', 'description', 'address', 'phone', 'email',
             'logo', 'banner', 'slug', 'theme', 'status', 'isActive',
             'detailAddress', 'googleMapsUrl', 'latitude', 'longitude',
-            // Configs (Allowed for Super Admin updates via this route)
             'allowMaps', 'enableAnalytics', 'printerSettings',
             'maxCategories', 'maxMenuItems', 'maxBranches', 'maxStaff', 'maxAdmins', 'package', 'allowBranches', 'maxSlugChanges',
             'activeUntil'
         ]
 
-        // Filter updates
         const cleanUpdates: any = {}
         Object.keys(updates).forEach(key => {
             if (allowedFields.includes(key)) {
                 cleanUpdates[key] = updates[key]
+            }
+        })
+
+        // 1. Resolve to actual ID and check ownership
+        const restaurant = await prisma.restaurant.findFirst({
+            where: {
+                OR: [
+                    { id: idOrSlug },
+                    { slug: idOrSlug }
+                ]
+            },
+            select: { id: true, slug: true, slugChangeCount: true, maxSlugChanges: true }
+        })
+
+        if (!restaurant) {
+            return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+        }
+
+        // Otorisasi
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
+        const auth = authorizeAction(user, restaurant.id, 'PUT')
+        if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+
+        // Check Slug Limit
+        if (cleanUpdates.slug && cleanUpdates.slug !== restaurant.slug) {
+            const currentCount = restaurant.slugChangeCount || 0
+            const maxLimit = restaurant.maxSlugChanges ?? 3
+
             if (currentCount >= maxLimit) {
                 return NextResponse.json({
                     success: false,
-                    error: `Slug change limit reached (${currentCount}/${maxLimit}). Contact support.`
+                    error: `Limit perubahan slug tercapai (${currentCount}/${maxLimit}). Hubungi bantuan.`
                 }, { status: 403 })
             }
-
-            // Increment count
             cleanUpdates.slugChangeCount = currentCount + 1
         }
 
-
-        console.log(`[PUT] Updating restaurant ${restaurant.id} with keys: ${Object.keys(cleanUpdates).join(', ')}`) // DEBUG LOG
-
-        // Fix: Auto-restore soft-deleted restaurants on update
         cleanUpdates.deletedAt = null;
 
         const updated = await prisma.restaurant.update({
@@ -243,20 +235,6 @@ export async function PUT(
         await invalidateCache(`dashboard:${restaurant.slug}`)
         if (updated.slug !== restaurant.slug) {
             await invalidateCache(`dashboard:${updated.slug}`)
-        }
-
-        // Revalidate cache to prevent stale data
-        try {
-            const { revalidatePath } = await import('next/cache')
-            // Revalidate both potential new and old slug paths
-            revalidatePath(`/menu/${updated.slug}`)
-            if (restaurant.slug !== updated.slug) {
-                revalidatePath(`/menu/${restaurant.slug}`)
-            }
-            // Revalidate dashboard
-            revalidatePath('/dashboard')
-        } catch (e) {
-            console.error('Revalidate failed', e)
         }
 
         return NextResponse.json({ success: true, data: updated })
