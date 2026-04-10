@@ -44,8 +44,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 declare global {
     interface Window {
         Android?: {
-            printReceipt: (orderData: string, restaurantData: string) => void;
+            /** New bridge: accepts callbackId for async response */
+            printReceipt: (orderData: string, restaurantData: string, callbackId?: string) => void;
+            /** Returns JSON string: {available, printerName?, reason?} */
+            checkPrinterAvailable: () => string;
         };
+        __printerCallback?: (callbackId: string, success: boolean, message: string) => void;
+        __printerCallbacks?: Record<string, (success: boolean, message: string) => void>;
     }
 }
 
@@ -378,8 +383,8 @@ export default function RestaurantAdminDashboard() {
 
     const handlePrintOrder = async (order: any) => {
         try {
-            toast({ title: "Inisiasi Printer", description: "Mencari printer bluetooth..." });
-            
+            toast({ title: "Inisiasi Printer", description: "Mencari printer Bluetooth..." });
+
             const orderData = {
                 id: order.id,
                 orderNumber: order.orderNumber,
@@ -387,45 +392,82 @@ export default function RestaurantAdminDashboard() {
                 customerName: order.customerName || 'Guest',
                 tableNumber: order.tableNumber || '',
                 items: order.items.map((item: any) => ({
-                    menuItemName: item.menuItemName,
+                    menuItemName: item.menuItemName || item.name || '-',
                     quantity: item.quantity,
                     price: item.price,
                     notes: item.notes || ''
                 })),
                 totalAmount: order.totalAmount
             };
-            
+
             const restaurantData = {
                 name: currentRestaurant?.name || 'Restaurant',
                 address: currentRestaurant?.address || '',
                 phone: currentRestaurant?.phone || ''
             };
 
-            // 1) Legacy WebView injection (MainActivity JS interface)
+            // === Path 1: Native Android bridge (PrinterBridge.java via WebView) ===
             if (window.Android && window.Android.printReceipt) {
-                toast({ title: "Mencetak", description: "Mengirim format struk ke printer kasir..." });
-                window.Android.printReceipt(
-                    JSON.stringify(orderData),
-                    JSON.stringify(restaurantData)
-                );
+                toast({ title: "Mencetak", description: "Mengirim struk ke printer kasir..." });
+
+                // Setup callback registry if not yet done
+                if (!window.__printerCallbacks) window.__printerCallbacks = {};
+                if (!window.__printerCallback) {
+                    window.__printerCallback = (cbId: string, success: boolean, message: string) => {
+                        const fn = window.__printerCallbacks?.[cbId];
+                        if (fn) {
+                            fn(success, message);
+                            delete window.__printerCallbacks![cbId];
+                        }
+                    };
+                }
+
+                const cbId = 'cb_print_' + Date.now();
+                await new Promise<void>((resolve) => {
+                    window.__printerCallbacks![cbId] = (success: boolean, message: string) => {
+                        if (success) {
+                            toast({ title: "Sukses", description: message || "Struk berhasil dicetak!" });
+                        } else {
+                            toast({ title: "Gagal Cetak", description: message, variant: "destructive" });
+                        }
+                        resolve();
+                    };
+
+                    // Timeout 15s
+                    setTimeout(() => {
+                        if (window.__printerCallbacks?.[cbId]) {
+                            delete window.__printerCallbacks![cbId];
+                            toast({ title: "Timeout", description: "Printer tidak merespons dalam 15 detik.", variant: "destructive" });
+                            resolve();
+                        }
+                    }, 15000);
+
+                    try {
+                        window.Android!.printReceipt(JSON.stringify(orderData), JSON.stringify(restaurantData), cbId);
+                    } catch {
+                        // Fallback: old bridge without callbackId (silent)
+                        window.Android!.printReceipt(JSON.stringify(orderData), JSON.stringify(restaurantData));
+                        setTimeout(() => resolve(), 2000);
+                    }
+                });
                 return;
             }
-            
-            // 2) Capacitor BLE / Web Bluetooth
+
+            // === Path 2: Capacitor BLE / Web Bluetooth ===
             try {
-                toast({ title: "Koneksi Printer", description: "Mencari dan menghubungkan ke printer..." });
-                const savedName = currentRestaurant?.printerSettings?.bluetoothName || '';
-                
+                toast({ title: "Koneksi Printer", description: "Mencari dan menghubungkan ke printer BLE..." });
+                const savedName = currentRestaurant?.printerSettings?.bluetoothName || printerAddress || '';
+
                 if (!printerService.isConnected) {
-                    await printerService.autoConnect(savedName);
+                    await printerService.autoConnect(savedName || undefined);
                 }
-                
+
                 toast({ title: "Mencetak", description: "Mengirim struk ke printer..." });
                 await printerService.printReceipt(orderData, restaurantData);
                 toast({ title: "Sukses", description: "Struk berhasil dicetak!" });
                 return;
             } catch (bleErr: any) {
-                console.log("BLE print failed, falling back to PDF:", bleErr.message);
+                console.warn("BLE print failed, falling back to PDF:", bleErr.message);
             }
             
             // 3) Fallback: Browser print dialog / PDF
@@ -742,7 +784,7 @@ export default function RestaurantAdminDashboard() {
                     <RecentOrders
                         orders={orders}
                         onViewOrder={(order) => setViewOrder(order)}
-                        onPrintOrder={(order) => { /* handlePrintOrder(order) */ }}
+                        onPrintOrder={handlePrintOrder}
                         onRefresh={loadOrderData}
                     />
                 </div>
