@@ -144,10 +144,16 @@ export function usePrinter(): UsePrinterReturn {
                     }
                 };
 
+                // Format createdAt using Asia/Jakarta timezone
+                const formattedOrder = {
+                    ...order,
+                    createdAt: new Date(order.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
+                };
+
                 // Invoke bridge (runs on background thread in Java)
                 try {
                     (window as any).Android.printReceipt(
-                        JSON.stringify(order),
+                        JSON.stringify(formattedOrder),
                         JSON.stringify(restaurant),
                         callbackId
                     );
@@ -155,9 +161,10 @@ export function usePrinter(): UsePrinterReturn {
                     // Fallback for old bridge without callbackId param
                     try {
                         (window as any).Android.printReceipt(
-                            JSON.stringify(order),
+                            JSON.stringify(formattedOrder),
                             JSON.stringify(restaurant)
                         );
+
                         // Old bridge has no callback, assume success after 2s
                         setTimeout(() => {
                             delete (window as any).__printerCallbacks[callbackId];
@@ -200,7 +207,11 @@ export function usePrinter(): UsePrinterReturn {
                 }
             }
 
-            await printerService.printReceipt(order, restaurant);
+            const formattedOrder = {
+                ...order,
+                createdAt: new Date(order.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
+            };
+            await printerService.printReceipt(formattedOrder, restaurant);
             setPrinterStatus('available');
             return { success: true, message: 'Struk berhasil dicetak' };
         } catch (e: any) {

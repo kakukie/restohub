@@ -67,10 +67,19 @@ public class ThermalPrinter {
 
                 OutputStream os = socket.getOutputStream();
                 byte[] payload = buildReceipt(orderJson, restaurantJson);
-                os.write(payload);
-                os.flush();
+                
+                // Chunk the payload to avoid overwhelming the printer buffer
+                int chunkSize = 256; // 256 bytes per chunk
+                for (int i = 0; i < payload.length; i += chunkSize) {
+                    int length = Math.min(chunkSize, payload.length - i);
+                    os.write(payload, i, length);
+                    os.flush();
+                    try {
+                        Thread.sleep(50); // 50ms delay between chunks
+                    } catch (InterruptedException ignored) {}
+                }
 
-                Log.d(TAG, "Print success: " + payload.length + " bytes sent");
+                Log.d(TAG, "Print success: " + payload.length + " bytes sent in chunks");
                 if (callback != null) callback.onSuccess();
 
             } catch (IOException e) {

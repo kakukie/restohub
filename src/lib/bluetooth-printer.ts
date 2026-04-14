@@ -334,6 +334,7 @@ export class CapacitorBluetoothPrinterService {
                     this.connectedDevice.characteristicUUID,
                     dataView
                 );
+                await new Promise(r => setTimeout(r, 20)); // Add 20ms delay
             }
         }
     }

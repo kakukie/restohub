@@ -15,7 +15,8 @@ import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAppStore, Restaurant, SubscriptionPlan } from '@/store/app-store'
-import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal } from 'lucide-react'
+import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Search, ArrowUpRight, ArrowDownRight, Shield, Save, CheckCircle, Smartphone, Megaphone, Building2, Store, TrendingUp, ShoppingBag, Zap, MoreHorizontal, Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import LandingEditorTab from './LandingEditorTab'
@@ -58,6 +59,8 @@ export default function SuperAdminDashboard() {
   // Initialize translation hook
   const { useTranslation } = require('@/lib/i18n')
   const t = useTranslation(language || 'en')
+  
+  const { theme, setTheme } = useTheme()
 
   // Fetch Settings on Mount
   useEffect(() => {
@@ -1943,6 +1946,9 @@ export default function SuperAdminDashboard() {
               <p className="text-sm font-bold truncate text-white">{user?.name || 'Admin User'}</p>
               <p className="text-xs text-slate-500 truncate">Super Admin</p>
             </div>
+            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="text-slate-500 hover:text-white border-none bg-transparent">
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button onClick={handleLogout} className="text-slate-500 hover:text-red-400 border-none bg-transparent">
               <span className="material-symbols-outlined text-lg">logout</span>
             </button>
