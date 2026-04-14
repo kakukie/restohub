@@ -41,7 +41,8 @@ RUN mkdir -p /app/public/uploads && chmod 777 /app/public/uploads
 RUN groupadd -r nodejs && useradd -r -g nodejs -m -d /home/nextjs nextjs
 RUN chown -R nextjs:nodejs /app
 RUN chown -R nextjs:nodejs /home/nextjs
-USER nextjs
+# Removing USER nextjs to allow root access to mapped volumes
+# USER nextjs
 
 EXPOSE 3000
 
