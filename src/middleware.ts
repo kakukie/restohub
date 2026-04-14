@@ -30,8 +30,8 @@ export async function middleware(request: NextRequest) {
     let isRefreshValid = null
     
     // We check tokens for both /dashboard and demo/API protection
-    const restoToken = request.cookies.get('restoToken')?.value || request.headers.get('Authorization')?.replace('Bearer ', '')
-    const restoRefreshToken = request.cookies.get('restoRefreshToken')?.value
+    const restoToken = request.cookies.get('restoToken')?.value || request.headers.get('Authorization')?.replace('Bearer ', '') || request.cookies.get('adminToken')?.value
+    const restoRefreshToken = request.cookies.get('restoRefreshToken')?.value || request.cookies.get('adminRefreshToken')?.value
     
     if (restoToken) {
         isAccessValid = await verifyJwt(restoToken)

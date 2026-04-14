@@ -103,23 +103,42 @@ export async function POST(request: NextRequest) {
     const { restaurantId, items, totalAmount, tableNumber, notes, customerName, customerId, paymentMethod } = body
     // items: { menuItemId, quantity, price, notes }[]
 
+    // Security Fix: Do not trust frontend pricing. Fetch menu items from DB.
+    const menuItemIds = items.map((i: any) => i.menuItemId)
+    const dbMenuItems = await prisma.menuItem.findMany({
+      where: {
+        id: { in: menuItemIds },
+        restaurantId: restaurantId,
+        isActive: true,
+        isAvailable: true,
+        deletedAt: null
+      }
+    })
+
+    if (dbMenuItems.length !== menuItemIds.length) {
+      return NextResponse.json({ success: false, error: 'Beberapa menu tidak tersedia atau sudah dihapus.' }, { status: 400 })
+    }
+
+    let calculatedTotalAmount = 0
+    const validatedItems = items.map((item: any) => {
+      const dbItem = dbMenuItems.find(i => i.id === item.menuItemId)
+      if (!dbItem) throw new Error('Menu item not found')
+      
+      const itemPrice = dbItem.price
+      calculatedTotalAmount += (itemPrice * item.quantity)
+      
+      return {
+        menuItemId: item.menuItemId,
+        quantity: item.quantity,
+        price: itemPrice, // USE SECURE DB PRICE!
+        notes: item.notes
+      }
+    })
+
     // Use transaction
     const order = await prisma.$transaction(async (tx) => {
-      // If no customerId, create a temporary/guest user? 
-      // Our schema requires customerId. 
-      // If the user is GUEST, we might need a dedicated Guest User or create one on the fly.
-      // For now, let's assume the frontend passes a valid ID or we use a "Guest" account concept.
-      // Or schema change to make customerId optional?
-
-      // Let's check Schema: `customerId String` (Required). `User` model.
-      // So we MUST have a user. 
-      // If guest, we create a phantom user?
-
       let finalCustomerId = customerId
       if (!finalCustomerId) {
-        // Try to find or create a guest user for this session?
-        // Or require login.
-        // For now, let's assume we create a Guest User if not provided (simple fallback)
         const guest = await tx.user.create({
           data: {
             email: `guest-${Date.now()}-${uuidv4()}@temp.com`,
@@ -130,35 +149,22 @@ export async function POST(request: NextRequest) {
         finalCustomerId = guest.id
       }
 
-      // Handle Payment Method
       let paymentCreateData: any = undefined
       if (paymentMethod) {
-        // Find the payment method ID for this restaurant
-        // We assume input matches PaymentMethodType enum (QRIS, CASH, etc.)
         const pm = await tx.paymentMethod.findFirst({
-          where: {
-            restaurantId,
-            type: paymentMethod,
-            isActive: true
-          }
+          where: { restaurantId, type: paymentMethod, isActive: true }
         })
 
         if (pm) {
           paymentCreateData = {
             create: {
-              amount: totalAmount,
-              status: 'PENDING', // Default
+              amount: calculatedTotalAmount,
+              status: 'PENDING',
               type: paymentMethod,
               methodId: pm.id
             }
           }
         } else {
-          // Fallback: If 'CASH' is selected but not explicitly in DB payment methods,
-          // we might still want to record it if we find a 'CASH' method? 
-          // Or if strict, we skip.
-          // Let's try to find ANY method of that type? No, must be restaurant specific.
-          // If not found, we create a "Shadow" payment logic?
-          // Best to rely on existing methods.
           console.warn(`Payment method ${paymentMethod} not found for restaurant ${restaurantId}`)
         }
       }
@@ -167,20 +173,15 @@ export async function POST(request: NextRequest) {
         data: {
           restaurantId,
           customerId: finalCustomerId,
-          totalAmount,
+          totalAmount: calculatedTotalAmount, // USE CALCULATED AMOUNT
           tableNumber,
           notes,
           orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
-          status: 'PENDING', // Default
+          status: 'PENDING',
           paymentStatus: 'PENDING',
           payment: paymentCreateData,
           orderItems: {
-            create: items.map((item: any) => ({
-              menuItemId: item.menuItemId,
-              quantity: item.quantity,
-              price: item.price,
-              notes: item.notes
-            }))
+            create: validatedItems
           }
         },
         include: { orderItems: true, payment: { include: { method: true } } }
