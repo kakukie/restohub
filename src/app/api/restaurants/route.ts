@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth'
 import { normalizeMediaUrl } from '@/lib/media-url'
+import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
 export const revalidate = 60 // Cache for 60 seconds
 
@@ -114,6 +115,12 @@ export async function POST(request: NextRequest) {
       if (!parent) {
         return NextResponse.json({ success: false, error: 'Parent restaurant not found' }, { status: 404 })
       }
+
+      const user = await getAuthenticatedUser(request)
+      if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      
+      const auth = authorizeAction(user, parent.id, 'POST')
+      if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 
       if (parent.allowBranches === false) {
         return NextResponse.json({ success: false, error: 'This restaurant plan does not support multiple branches.' }, { status: 403 })
@@ -290,6 +297,13 @@ export async function PUT(request: NextRequest) {
         error: 'Restaurant ID is required'
       }, { status: 400 })
     }
+
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    
+    // Auth Check: Super admin, or Admin of this id
+    const auth = authorizeAction(user, id, 'PUT')
+    if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 
     // Clean up updates to only include valid fields if necessary, 
     // but for now we trust `updates` contains valid columns like status, package, isActive.

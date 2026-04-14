@@ -29,8 +29,8 @@ export async function middleware(request: NextRequest) {
     let isAccessValid = null
     let isRefreshValid = null
     
-    // We check tokens for both /dashboard and demo protection
-    const restoToken = request.cookies.get('restoToken')?.value
+    // We check tokens for both /dashboard and demo/API protection
+    const restoToken = request.cookies.get('restoToken')?.value || request.headers.get('Authorization')?.replace('Bearer ', '')
     const restoRefreshToken = request.cookies.get('restoRefreshToken')?.value
     
     if (restoToken) {
@@ -46,20 +46,33 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // ─── Global Demo Protection ───
-    // If it's an API call and we're in Demo mode, block state changes.
-    const activePayload = isAccessValid || isRefreshValid
-    const isDemoUser = activePayload?.isDemo === true
+    // ─── Global API Protection ───
     const isApi = pathname.startsWith('/api')
     const isStateChange = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)
+    
+    if (isApi && isStateChange) {
+        // Whitelisted public state-changing endpoints
+        const publicEndpoints = ['/api/auth', '/api/orders', '/api/payment']
+        const isPublicEndpoint = publicEndpoints.some(p => pathname.startsWith(p))
 
-    if (isDemoUser && isApi && isStateChange) {
-        // Exceptions: allow demo to login/logout or specific non-harmful APIs
-        if (!pathname.includes('/api/auth/logout')) {
-            return NextResponse.json(
-                { success: false, error: '🚦 Mode Demo: Anda tidak diizinkan mengubah data.' },
-                { status: 403 }
-            )
+        if (!isPublicEndpoint) {
+            // Unauthenticated Protection
+            if (!isAccessValid && !isRefreshValid) {
+                return NextResponse.json(
+                    { success: false, error: 'Unauthorized: Access Token is missing or invalid.' },
+                    { status: 401 }
+                )
+            }
+
+            // Demo Protection
+            const activePayload = isAccessValid || isRefreshValid
+            const isDemoUser = activePayload?.isDemo === true
+            if (isDemoUser && !pathname.includes('/api/auth/logout')) {
+                return NextResponse.json(
+                    { success: false, error: '🚦 Mode Demo: Anda tidak diizinkan mengubah data.' },
+                    { status: 403 }
+                )
+            }
         }
     }
 

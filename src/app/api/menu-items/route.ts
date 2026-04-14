@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { normalizeMediaUrl } from '@/lib/media-url'
+import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
 async function getRestaurantId(idOrSlug: string) {
   if (!idOrSlug) return null
@@ -84,6 +85,12 @@ export async function POST(request: NextRequest) {
     const resolvedId = await getRestaurantId(restaurantId)
     if (!resolvedId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
 
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    
+    const auth = authorizeAction(user, resolvedId, 'POST')
+    if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+
     // Check Limits
     const restaurant = await prisma.restaurant.findUnique({
       where: { id: resolvedId },
@@ -125,6 +132,16 @@ export async function PUT(request: NextRequest) {
 
     if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 
+    // IDOR Protection: Verify ownership of existing item
+    const existing = await prisma.menuItem.findUnique({ where: { id } })
+    if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
+
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    
+    const auth = authorizeAction(user, existing.restaurantId, 'PUT')
+    if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+
     const updated = await prisma.menuItem.update({
       where: { id },
       data: updates
@@ -147,6 +164,12 @@ export async function DELETE(request: NextRequest) {
     // Check if item exists
     const existing = await prisma.menuItem.findUnique({ where: { id } })
     if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
+
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    
+    const auth = authorizeAction(user, existing.restaurantId, 'DELETE')
+    if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 
     // Soft Delete
     await prisma.menuItem.update({

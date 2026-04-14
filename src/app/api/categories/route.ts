@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getCache, setCache, invalidateCache } from '@/lib/redis'
+import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
 async function getRestaurantId(idOrSlug: string) {
   const restaurant = await prisma.restaurant.findFirst({
@@ -55,6 +56,12 @@ export async function POST(request: NextRequest) {
     const resolvedId = await getRestaurantId(restaurantId)
     if (!resolvedId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
 
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    
+    const auth = authorizeAction(user, resolvedId, 'POST')
+    if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+
     // Check Limits
     const restaurant = await prisma.restaurant.findUnique({
       where: { id: resolvedId },
@@ -97,6 +104,15 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { id, ...updates } = body
 
+    const existing = await prisma.category.findUnique({ where: { id } })
+    if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
+
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    
+    const auth = authorizeAction(user, existing.restaurantId, 'PUT')
+    if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+
     const updated = await prisma.category.update({
       where: { id },
       data: updates
@@ -121,6 +137,15 @@ export async function DELETE(request: NextRequest) {
   if (!id) return NextResponse.json({ success: false }, { status: 400 })
 
   try {
+    const existing = await prisma.category.findUnique({ where: { id } })
+    if (!existing) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
+
+    const user = await getAuthenticatedUser(request)
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    
+    const auth = authorizeAction(user, existing.restaurantId, 'DELETE')
+    if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+
     // Soft Delete
     const category = await prisma.category.update({
       where: { id },
