@@ -1,39 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
-// GET /api/users - List all users (Super Admin only ideally)
+// GET /api/users - List all users (Authenticated only)
 export async function GET(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
         const { searchParams } = new URL(request.url)
-        const role = searchParams.get('role') // Single role (legacy)
-        const rolesParam = searchParams.get('roles') // Multiple roles: "RESTAURANT_ADMIN,CUSTOMER"
+        const role = searchParams.get('role')
+        const rolesParam = searchParams.get('roles')
         const restaurantId = searchParams.get('restaurantId')
 
         const whereClause: any = { deletedAt: null }
 
-        // If restaurantId is provided, use special filtering logic
-        if (restaurantId) {
-            // Don't add role filter to whereClause, use it in OR conditions
+        // Non-Super Admins can only see users related to their restaurant
+        if (user.role !== 'SUPER_ADMIN') {
+            if (!user.restaurantId) {
+                return NextResponse.json({ success: true, data: [] })
+            }
             whereClause.OR = [
-                // Restaurant staff (admins)
                 {
                     role: 'RESTAURANT_ADMIN',
-                    restaurants: { some: { id: restaurantId } }
+                    restaurants: { some: { id: user.restaurantId } }
                 },
-                // Customers who placed orders at this restaurant
                 {
                     role: 'CUSTOMER',
-                    orders: { some: { restaurantId: restaurantId } }
+                    orders: { some: { restaurantId: user.restaurantId } }
                 }
             ]
         } else {
-            // Normal role filtering (no restaurant filter)
-            if (rolesParam) {
-                const roles = rolesParam.split(',')
-                whereClause.role = { in: roles }
-            } else if (role) {
-                whereClause.role = role
+            // Super Admin filtering
+            if (restaurantId) {
+                whereClause.OR = [
+                    {
+                        role: 'RESTAURANT_ADMIN',
+                        restaurants: { some: { id: restaurantId } }
+                    },
+                    {
+                        role: 'CUSTOMER',
+                        orders: { some: { restaurantId: restaurantId } }
+                    }
+                ]
+            } else {
+                if (rolesParam) {
+                    const roles = rolesParam.split(',')
+                    whereClause.role = { in: roles }
+                } else if (role) {
+                    whereClause.role = role
+                }
             }
         }
 
@@ -52,7 +69,7 @@ export async function GET(request: NextRequest) {
 
         // Remove passwords
         const safeUsers = users.map(user => {
-            const { password, ...rest } = user
+            const { password, twoFactorSecret, resetPasswordToken, ...rest } = user
             return { ...rest, password: '' }
         })
 
@@ -69,41 +86,13 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// ... POST ...
-
-// ... PUT ...
-
-// DELETE /api/users - Soft Delete User
-export async function DELETE(request: NextRequest) {
-    try {
-        const { searchParams } = new URL(request.url)
-        const id = searchParams.get('id')
-
-        if (!id) {
-            return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 })
-        }
-
-        await prisma.user.update({
-            where: { id },
-            data: { deletedAt: new Date(), password: '' } // Clear password security measure
-        })
-
-        return NextResponse.json({
-            success: true,
-            message: 'User deleted successfully'
-        })
-    } catch (error) {
-        console.error('Delete User Error:', error)
-        return NextResponse.json({
-            success: false,
-            error: 'Failed to delete user' // likely FK constraint if hard delete, but soft delete should pass unless ID invalid
-        }, { status: 500 })
-    }
-}
-
-// POST /api/users - Create new User
+// POST /api/users - Create new User (Super Admin only)
 export async function POST(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        if (user.role !== 'SUPER_ADMIN') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+
         const body = await request.json()
         const { name, email, password, role, phone } = body
 
@@ -152,9 +141,12 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// PUT /api/users - Update User (Profile, Password, Role)
+// PUT /api/users - Update User (Authenticated, self or Super Admin)
 export async function PUT(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
         const body = await request.json()
         const { id, password, ...updates } = body
 
@@ -165,7 +157,21 @@ export async function PUT(request: NextRequest) {
             }, { status: 400 })
         }
 
+        // Authorization: Only allow self-edit or Super Admin
+        if (user.role !== 'SUPER_ADMIN' && user.userId !== id) {
+            return NextResponse.json({ success: false, error: 'Forbidden: Cannot edit other users' }, { status: 403 })
+        }
+
+        // Demo guard
+        const auth = authorizeAction(user, undefined, 'PUT')
+        if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+
         const dataToUpdate: any = { ...updates }
+
+        // Prevent non-super-admin from changing roles
+        if (user.role !== 'SUPER_ADMIN' && updates.role) {
+            delete dataToUpdate.role
+        }
 
         if (updates.email) {
             const existingEmail = await prisma.user.findUnique({ where: { email: updates.email } })
@@ -202,6 +208,38 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({
             success: false,
             error: 'Failed to update user'
+        }, { status: 500 })
+    }
+}
+
+// DELETE /api/users - Soft Delete User (Super Admin only)
+export async function DELETE(request: NextRequest) {
+    try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        if (user.role !== 'SUPER_ADMIN') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+
+        const { searchParams } = new URL(request.url)
+        const id = searchParams.get('id')
+
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 })
+        }
+
+        await prisma.user.update({
+            where: { id },
+            data: { deletedAt: new Date(), password: '' }
+        })
+
+        return NextResponse.json({
+            success: true,
+            message: 'User deleted successfully'
+        })
+    } catch (error) {
+        console.error('Delete User Error:', error)
+        return NextResponse.json({
+            success: false,
+            error: 'Failed to delete user'
         }, { status: 500 })
     }
 }

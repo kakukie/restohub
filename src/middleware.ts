@@ -10,12 +10,9 @@ export async function middleware(request: NextRequest) {
         const token = request.cookies.get('adminToken')?.value
         const refreshToken = request.cookies.get('adminRefreshToken')?.value
 
-        // Relaxed Check: Allow if EITHER token is valid JWT.
-        // API will enforce strict DB checks and rotation.
         const isAccessValid = token ? await verifyJwt(token) : null
         const isRefreshValid = refreshToken ? await verifyJwt(refreshToken) : null
 
-        // Ensure role match if possible (payload has role)
         const validAccess = isAccessValid && isAccessValid.role === 'SUPER_ADMIN'
         const validRefresh = isRefreshValid && isRefreshValid.role === 'SUPER_ADMIN'
 
@@ -29,7 +26,6 @@ export async function middleware(request: NextRequest) {
     let isAccessValid = null
     let isRefreshValid = null
     
-    // We check tokens for both /dashboard and demo/API protection
     const restoToken = request.cookies.get('restoToken')?.value || request.headers.get('Authorization')?.replace('Bearer ', '') || request.cookies.get('adminToken')?.value
     const restoRefreshToken = request.cookies.get('restoRefreshToken')?.value || request.cookies.get('adminRefreshToken')?.value
     
@@ -51,9 +47,20 @@ export async function middleware(request: NextRequest) {
     const isStateChange = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)
     
     if (isApi && isStateChange) {
-        // Whitelisted public state-changing endpoints
-        const publicEndpoints = ['/api/auth', '/api/orders', '/api/payment']
-        const isPublicEndpoint = publicEndpoints.some(p => pathname.startsWith(p))
+        // Whitelisted public state-changing endpoints (minimal exposure)
+        const publicPostEndpoints = [
+            '/api/auth/login',
+            '/api/auth/register',
+            '/api/auth/demo',
+            '/api/auth/forgot-password',
+            '/api/auth/reset-password',
+            '/api/auth/google',
+            '/api/auth/2fa',
+            '/api/auth/refresh',
+            '/api/orders',           // QR Menu order creation (POST only, auth checked in route handler)
+            '/api/payment/midtrans', // Midtrans webhook callback
+        ]
+        const isPublicEndpoint = publicPostEndpoints.some(p => pathname.startsWith(p))
 
         if (!isPublicEndpoint) {
             // Unauthenticated Protection

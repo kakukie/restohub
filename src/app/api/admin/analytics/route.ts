@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
     try {
-        // 1. Fetch all completed orders with restaurant details
-        // We use findMany instead of groupBy to ensure we can easily join Restaurant data
-        // (Prisma groupBy doesn't support relation inclusion directly in all versions/modes effectively without separate queries)
-        // Actually, let's use groupBy for efficiency if possible, then fetch names.
+        // Auth: Super Admin only
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        if (user.role !== 'SUPER_ADMIN') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
 
         // Group by Restaurant for Revenue and Count
         const groupedStats = await prisma.order.groupBy({
             by: ['restaurantId'],
             where: {
-                status: { not: 'CANCELLED' } // Only count valid orders
+                status: { not: 'CANCELLED' }
             },
             _sum: {
                 totalAmount: true

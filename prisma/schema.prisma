@@ -44,6 +44,15 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum OrderSource {
+  QR_MENU
+  POS
+  GRABFOOD
+  GOFOOD
+  SHOPEEFOOD
+  OTHER
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -55,8 +64,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   // SSO & 2FA
-  googleId           String?   @unique
-  isTwoFactorEnabled Boolean   @default(false)
+  googleId           String? @unique
+  isTwoFactorEnabled Boolean @default(false)
   twoFactorSecret    String?
 
   // Relations
@@ -68,12 +77,12 @@ model User {
   // Reset Password
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
-  
-  auditLogs     AuditLog[]
+
+  auditLogs AuditLog[]
 }
 
 model Restaurant {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
   description   String?
   address       String?
@@ -85,14 +94,14 @@ model Restaurant {
   email         String?
   logo          String?
   banner        String?
-  theme         String?  @default("modern-emerald")
-  package       String?  @default("FREE_TRIAL")
-  status        String   @default("PENDING")
-  slug          String   @unique
-  isActive      Boolean  @default(true)
+  theme         String?   @default("modern-emerald")
+  package       String?   @default("FREE_TRIAL")
+  status        String    @default("PENDING")
+  slug          String    @unique
+  isActive      Boolean   @default(true)
   activeUntil   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Limits
   maxMenuItems    Int?    @default(15) // Default for Free
@@ -104,22 +113,22 @@ model Restaurant {
   allowMaps       Boolean @default(false)
   enableAnalytics Boolean @default(false)
   printerSettings Json? // { paperSize: "58mm" | "80mm", autoPrint: boolean, ... }
-  slugChangeCount Int @default(0)
-  maxSlugChanges  Int @default(3)
+  slugChangeCount Int     @default(0)
+  maxSlugChanges  Int     @default(3)
 
   // Relations
-  adminId        String
-  admin          User            @relation(fields: [adminId], references: [id])
-  freeTrialEndsAt DateTime?
-  parentId       String? // For Multi-branch support
-  parent         Restaurant?     @relation("BranchParent", fields: [parentId], references: [id])
-  branches       Restaurant[]    @relation("BranchParent")
-  categories     Category[]
-  menuItems      MenuItem[]
-  paymentMethods PaymentMethod[]
-  orders         Order[]
+  adminId          String
+  admin            User              @relation(fields: [adminId], references: [id])
+  freeTrialEndsAt  DateTime?
+  parentId         String? // For Multi-branch support
+  parent           Restaurant?       @relation("BranchParent", fields: [parentId], references: [id])
+  branches         Restaurant[]      @relation("BranchParent")
+  categories       Category[]
+  menuItems        MenuItem[]
+  paymentMethods   PaymentMethod[]
+  orders           Order[]
   helpdeskMessages HelpdeskMessage[]
-  deletedAt      DateTime? // Soft Delete for Restaurant
+  deletedAt        DateTime? // Soft Delete for Restaurant
 
   // Subscription payments
   subscriptionPayments SubscriptionPayment[]
@@ -173,6 +182,8 @@ model Order {
   tableNumber   String?
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
+  orderSource   OrderSource   @default(QR_MENU)
+  adminNotes    String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -201,16 +212,16 @@ model OrderItem {
 }
 
 model PaymentMethod {
-  id           String            @id @default(cuid())
-  type         PaymentMethodType
-  isActive     Boolean           @default(true)
-  qrCode       String?
-  merchantId   String?
+  id            String            @id @default(cuid())
+  type          PaymentMethodType
+  isActive      Boolean           @default(true)
+  qrCode        String?
+  merchantId    String?
   accountNumber String?
   accountName   String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  deletedAt    DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
 
   // Relations
   restaurantId String

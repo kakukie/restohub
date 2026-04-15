@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
 export async function GET(request: NextRequest) {
     try {
+        // Auth: Must be authenticated and own this restaurant
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
         const searchParams = request.nextUrl.searchParams
         const restaurantId = searchParams.get('restaurantId')
         const yearParam = searchParams.get('year')
@@ -13,13 +18,18 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Restaurant ID required' }, { status: 400 })
         }
 
+        // IDOR Protection
+        if (user.role !== 'SUPER_ADMIN' && user.restaurantId !== restaurantId) {
+            return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+        }
+
         const startDateParam = searchParams.get('startDate')
         const endDateParam = searchParams.get('endDate')
 
         let startDate: Date, endDate: Date
         let prevStartDate: Date, prevEndDate: Date
 
-        const granularity = searchParams.get('granularity') || 'day' // day, month, year
+        const granularity = searchParams.get('granularity') || 'day'
 
         if (startDateParam && endDateParam && startDateParam !== 'undefined' && endDateParam !== 'undefined') {
             const start = new Date(startDateParam)
@@ -28,7 +38,6 @@ export async function GET(request: NextRequest) {
             if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
                 startDate = start
                 endDate = end
-                // Adjust end date to end of day
                 endDate.setHours(23, 59, 59, 999)
 
                 const duration = endDate.getTime() - startDate.getTime()
@@ -48,20 +57,20 @@ export async function GET(request: NextRequest) {
             const month = monthParam ? parseInt(monthParam) : now.getMonth() + 1
 
             if (granularity === 'day') {
-                startDate = new Date(year, month - 1, 1) // Start of current month
-                endDate = new Date(year, month, 0, 23, 59, 59) // End of current month
+                startDate = new Date(year, month - 1, 1)
+                endDate = new Date(year, month, 0, 23, 59, 59)
 
                 prevStartDate = new Date(year, month - 2, 1)
                 prevEndDate = new Date(year, month - 1, 0, 23, 59, 59)
             } else if (granularity === 'month') {
-                startDate = new Date(year, 0, 1) // Start of current year
-                endDate = new Date(year, 11, 31, 23, 59, 59) // End of current year
+                startDate = new Date(year, 0, 1)
+                endDate = new Date(year, 11, 31, 23, 59, 59)
 
                 prevStartDate = new Date(year - 1, 0, 1)
                 prevEndDate = new Date(year - 1, 11, 31, 23, 59, 59)
-            } else { // year
-                startDate = new Date(year - 4, 0, 1) // 5 years ago
-                endDate = new Date(year, 11, 31, 23, 59, 59) // End of current year
+            } else {
+                startDate = new Date(year - 4, 0, 1)
+                endDate = new Date(year, 11, 31, 23, 59, 59)
 
                 prevStartDate = new Date(year - 9, 0, 1)
                 prevEndDate = new Date(year - 5, 11, 31, 23, 59, 59)
@@ -149,7 +158,7 @@ export async function GET(request: NextRequest) {
             }
         };
 
-        // 2. Fetch Top Menu Items - use avg price * sum quantity for accurate revenue
+        // 2. Fetch Top Menu Items
         const orderItemsGrouped = await prisma.orderItem.groupBy({
             by: ['menuItemId'],
             where: {
@@ -164,7 +173,6 @@ export async function GET(request: NextRequest) {
             take: 5
         });
 
-        // Fetch names for the top items
         const topItemIds = orderItemsGrouped.map(i => i.menuItemId);
         const topMenuItemsData = await prisma.menuItem.findMany({
             where: { id: { in: topItemIds } },
@@ -178,7 +186,7 @@ export async function GET(request: NextRequest) {
             return {
                 name: menuData?.name || 'Deleted Item',
                 count: totalQty,
-                revenue: Math.round(avgPrice * totalQty) // avg unit price × total qty sold
+                revenue: Math.round(avgPrice * totalQty)
             };
         });
 
@@ -203,7 +211,7 @@ export async function GET(request: NextRequest) {
             revenue: p._sum.amount || 0
         }));
 
-        // 4. Generate Daily Data for Chart (Using efficient select instead of full include)
+        // 4. Generate Chart Data
         const relevantOrders = await prisma.order.findMany({
             where: {
                 ...whereClause,
@@ -217,11 +225,10 @@ export async function GET(request: NextRequest) {
 
         const chartData: Record<string, { count: number, revenue: number }> = {}
 
-        // Helper to format date key
         const getKey = (date: Date, type: string) => {
             if (type === 'year') return date.getFullYear().toString()
-            if (type === 'month') return date.toISOString().slice(0, 7) // YYYY-MM
-            return date.toISOString().split('T')[0] // YYYY-MM-DD
+            if (type === 'month') return date.toISOString().slice(0, 7)
+            return date.toISOString().split('T')[0]
         }
 
         if (granularity === 'day') {
@@ -241,7 +248,7 @@ export async function GET(request: NextRequest) {
             }
         } else if (granularity === 'year') {
             const loopDate = new Date(startDate);
-            loopDate.setMonth(0, 1) // Jan 1st
+            loopDate.setMonth(0, 1)
             while (loopDate <= endDate) {
                 const dateKey = getKey(loopDate, 'year')
                 chartData[dateKey] = { count: 0, revenue: 0 }

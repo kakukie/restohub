@@ -1,6 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
 // GET /api/settings - Fetch global system settings (publicly safe subset)
 export async function GET(request: NextRequest) {
@@ -28,9 +29,14 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// PUT /api/settings - Update global system settings (Admin only)
+// PUT /api/settings - Update global system settings (Super Admin only)
 export async function PUT(request: NextRequest) {
     try {
+        // Auth: Only Super Admin can update system settings
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        if (user.role !== 'SUPER_ADMIN') return NextResponse.json({ success: false, error: 'Forbidden: Super Admin only' }, { status: 403 })
+
         const body = await request.json()
         const {
             whatsapp, email, maintenanceMode, platformName,

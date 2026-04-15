@@ -3,12 +3,28 @@ import prisma from '@/lib/prisma'
 import { v4 as uuidv4 } from 'uuid'
 import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
+// ─── Input Validation Helpers ────────────────────────────────────────────────
+function sanitizeString(str: unknown, maxLen = 500): string {
+  if (typeof str !== 'string') return ''
+  return str.replace(/\0/g, '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim().slice(0, maxLen)
+}
+
+function generateOrderNumber(): string {
+  const ts = Date.now().toString(36).toUpperCase()
+  const rand = Math.random().toString(36).substring(2, 6).toUpperCase()
+  return `ORD-${ts}-${rand}`
+}
+
+const VALID_ORDER_SOURCES = ['QR_MENU', 'POS', 'GRABFOOD', 'GOFOOD', 'SHOPEEFOOD', 'OTHER']
+const VALID_ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED']
+const VALID_PAYMENT_STATUSES = ['PENDING', 'PAID', 'FAILED', 'REFUNDED']
+
 // GET /api/orders
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const customerId = searchParams.get('customerId') // For customer history if needed
-    const paymentMethodParam = searchParams.get('paymentMethod') // NEW: filter by payment method
+    const customerId = searchParams.get('customerId')
+    const paymentMethodParam = searchParams.get('paymentMethod')
     const user = await getAuthenticatedUser(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
 
@@ -32,16 +48,17 @@ export async function GET(request: NextRequest) {
     if (startDateParam && endDateParam) {
       const start = new Date(startDateParam)
       const end = new Date(endDateParam)
-      // Ensure end date covers the full day
-      end.setHours(23, 59, 59, 999)
-
-      where.createdAt = {
-        gte: start,
-        lte: end
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        // Ensure end date covers the full day
+        end.setHours(23, 59, 59, 999)
+        where.createdAt = {
+          gte: start,
+          lte: end
+        }
       }
     }
 
-    // Payment Method Filtering (uses direct 'type' field stored on Payment record)
+    // Payment Method Filtering
     if (paymentMethodParam && paymentMethodParam !== 'ALL') {
       where.payment = {
         type: paymentMethodParam
@@ -50,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     const orders = await prisma.order.findMany({
       where,
-      take: (startDateParam && endDateParam) ? undefined : 150, // Prevent massive payloads on live queue
+      take: (startDateParam && endDateParam) ? undefined : 150,
       include: {
         orderItems: {
           include: { menuItem: true }
@@ -59,25 +76,21 @@ export async function GET(request: NextRequest) {
           include: { method: true }
         },
         customer: {
-          select: { name: true, phone: true } // Minimal user info
+          select: { name: true, phone: true }
         }
       },
       orderBy: { createdAt: 'desc' }
     })
 
-    // Transform to match frontend expected shape if needed, BUT frontend likely expects what Prisma returns mostly.
-    // The frontend expects: `items` (from orderItems), `totalAmount`, `status`, `customerName`, `paymentMethod`.
-    // We might need to map it.
-
     const formattedOrders = orders.map(o => ({
       id: o.id,
       orderNumber: o.orderNumber,
-      customerName: o.customer.name || 'Guest',
+      customerName: o.customer?.name || 'Guest',
       tableNumber: o.tableNumber,
       items: o.orderItems.map(i => ({
         id: i.id,
         menuItemId: i.menuItemId,
-        menuItemName: i.menuItem.name,
+        menuItemName: i.menuItem?.name || 'Deleted Item',
         quantity: i.quantity,
         price: i.price,
         notes: i.notes
@@ -85,7 +98,9 @@ export async function GET(request: NextRequest) {
       totalAmount: o.totalAmount,
       status: o.status,
       paymentStatus: o.paymentStatus,
-      paymentMethod: o.payment?.method?.type || 'CASH', // Flatten payment method
+      paymentMethod: o.payment?.method?.type || 'CASH',
+      orderSource: o.orderSource,
+      adminNotes: o.adminNotes,
       createdAt: o.createdAt.toISOString()
     }))
 
@@ -96,12 +111,55 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/orders - Create Order (Public/User)
+// POST /api/orders - Create Order (Public from QR Menu / Authenticated from POS)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { restaurantId, items, totalAmount, tableNumber, notes, customerName, customerId, paymentMethod } = body
-    // items: { menuItemId, quantity, price, notes }[]
+    const {
+      restaurantId,
+      items,
+      tableNumber,
+      notes,
+      customerName,
+      customerId,
+      paymentMethod,
+      orderSource,
+      adminNotes
+    } = body
+
+    // ── Input Validation ─────────────────────────────────────────────────
+    if (!restaurantId || typeof restaurantId !== 'string') {
+      return NextResponse.json({ success: false, error: 'Restaurant ID wajib diisi.' }, { status: 400 })
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ success: false, error: 'Minimal 1 item untuk order.' }, { status: 400 })
+    }
+
+    if (items.length > 50) {
+      return NextResponse.json({ success: false, error: 'Maksimal 50 item per order.' }, { status: 400 })
+    }
+
+    // Validate order source
+    const resolvedSource = (orderSource && VALID_ORDER_SOURCES.includes(orderSource)) ? orderSource : 'QR_MENU'
+
+    // If creating from POS/admin (non QR_MENU), require authentication
+    if (resolvedSource !== 'QR_MENU') {
+      const user = await getAuthenticatedUser(request)
+      if (!user) return NextResponse.json({ success: false, error: 'Unauthorized: Login diperlukan untuk order manual.' }, { status: 401 })
+      const auth = authorizeAction(user, restaurantId, 'POST')
+      if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+    }
+
+    // Validate each item has required fields
+    for (const item of items) {
+      if (!item.menuItemId || typeof item.quantity !== 'number' || item.quantity < 1) {
+        return NextResponse.json({ success: false, error: 'Setiap item harus memiliki menuItemId dan quantity valid.' }, { status: 400 })
+      }
+      if (item.quantity > 100) {
+        return NextResponse.json({ success: false, error: 'Quantity per item maksimal 100.' }, { status: 400 })
+      }
+    }
 
     // Security Fix: Do not trust frontend pricing. Fetch menu items from DB.
     const menuItemIds = items.map((i: any) => i.menuItemId)
@@ -109,7 +167,6 @@ export async function POST(request: NextRequest) {
       where: {
         id: { in: menuItemIds },
         restaurantId: restaurantId,
-        isActive: true,
         isAvailable: true,
         deletedAt: null
       }
@@ -131,77 +188,104 @@ export async function POST(request: NextRequest) {
         menuItemId: item.menuItemId,
         quantity: item.quantity,
         price: itemPrice, // USE SECURE DB PRICE!
-        notes: item.notes
+        notes: sanitizeString(item.notes, 200)
       }
     })
 
-    // Use transaction
-    const order = await prisma.$transaction(async (tx) => {
-      let finalCustomerId = customerId
-      if (!finalCustomerId) {
-        const guest = await tx.user.create({
-          data: {
-            email: `guest-${Date.now()}-${uuidv4()}@temp.com`,
-            name: customerName || 'Guest',
-            role: 'CUSTOMER'
+    // Sanitize text inputs
+    const sanitizedNotes = sanitizeString(notes, 500)
+    const sanitizedAdminNotes = sanitizeString(adminNotes, 1000)
+    const sanitizedCustomerName = sanitizeString(customerName, 100) || 'Guest'
+    const sanitizedTableNumber = sanitizeString(tableNumber, 20)
+
+    // Retry loop for orderNumber collision (P2002 unique constraint)
+    let attempts = 0
+    const MAX_ATTEMPTS = 3
+
+    while (attempts < MAX_ATTEMPTS) {
+      attempts++
+      try {
+        const order = await prisma.$transaction(async (tx) => {
+          let finalCustomerId = customerId
+          if (!finalCustomerId) {
+            const guest = await tx.user.create({
+              data: {
+                email: `guest-${Date.now()}-${uuidv4()}@temp.com`,
+                name: sanitizedCustomerName,
+                role: 'CUSTOMER'
+              }
+            })
+            finalCustomerId = guest.id
           }
-        })
-        finalCustomerId = guest.id
-      }
 
-      let paymentCreateData: any = undefined
-      if (paymentMethod) {
-        const pm = await tx.paymentMethod.findFirst({
-          where: { restaurantId, type: paymentMethod, isActive: true }
-        })
+          let paymentCreateData: any = undefined
+          if (paymentMethod) {
+            const pm = await tx.paymentMethod.findFirst({
+              where: { restaurantId, type: paymentMethod, isActive: true }
+            })
 
-        if (pm) {
-          paymentCreateData = {
-            create: {
-              amount: calculatedTotalAmount,
-              status: 'PENDING',
-              type: paymentMethod,
-              methodId: pm.id
+            if (pm) {
+              paymentCreateData = {
+                create: {
+                  amount: calculatedTotalAmount,
+                  status: 'PENDING',
+                  type: paymentMethod,
+                  methodId: pm.id
+                }
+              }
+            } else {
+              console.warn(`Payment method ${paymentMethod} not found for restaurant ${restaurantId}`)
             }
           }
-        } else {
-          console.warn(`Payment method ${paymentMethod} not found for restaurant ${restaurantId}`)
+
+          const newOrder = await tx.order.create({
+            data: {
+              restaurantId,
+              customerId: finalCustomerId,
+              totalAmount: calculatedTotalAmount,
+              tableNumber: sanitizedTableNumber,
+              notes: sanitizedNotes,
+              orderNumber: generateOrderNumber(),
+              status: 'PENDING',
+              paymentStatus: 'PENDING',
+              orderSource: resolvedSource as any,
+              adminNotes: sanitizedAdminNotes || null,
+              payment: paymentCreateData,
+              orderItems: {
+                create: validatedItems
+              }
+            },
+            include: { orderItems: true, payment: { include: { method: true } } }
+          })
+
+          return newOrder
+        })
+
+        return NextResponse.json({ success: true, data: order }, { status: 201 })
+
+      } catch (txError: any) {
+        // P2002 = Unique constraint violation (orderNumber collision)
+        if (txError?.code === 'P2002' && attempts < MAX_ATTEMPTS) {
+          console.warn(`Order number collision, retrying (attempt ${attempts}/${MAX_ATTEMPTS})`)
+          continue
         }
+        throw txError
       }
+    }
 
-      const newOrder = await tx.order.create({
-        data: {
-          restaurantId,
-          customerId: finalCustomerId,
-          totalAmount: calculatedTotalAmount, // USE CALCULATED AMOUNT
-          tableNumber,
-          notes,
-          orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
-          status: 'PENDING',
-          paymentStatus: 'PENDING',
-          payment: paymentCreateData,
-          orderItems: {
-            create: validatedItems
-          }
-        },
-        include: { orderItems: true, payment: { include: { method: true } } }
-      })
-
-      return newOrder
-    })
-
-    return NextResponse.json({ success: true, data: order }, { status: 201 })
+    return NextResponse.json({ success: false, error: 'Failed to create order after retries' }, { status: 500 })
 
   } catch (error) {
     console.error("Order Creation Error", error)
-    return NextResponse.json({ success: false, error: 'Failed to create order' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Gagal membuat order. Silakan coba lagi.' }, { status: 500 })
   }
 }
+
 // PUT /api/orders - Update Order Status
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { orderId, status, paymentStatus } = body
+    const { orderId, status, paymentStatus, adminNotes } = body
 
     if (!orderId) {
       return NextResponse.json({ success: false, error: 'Order ID required' }, { status: 400 })
@@ -223,15 +307,29 @@ export async function PUT(request: NextRequest) {
     if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 
     const updates: any = {}
+
     if (status) {
+      if (!VALID_ORDER_STATUSES.includes(status)) {
+        return NextResponse.json({ success: false, error: 'Invalid order status' }, { status: 400 })
+      }
       updates.status = status
-      // If confirming order, assume payment is collected (unless manual payment flow overrides)
-      // This ensures reports show correct Revenue.
+      // If confirming order, assume payment is collected
       if (status === 'CONFIRMED' && !paymentStatus) {
         updates.paymentStatus = 'PAID'
       }
     }
-    if (paymentStatus) updates.paymentStatus = paymentStatus
+
+    if (paymentStatus) {
+      if (!VALID_PAYMENT_STATUSES.includes(paymentStatus)) {
+        return NextResponse.json({ success: false, error: 'Invalid payment status' }, { status: 400 })
+      }
+      updates.paymentStatus = paymentStatus
+    }
+
+    // Allow updating adminNotes
+    if (adminNotes !== undefined) {
+      updates.adminNotes = sanitizeString(adminNotes, 1000) || null
+    }
 
     // Log manual notifications if provided (Simulated Sending)
     const { manualEmail, manualPhone } = body
@@ -239,7 +337,6 @@ export async function PUT(request: NextRequest) {
       console.log(`[NOTIFY] Manual Notification Triggered for Order ${orderId}`)
       if (manualEmail) console.log(`[NOTIFY] Sending Email to: ${manualEmail}`)
       if (manualPhone) console.log(`[NOTIFY] Sending WhatsApp to: ${manualPhone}`)
-      // TODO: Integrate actual mailer/whatsapp gateway here
     }
 
     const order = await prisma.order.update({

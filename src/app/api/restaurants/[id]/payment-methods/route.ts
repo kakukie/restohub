@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,7 @@ async function getRestaurantId(idOrSlug: string) {
     return restaurant?.id
 }
 
-// GET (Updated)
+// GET (Public - for QR menu to show payment methods)
 export async function GET(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
@@ -35,7 +36,7 @@ export async function GET(
         const methods = await prisma.paymentMethod.findMany({
             where: {
                 restaurantId: restaurantId,
-                deletedAt: null // Only show non-deleted methods
+                deletedAt: null
             },
             orderBy: { createdAt: 'desc' }
         })
@@ -45,15 +46,22 @@ export async function GET(
     }
 }
 
-// POST: Create Payment Method
+// POST: Create Payment Method (Authenticated + Owner)
 export async function POST(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params;
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
         const restaurantId = await getRestaurantId(params.id)
         if (!restaurantId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
+
+        // IDOR Protection
+        const auth = authorizeAction(user, restaurantId, 'POST')
+        if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 
         const body = await request.json()
         const { type, merchantId, qrCode, isActive } = body
@@ -62,9 +70,6 @@ export async function POST(
             return NextResponse.json({ success: false, error: 'Payment type is required' }, { status: 400 })
         }
 
-        // Check for duplicates (ONLY among active/non-deleted ones? Or globally?)
-        // Better: Check among non-deleted ones. If deleted one exists, maybe revive it? 
-        // For simplicity: Check non-deleted.
         const existing = await prisma.paymentMethod.findFirst({
             where: {
                 restaurantId: restaurantId,
@@ -76,9 +81,6 @@ export async function POST(
         if (existing) {
             return NextResponse.json({ success: false, error: `Payment method ${type} already exists` }, { status: 400 })
         }
-
-        // Check if there is a deleted one we can revive? 
-        // Optional optimization, but creating new is safer for history separation.
 
         const newMethod = await prisma.paymentMethod.create({
             data: {
@@ -97,8 +99,7 @@ export async function POST(
     }
 }
 
-// ... PUT remains similar but ensure we update correct one (id is unique so fine) ...
-
+// DELETE: Remove Payment Method (Authenticated + Owner)
 export async function DELETE(
     request: NextRequest,
     props: { params: Promise<{ id: string }> }
@@ -109,6 +110,20 @@ export async function DELETE(
     if (!paymentId) return NextResponse.json({ success: false }, { status: 400 })
 
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
+        // Verify the payment method belongs to a restaurant the user owns
+        const paymentMethod = await prisma.paymentMethod.findUnique({
+            where: { id: paymentId },
+            select: { restaurantId: true }
+        })
+
+        if (!paymentMethod) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
+
+        const auth = authorizeAction(user, paymentMethod.restaurantId, 'DELETE')
+        if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
+
         // Soft Delete
         await prisma.paymentMethod.update({
             where: { id: paymentId },

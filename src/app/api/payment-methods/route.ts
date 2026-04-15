@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { invalidateCache } from '@/lib/redis'
+import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+
         const body = await request.json()
         const { restaurantId, type, accountName, accountNumber, isActive, qrCode } = body
 
@@ -13,6 +17,10 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             )
         }
+
+        // IDOR Protection
+        const auth = authorizeAction(user, restaurantId, 'POST')
+        if (!auth.authorized) return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
 
         // Check if exists
         const existing = await prisma.paymentMethod.findFirst({
@@ -41,7 +49,7 @@ export async function POST(request: NextRequest) {
             }
         })
 
-        await invalidateCache(`dashboard:${restaurantId}`) // Auto refresh for dashboard UI
+        await invalidateCache(`dashboard:${restaurantId}`)
 
         return NextResponse.json({
             success: true,

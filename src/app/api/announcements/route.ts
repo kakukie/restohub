@@ -1,8 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
-// GET /api/announcements - Fetch active announcements
+// GET /api/announcements - Fetch active announcements (public read)
 export async function GET(request: NextRequest) {
     try {
         const activeOnly = request.nextUrl.searchParams.get('active') === 'true'
@@ -18,9 +19,13 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// POST /api/announcements - Create new announcement
+// POST /api/announcements - Create new announcement (Super Admin only)
 export async function POST(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        if (user.role !== 'SUPER_ADMIN') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+
         const body = await request.json()
         const { message } = body
 
@@ -38,9 +43,13 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// DELETE /api/announcements?id=... - Delete/Deactivate
+// DELETE /api/announcements?id=... - Delete/Deactivate (Super Admin only)
 export async function DELETE(request: NextRequest) {
     try {
+        const user = await getAuthenticatedUser(request)
+        if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        if (user.role !== 'SUPER_ADMIN') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+
         const id = request.nextUrl.searchParams.get('id')
         if (!id) return NextResponse.json({ success: false, error: 'ID required' }, { status: 400 })
 

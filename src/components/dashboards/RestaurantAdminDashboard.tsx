@@ -116,6 +116,25 @@ export default function RestaurantAdminDashboard() {
     const ITEMS_PER_PAGE = 10
     const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
 
+    // Manual Order (Admin Note Feature)
+    const [manualOrderDialogOpen, setManualOrderDialogOpen] = useState(false)
+    const [manualOrderForm, setManualOrderForm] = useState<{
+        customerName: string
+        orderSource: string
+        adminNotes: string
+        tableNumber: string
+        paymentMethod: string
+        items: { menuItemId: string; quantity: number }[]
+    }>({
+        customerName: '',
+        orderSource: 'GRABFOOD',
+        adminNotes: '',
+        tableNumber: '',
+        paymentMethod: 'CASH',
+        items: []
+    })
+    const [submittingManualOrder, setSubmittingManualOrder] = useState(false)
+
     // Reports & Analytics States
     const [reportGranularity, setReportGranularity] = useState<'day' | 'month' | 'year'>('day')
     const [reportDateRange, setReportDateRange] = useState({ start: '', end: '' })
@@ -308,6 +327,59 @@ export default function RestaurantAdminDashboard() {
             toast({ title: "Error", description: "Failed to update order", variant: "destructive" })
         } finally {
             setUpdatingOrderId(null)
+        }
+    }
+
+    // ── Manual Order Handler ──────────────────────────────────────────────
+    const handleCreateManualOrder = async () => {
+        if (!manualOrderForm.customerName) {
+            return toast({ title: 'Error', description: 'Nama customer wajib diisi', variant: 'destructive' })
+        }
+        if (manualOrderForm.items.length === 0) {
+            return toast({ title: 'Error', description: 'Pilih minimal 1 menu item', variant: 'destructive' })
+        }
+
+        setSubmittingManualOrder(true)
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    restaurantId: user?.restaurantId,
+                    customerName: manualOrderForm.customerName,
+                    tableNumber: manualOrderForm.tableNumber || 'ONLINE',
+                    notes: `[${manualOrderForm.orderSource}] ${manualOrderForm.adminNotes}`,
+                    paymentMethod: manualOrderForm.paymentMethod || 'CASH',
+                    orderSource: manualOrderForm.orderSource,
+                    adminNotes: manualOrderForm.adminNotes,
+                    items: manualOrderForm.items.filter(i => i.quantity > 0).map(i => ({
+                        menuItemId: i.menuItemId,
+                        quantity: i.quantity,
+                        price: 0,
+                        notes: ''
+                    }))
+                })
+            })
+            const data = await res.json()
+            if (data.success) {
+                toast({ title: 'Berhasil', description: `Order ${manualOrderForm.orderSource} berhasil dicatat!` })
+                setManualOrderDialogOpen(false)
+                setManualOrderForm({
+                    customerName: '',
+                    orderSource: 'GRABFOOD',
+                    adminNotes: '',
+                    tableNumber: '',
+                    paymentMethod: 'CASH',
+                    items: []
+                })
+                loadOrderData()
+            } else {
+                toast({ title: 'Error', description: data.error || 'Gagal membuat order', variant: 'destructive' })
+            }
+        } catch (error) {
+            toast({ title: 'Error', description: 'Gagal membuat order manual', variant: 'destructive' })
+        } finally {
+            setSubmittingManualOrder(false)
         }
     }
 
@@ -1321,10 +1393,16 @@ export default function RestaurantAdminDashboard() {
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('orders')}</h2>
-                    <Button onClick={() => loadOrderData()} variant="outline" size="sm">
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        {t('refresh')}
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button onClick={() => setManualOrderDialogOpen(true)} size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Order Online
+                        </Button>
+                        <Button onClick={() => loadOrderData()} variant="outline" size="sm">
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            {t('refresh')}
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Filters */}
@@ -1413,9 +1491,27 @@ export default function RestaurantAdminDashboard() {
                                                 {order.customerName} • {new Date(order.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short', hour12: false })}
                                             </p>
                                             {order.paymentMethod && (
-                                                <Badge variant="outline" className="mt-2">
+                                                <Badge variant="outline" className="mt-2 mr-2">
                                                     💳 {order.paymentMethod}
                                                 </Badge>
+                                            )}
+                                            {(order as any).orderSource && (order as any).orderSource !== 'QR_MENU' && (
+                                                <Badge variant="outline" className={`mt-2 ${
+                                                    (order as any).orderSource === 'GRABFOOD' ? 'bg-green-100 text-green-700 border-green-300' :
+                                                    (order as any).orderSource === 'GOFOOD' ? 'bg-red-100 text-red-700 border-red-300' :
+                                                    (order as any).orderSource === 'SHOPEEFOOD' ? 'bg-orange-100 text-orange-700 border-orange-300' :
+                                                    (order as any).orderSource === 'POS' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                                                    'bg-gray-100 text-gray-700 border-gray-300'
+                                                }`}>
+                                                    {(order as any).orderSource === 'GRABFOOD' ? '🟢 GrabFood' :
+                                                     (order as any).orderSource === 'GOFOOD' ? '🔴 GoFood' :
+                                                     (order as any).orderSource === 'SHOPEEFOOD' ? '🟠 ShopeeFood' :
+                                                     (order as any).orderSource === 'POS' ? '💻 POS' :
+                                                     (order as any).orderSource}
+                                                </Badge>
+                                            )}
+                                            {(order as any).adminNotes && (
+                                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">📝 {(order as any).adminNotes}</p>
                                             )}
                                         </div>
                                         <Badge variant={order.status === 'COMPLETED' ? 'default' : 'secondary'}>
@@ -2161,6 +2257,25 @@ export default function RestaurantAdminDashboard() {
                                 </div>
                             )}
 
+                            {(viewOrder as any)?.orderSource && (viewOrder as any).orderSource !== 'QR_MENU' && (
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">Sumber:</span>
+                                    <Badge variant="outline" className={`${
+                                        (viewOrder as any).orderSource === 'GRABFOOD' ? 'bg-green-100 text-green-700' :
+                                        (viewOrder as any).orderSource === 'GOFOOD' ? 'bg-red-100 text-red-700' :
+                                        (viewOrder as any).orderSource === 'SHOPEEFOOD' ? 'bg-orange-100 text-orange-700' :
+                                        'bg-blue-100 text-blue-700'
+                                    }`}>
+                                        {(viewOrder as any).orderSource}
+                                    </Badge>
+                                </div>
+                            )}
+                            {(viewOrder as any)?.adminNotes && (
+                                <div className="flex justify-between items-start text-sm">
+                                    <span className="text-gray-500">Catatan Admin:</span>
+                                    <span className="font-medium text-right max-w-[60%]">{(viewOrder as any).adminNotes}</span>
+                                </div>
+                            )}
                             <div className="border-t border-b py-2 my-2 space-y-2">
                                 {viewOrder.items.map((item: any, idx: number) => (
                                     <div key={idx} className="flex justify-between text-sm">
@@ -2207,6 +2322,131 @@ export default function RestaurantAdminDashboard() {
                             </div>
                         </div>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Manual Order Dialog (Admin Note Feature) */}
+            <Dialog open={manualOrderDialogOpen} onOpenChange={setManualOrderDialogOpen}>
+                <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>📋 Input Order Online</DialogTitle>
+                        <DialogDescription>Catat pesanan dari platform online (GrabFood, GoFood, ShopeeFood)</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label>Platform Sumber *</Label>
+                            <Select value={manualOrderForm.orderSource} onValueChange={(val) => setManualOrderForm({ ...manualOrderForm, orderSource: val })}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih Platform" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="GRABFOOD">🟢 GrabFood</SelectItem>
+                                    <SelectItem value="GOFOOD">🔴 GoFood</SelectItem>
+                                    <SelectItem value="SHOPEEFOOD">🟠 ShopeeFood</SelectItem>
+                                    <SelectItem value="OTHER">📦 Lainnya</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Nama Customer *</Label>
+                            <Input
+                                value={manualOrderForm.customerName}
+                                onChange={(e) => setManualOrderForm({ ...manualOrderForm, customerName: e.target.value })}
+                                placeholder="Nama dari aplikasi..."
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Catatan Admin (opsional)</Label>
+                            <Input
+                                value={manualOrderForm.adminNotes}
+                                onChange={(e) => setManualOrderForm({ ...manualOrderForm, adminNotes: e.target.value })}
+                                placeholder="No. order Grab/Gojek, instruksi khusus, dll..."
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Metode Bayar</Label>
+                            <Select value={manualOrderForm.paymentMethod} onValueChange={(val) => setManualOrderForm({ ...manualOrderForm, paymentMethod: val })}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="CASH">Tunai</SelectItem>
+                                    {paymentMethods.filter(m => m.isActive).map(m => (
+                                        <SelectItem key={m.id} value={m.type}>{m.type}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Menu Item Picker */}
+                        <div className="space-y-2">
+                            <Label>Pilih Menu *</Label>
+                            <div className="max-h-60 overflow-y-auto space-y-2 border rounded-lg p-3">
+                                {menuItems.filter(m => m.isAvailable).map(item => {
+                                    const existingIdx = manualOrderForm.items.findIndex(i => i.menuItemId === item.id)
+                                    const qty = existingIdx >= 0 ? manualOrderForm.items[existingIdx].quantity : 0
+                                    return (
+                                        <div key={item.id} className="flex items-center justify-between py-1">
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium">{item.name}</p>
+                                                <p className="text-xs text-gray-500">Rp {item.price.toLocaleString('id-ID')}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button variant="outline" size="icon" className="h-7 w-7"
+                                                    onClick={() => {
+                                                        if (qty <= 0) return
+                                                        const newItems = [...manualOrderForm.items]
+                                                        if (qty === 1) {
+                                                            newItems.splice(existingIdx, 1)
+                                                        } else {
+                                                            newItems[existingIdx].quantity = qty - 1
+                                                        }
+                                                        setManualOrderForm({ ...manualOrderForm, items: newItems })
+                                                    }}
+                                                    disabled={qty === 0}
+                                                >
+                                                    <Minus className="h-3 w-3" />
+                                                </Button>
+                                                <span className="text-sm font-bold w-6 text-center">{qty}</span>
+                                                <Button variant="outline" size="icon" className="h-7 w-7"
+                                                    onClick={() => {
+                                                        const newItems = [...manualOrderForm.items]
+                                                        if (existingIdx >= 0) {
+                                                            newItems[existingIdx].quantity = qty + 1
+                                                        } else {
+                                                            newItems.push({ menuItemId: item.id, quantity: 1 })
+                                                        }
+                                                        setManualOrderForm({ ...manualOrderForm, items: newItems })
+                                                    }}
+                                                >
+                                                    <Plus className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            {manualOrderForm.items.length > 0 && (
+                                <p className="text-sm text-emerald-600 font-medium">
+                                    {manualOrderForm.items.reduce((s, i) => s + i.quantity, 0)} item dipilih •{' '}
+                                    Rp {manualOrderForm.items.reduce((total, i) => {
+                                        const mi = menuItems.find(m => m.id === i.menuItemId)
+                                        return total + (mi ? mi.price * i.quantity : 0)
+                                    }, 0).toLocaleString('id-ID')}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setManualOrderDialogOpen(false)}>Batal</Button>
+                        <Button
+                            className="bg-orange-500 hover:bg-orange-600 text-white"
+                            onClick={handleCreateManualOrder}
+                            disabled={submittingManualOrder}
+                        >
+                            {submittingManualOrder ? <Loader2 className="animate-spin h-4 w-4" /> : '📋 Catat Order'}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 

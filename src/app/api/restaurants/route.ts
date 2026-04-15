@@ -13,6 +13,10 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const adminId = searchParams.get('adminId')
 
+    // Check if user is authenticated (for showing sensitive fields)
+    const user = await getAuthenticatedUser(request)
+    const isAdmin = user && (user.role === 'SUPER_ADMIN' || user.role === 'RESTAURANT_ADMIN')
+
     const where: any = {}
 
     if (search) {
@@ -40,14 +44,15 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Transform data to match expected frontend format
+    // Transform data — filter sensitive fields for non-admin users
     const formattedRestaurants = restaurants.map(r => ({
       ...r,
       logo: normalizeMediaUrl(r.logo, request),
       banner: normalizeMediaUrl(r.banner, request),
-      adminEmail: r.admin?.email || '', // Map relation to flat property
+      adminEmail: isAdmin ? (r.admin?.email || '') : undefined,
+      admin: undefined, // Don't leak admin relation object
       totalMenuItems: r._count.menuItems,
-      totalOrders: r._count.orders,
+      totalOrders: isAdmin ? r._count.orders : undefined,
       totalRevenue: 0
     }))
 
