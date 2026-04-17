@@ -21,6 +21,7 @@ import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import LandingEditorTab from './LandingEditorTab'
 import HelpdeskChat from './HelpdeskChat'
+import { useTranslation } from '@/lib/i18n'
 
 interface Stats {
   totalRestaurants: number
@@ -56,8 +57,6 @@ export default function SuperAdminDashboard() {
     language
   } = useAppStore()
 
-  // Initialize translation hook
-  const { useTranslation } = require('@/lib/i18n')
   const t = useTranslation(language || 'en')
   
   const { theme, setTheme } = useTheme()

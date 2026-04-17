@@ -9,7 +9,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
 
 export default function LandingEditorTab() {
-    const { helpdeskSettings, updateHelpdeskSettings } = useAppStore()
+    const { helpdeskSettings, updateHelpdeskSettings, subscriptionPlans, updateSubscriptionPlan } = useAppStore()
+
+    // Plan editing state
+    const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
+    const [planForm, setPlanForm] = useState<any>({})
 
     // Local state for the form so we can save it explicitly
     const [formData, setFormData] = useState<LandingPageData>(
@@ -50,6 +54,41 @@ export default function LandingEditorTab() {
             title: "Landing Page Updated",
             description: "Perubahan pada Landing Page berhasil disimpan.",
         })
+    }
+
+    const handleEditPlan = (plan: any) => {
+        setEditingPlanId(plan.id)
+        setPlanForm({
+            name: plan.name,
+            price: plan.price,
+            features: plan.features.join('\n')
+        })
+    }
+
+    const handleSavePlan = async () => {
+        if (!editingPlanId) return
+
+        const updates = {
+            name: planForm.name,
+            price: Number(planForm.price),
+            features: planForm.features.split('\n').filter((f: string) => f.trim() !== '')
+        }
+
+        try {
+            const res = await fetch('/api/subscription-plans', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: editingPlanId, ...updates })
+            })
+            const data = await res.json()
+            if (data.success) {
+                updateSubscriptionPlan(editingPlanId, updates)
+                toast({ title: "Plan Updated", description: `Paket ${updates.name} berhasil diperbarui.` })
+                setEditingPlanId(null)
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Gagal menyimpan perubahan paket.", variant: "destructive" })
+        }
     }
 
     return (
@@ -180,6 +219,67 @@ export default function LandingEditorTab() {
                                 onChange={handleChange}
                                 className="bg-[#111827] border-[#2A344A] text-white focus:border-[#10B981]"
                             />
+                        </div>
+
+                        {/* Subscription Plans Card Editor */}
+                        <div className="space-y-4 pt-4 border-t border-[#2A344A]">
+                            <Label className="text-slate-300 font-bold uppercase text-[10px] tracking-wider">Plan Card Details</Label>
+                            <div className="grid grid-cols-1 gap-4">
+                                {subscriptionPlans.map((plan) => (
+                                    <div key={plan.id} className="bg-[#111827] border border-[#2A344A] p-4 rounded-2xl space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="font-bold text-emerald-400">{plan.id} Plan</h4>
+                                            {editingPlanId === plan.id ? (
+                                                <div className="flex gap-2">
+                                                    <Button size="sm" onClick={handleSavePlan} className="bg-emerald-600 hover:bg-emerald-700 h-8 text-[10px]">Save</Button>
+                                                    <Button size="sm" variant="outline" onClick={() => setEditingPlanId(null)} className="h-8 text-[10px] border-[#2A344A] text-slate-400">Cancel</Button>
+                                                </div>
+                                            ) : (
+                                                <Button size="sm" variant="ghost" onClick={() => handleEditPlan(plan)} className="h-8 text-[10px] text-slate-500 hover:text-white">Edit</Button>
+                                            )}
+                                        </div>
+
+                                        {editingPlanId === plan.id ? (
+                                            <div className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[10px] text-slate-500">Display Name</Label>
+                                                        <Input value={planForm.name} onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })} className="bg-[#0B0F1A] border-[#2A344A] text-white h-8 text-xs" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-[10px] text-slate-500">Price (Monthly)</Label>
+                                                        <Input type="number" value={planForm.price} onChange={(e) => setPlanForm({ ...planForm, price: e.target.value })} className="bg-[#0B0F1A] border-[#2A344A] text-white h-8 text-xs" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-[10px] text-slate-500">Features (One per line)</Label>
+                                                    <Textarea value={planForm.features} onChange={(e) => setPlanForm({ ...planForm, features: e.target.value })} className="bg-[#0B0F1A] border-[#2A344A] text-white text-xs min-h-[80px]" />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-4 text-xs">
+                                                <div>
+                                                    <p className="text-slate-500">Name</p>
+                                                    <p className="text-white font-medium">{plan.name}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-slate-500">Price</p>
+                                                    <p className="text-white font-medium">Rp {plan.price.toLocaleString()}</p>
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <p className="text-slate-500">Features</p>
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                        {plan.features.slice(0, 3).map((f: string, idx: number) => (
+                                                            <span key={idx} className="bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded text-[9px]">{f}</span>
+                                                        ))}
+                                                        {plan.features.length > 3 && <span className="text-slate-500 text-[9px]">+{plan.features.length - 3} more</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
