@@ -159,7 +159,8 @@ export async function POST(request: NextRequest) {
             userId: user.id,
             email: user.email,
             role: user.role,
-            restaurantId: restaurant?.id
+            restaurantId: restaurant?.id,
+            isDemo: email === 'demo@restohub.id'
         }
 
         if (user.isTwoFactorEnabled && user.twoFactorSecret) {

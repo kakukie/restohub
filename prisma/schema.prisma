@@ -116,6 +116,10 @@ model Restaurant {
   slugChangeCount Int     @default(0)
   maxSlugChanges  Int     @default(3)
 
+  // Tax & Discount Settings
+  taxRate         Float   @default(0) // Percentage, e.g. 11 for 11%
+  discountRate    Float   @default(0) // Percentage, e.g. 10 for 10%
+
   // Relations
   adminId          String
   admin            User              @relation(fields: [adminId], references: [id])
@@ -166,6 +170,10 @@ model MenuItem {
   isBestSeller  Boolean @default(false)
   isRecommended Boolean @default(false)
 
+  // Stock Management
+  isStockManaged Boolean @default(false)
+  stock          Int     @default(0)
+
   // Relations
   restaurantId String
   restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -182,10 +190,12 @@ model Order {
   tableNumber   String?
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
-  orderSource   OrderSource   @default(QR_MENU)
-  adminNotes    String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  orderSource    OrderSource   @default(QR_MENU)
+  adminNotes     String?
+  taxAmount      Float         @default(0)
+  discountAmount Float         @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   // Relations
   customerId   String

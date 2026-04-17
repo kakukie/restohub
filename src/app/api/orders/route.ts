@@ -101,6 +101,8 @@ export async function GET(request: NextRequest) {
       paymentMethod: o.payment?.method?.type || 'CASH',
       orderSource: o.orderSource,
       adminNotes: o.adminNotes,
+      taxAmount: o.taxAmount,
+      discountAmount: o.discountAmount,
       createdAt: o.createdAt.toISOString()
     }))
 
@@ -162,6 +164,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Security Fix: Do not trust frontend pricing. Fetch menu items from DB.
+    // Also fetch restaurant settings for Tax & Discount
+    const restaurant = await prisma.restaurant.findUnique({
+      where: { id: restaurantId },
+      select: { taxRate: true, discountRate: true }
+    })
+    if (!restaurant) {
+      return NextResponse.json({ success: false, error: 'Restaurant tidak ditemukan.' }, { status: 404 })
+    }
+
     const menuItemIds = items.map((i: any) => i.menuItemId)
     const dbMenuItems = await prisma.menuItem.findMany({
       where: {
@@ -176,13 +187,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Beberapa menu tidak tersedia atau sudah dihapus.' }, { status: 400 })
     }
 
-    let calculatedTotalAmount = 0
+    let calculatedSubtotal = 0
     const validatedItems = items.map((item: any) => {
       const dbItem = dbMenuItems.find(i => i.id === item.menuItemId)
       if (!dbItem) throw new Error('Menu item not found')
       
+      if (dbItem.isStockManaged && dbItem.stock < item.quantity) {
+        throw new Error(`Stok menu ${dbItem.name} tidak mencukupi. Tersisa: ${dbItem.stock}`)
+      }
+      
       const itemPrice = dbItem.price
-      calculatedTotalAmount += (itemPrice * item.quantity)
+      calculatedSubtotal += (itemPrice * item.quantity)
       
       return {
         menuItemId: item.menuItemId,
@@ -191,6 +206,10 @@ export async function POST(request: NextRequest) {
         notes: sanitizeString(item.notes, 200)
       }
     })
+
+    const taxAmount = (calculatedSubtotal * (restaurant.taxRate || 0)) / 100
+    const discountAmount = (calculatedSubtotal * (restaurant.discountRate || 0)) / 100
+    const calculatedTotalAmount = calculatedSubtotal + taxAmount - discountAmount
 
     // Sanitize text inputs
     const sanitizedNotes = sanitizeString(notes, 500)
@@ -250,6 +269,8 @@ export async function POST(request: NextRequest) {
               paymentStatus: 'PENDING',
               orderSource: resolvedSource as any,
               adminNotes: sanitizedAdminNotes || null,
+              taxAmount,
+              discountAmount,
               payment: paymentCreateData,
               orderItems: {
                 create: validatedItems
@@ -257,6 +278,17 @@ export async function POST(request: NextRequest) {
             },
             include: { orderItems: true, payment: { include: { method: true } } }
           })
+
+          // Reduce stock for managed items
+          for (const item of validatedItems) {
+            const dbItem = dbMenuItems.find(i => i.id === item.menuItemId)
+            if (dbItem?.isStockManaged) {
+              await tx.menuItem.update({
+                where: { id: item.menuItemId },
+                data: { stock: { decrement: item.quantity } }
+              })
+            }
+          }
 
           return newOrder
         })

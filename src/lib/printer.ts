@@ -48,7 +48,7 @@ export const printReceipt = async (characteristic: any, order: any, restaurantNa
     // Order Info
     left()
     text(`Order #${order.orderNumber}`)
-    text(`Date: ${new Date(order.createdAt).toLocaleString()}`)
+    text(`Date: ${new Date(order.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'short' })} WIB`)
     text(`Table: ${order.tableNumber || 'Takeaway'}`)
     text(`Cust: ${order.customerName}`)
     text('--------------------------------')

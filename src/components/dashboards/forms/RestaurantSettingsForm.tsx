@@ -31,6 +31,8 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
         banner?: string;
         slug: string;
         theme: 'modern-emerald' | 'classic-orange' | 'minimal-blue';
+        taxRate: string;
+        discountRate: string;
     }>({
         name: '',
         description: '',
@@ -43,7 +45,9 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
         logo: '',
         banner: '',
         slug: '',
-        theme: 'modern-emerald'
+        theme: 'modern-emerald',
+        taxRate: '0',
+        discountRate: '0'
     })
 
     useEffect(() => {
@@ -61,7 +65,9 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                 logo: restaurant.logo || '',
                 banner: restaurant.banner || '',
                 slug: restaurant.slug || '',
-                theme: (restaurant.theme as any) || 'modern-emerald'
+                theme: (restaurant.theme as any) || 'modern-emerald',
+                taxRate: restaurant.taxRate?.toString() || '0',
+                discountRate: restaurant.discountRate?.toString() || '0'
             })
         }
     }, [restaurant])
@@ -73,12 +79,16 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
             // Validate Lat/Long
             const lat = form.latitude ? parseFloat(form.latitude) : undefined
             const lng = form.longitude ? parseFloat(form.longitude) : undefined
+            const tax = form.taxRate ? parseFloat(form.taxRate) : 0
+            const discount = form.discountRate ? parseFloat(form.discountRate) : 0
 
             const payload: any = {
                 id: restaurant.id,
                 ...form,
                 latitude: lat,
-                longitude: lng
+                longitude: lng,
+                taxRate: tax,
+                discountRate: discount
             }
 
             const res = await fetch(`/api/restaurants/${restaurant.id}`, {
@@ -153,6 +163,28 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                             <p className="text-xs text-gray-500">
                                 Public Menu: <span className="font-mono text-emerald-600">/menu/{form.slug || 'your-slug'}</span>
                             </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Tax Rate (%)</Label>
+                                <Input 
+                                    type="number" 
+                                    step="0.1" 
+                                    min="0"
+                                    value={form.taxRate} 
+                                    onChange={e => setForm({ ...form, taxRate: e.target.value })} 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Discount Rate (%)</Label>
+                                <Input 
+                                    type="number" 
+                                    step="0.1" 
+                                    min="0"
+                                    value={form.discountRate} 
+                                    onChange={e => setForm({ ...form, discountRate: e.target.value })} 
+                                />
+                            </div>
                         </div>
                     </TabsContent>
 
