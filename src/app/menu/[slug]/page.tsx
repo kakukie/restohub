@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useAppStore, MenuItem } from '@/store/app-store'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -58,7 +58,9 @@ const themeConfig = {
 
 export default function PublicMenuPage() {
     const params = useParams()
+    const searchParams = useSearchParams()
     const slug = decodeURIComponent(params.slug as string)
+    const tableFromUrl = searchParams.get('table')
 
     // Global Store
     const restaurants = useAppStore(state => state.restaurants)
@@ -98,7 +100,10 @@ export default function PublicMenuPage() {
 
     useEffect(() => {
         setMounted(true)
-    }, [])
+        if (tableFromUrl) {
+            setTableNumber(tableFromUrl)
+        }
+    }, [tableFromUrl])
 
     useEffect(() => {
         if (!mounted) return
@@ -627,13 +632,19 @@ export default function PublicMenuPage() {
                             <Label className="text-slate-900 dark:text-white">Your Name</Label>
                             <Input placeholder="John Doe" value={guestName} onChange={e => setGuestName(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
 
-                            <Label className="text-slate-900 dark:text-white">WhatsApp Number</Label>
+                            <Label className="text-slate-900 dark:text-white">WhatsApp Number (Opsional)</Label>
                             <Input placeholder="08..." value={guestPhone} onChange={e => setGuestPhone(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
 
                             {orderType === 'DINE_IN' && (
                                 <>
                                     <Label className="text-slate-900 dark:text-white">Table Number</Label>
-                                    <Input placeholder="e.g. 12" value={tableNumber} onChange={e => setTableNumber(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
+                                    <Input 
+                                        placeholder="e.g. 12" 
+                                        value={tableNumber} 
+                                        onChange={e => setTableNumber(e.target.value)} 
+                                        disabled={!!tableFromUrl}
+                                        className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400 disabled:opacity-70" 
+                                    />
                                 </>
                             )}
 

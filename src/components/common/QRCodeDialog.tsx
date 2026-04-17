@@ -19,7 +19,10 @@ export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, resta
   const t = useTranslation(language as 'en' | 'id')
 
   // Use slug for the URL (properly formatted for sharing)
-  const menuUrl = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/menu/${encodeURIComponent(restaurantSlug)}`
+  const [tableNumber, setTableNumber] = useState('')
+  
+  // Use slug for the URL (properly formatted for sharing)
+  const menuUrl = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/menu/${encodeURIComponent(restaurantSlug)}${tableNumber ? `?table=${tableNumber}` : ''}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(menuUrl)
@@ -31,7 +34,7 @@ export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, resta
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(menuUrl)}`
     const link = document.createElement('a')
     link.href = qrUrl
-    link.download = `qr-${restaurantName}.png`
+    link.download = `qr-${restaurantName}${tableNumber ? `-table-${tableNumber}` : ''}.png`
     link.click()
     toast({ title: t('downloaded'), description: t('qrDownloaded') })
   }
@@ -47,6 +50,19 @@ export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, resta
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 py-4">
+          {/* Table Number Input */}
+          <div className="w-full space-y-2 px-1">
+            <label className="text-xs font-semibold text-gray-500 uppercase">Nomor Meja (Opsional)</label>
+            <input
+              type="text"
+              placeholder="Contoh: 01, 12, A1..."
+              value={tableNumber}
+              onChange={(e) => setTableNumber(e.target.value)}
+              className="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+            <p className="text-[10px] text-gray-400">Scan QR ini akan otomatis mengisi nomor meja di halaman checkout.</p>
+          </div>
+
           {/* QR Code Image */}
           <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
             <img
