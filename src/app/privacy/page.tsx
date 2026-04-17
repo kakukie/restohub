@@ -1,8 +1,8 @@
 import React from 'react'
 
 export const metadata = {
-  title: 'Kebijakan Privasi - RestoHub',
-  description: 'Kebijakan privasi dan pelindungan data pribadi pengguna RestoHub sesuai UU PDP.',
+  title: 'Kebijakan Privasi - Meenuin',
+  description: 'Kebijakan privasi dan pelindungan data pribadi pengguna Meenuin sesuai UU PDP.',
 }
 
 export default function PrivacyPage() {
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
               Sesuai dengan prinsip UU PDP, kami memproses data Anda hanya untuk tujuan yang sah, antara lain:
             </p>
             <ul className="list-disc list-inside text-slate-400 space-y-2 ml-4">
-              <li>Menyediakan, mengelola, dan meningkatkan layanan RestoHub.</li>
+              <li>Menyediakan, mengelola, dan meningkatkan layanan Meenuin.</li>
               <li>Memproses transaksi pembayaran dan pendaftaran merchant.</li>
               <li>Mengirimkan informasi administratif, pembaruan keamanan, dan notifikasi layanan.</li>
               <li>Mematuhi kewajiban hukum dan regulasi yang berlaku di Indonesia.</li>
@@ -84,7 +84,7 @@ export default function PrivacyPage() {
         </section>
 
         <footer className="text-center text-slate-500 text-sm">
-          <p>&copy; 2026 RestoHub by Meenuin. Sesuai Regulasi Pelindungan Data Pribadi Indonesia.</p>
+          <p>&copy; 2026 Meenuin. Sesuai Regulasi Pelindungan Data Pribadi Indonesia.</p>
         </footer>
       </div>
     </div>

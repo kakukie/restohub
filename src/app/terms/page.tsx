@@ -1,8 +1,8 @@
 import React from 'react'
 
 export const metadata = {
-  title: 'Syarat dan Ketentuan - RestoHub',
-  description: 'Syarat dan ketentuan penggunaan platform RestoHub.',
+  title: 'Syarat dan Ketentuan - Meenuin',
+  description: 'Syarat dan ketentuan penggunaan platform Meenuin.',
 }
 
 export default function TermsPage() {
@@ -23,7 +23,7 @@ export default function TermsPage() {
               Ketentuan Umum
             </h2>
             <p className="text-slate-400 leading-relaxed">
-              Selamat datang di RestoHub. Dengan mengakses dan menggunakan platform kami, Anda setuju untuk terikat oleh Syarat dan Ketentuan ini. RestoHub adalah platform SaaS (Software as a Service) yang menyediakan solusi manajemen restoran digital, termasuk menu QR, sistem POS, dan manajemen stok.
+              Selamat datang di Meenuin. Dengan mengakses dan menggunakan platform kami, Anda setuju untuk terikat oleh Syarat dan Ketentuan ini. Meenuin adalah platform SaaS (Software as a Service) yang menyediakan solusi manajemen restoran digital, termasuk menu QR, sistem POS, dan manajemen stok.
             </p>
           </div>
 
@@ -43,7 +43,7 @@ export default function TermsPage() {
               Layanan dan Biaya
             </h2>
             <p className="text-slate-400 leading-relaxed">
-              RestoHub menyediakan berbagai paket berlangganan. Biaya layanan akan dikenakan sesuai dengan paket yang dipilih. Kami berhak mengubah biaya layanan atau struktur paket dengan pemberitahuan terlebih dahulu kepada pengguna.
+              Meenuin menyediakan berbagai paket berlangganan. Biaya layanan akan dikenakan sesuai dengan paket yang dipilih. Kami berhak mengubah biaya layanan atau struktur paket dengan pemberitahuan terlebih dahulu kepada pengguna.
             </p>
           </div>
 
@@ -62,7 +62,7 @@ export default function TermsPage() {
 
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-[#10B981]/10 text-[#10B981] flex items-center justify-center text-sm font-bold">5</span>
+              <span className="w-8 h-8 rounded-lg bg-[#10B981]/10 text-[#10B981] flex items-center justify-center text-sm font-bold">6</span>
               Kebijakan Pembayaran
             </h2>
             <p className="text-slate-400 leading-relaxed">
@@ -72,7 +72,7 @@ export default function TermsPage() {
 
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-[#10B981]/10 text-[#10B981] flex items-center justify-center text-sm font-bold">6</span>
+              <span className="w-8 h-8 rounded-lg bg-[#10B981]/10 text-[#10B981] flex items-center justify-center text-sm font-bold">7</span>
               Hukum yang Berlaku
             </h2>
             <p className="text-slate-400 leading-relaxed">
@@ -82,7 +82,7 @@ export default function TermsPage() {
         </section>
 
         <footer className="text-center text-slate-500 text-sm">
-          <p>&copy; 2026 RestoHub by Meenuin. All rights reserved.</p>
+          <p>&copy; 2026 Meenuin. All rights reserved.</p>
         </footer>
       </div>
     </div>
