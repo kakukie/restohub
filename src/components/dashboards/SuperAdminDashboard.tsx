@@ -217,6 +217,8 @@ export default function SuperAdminDashboard() {
   const { resetPassword } = useAppStore()
 
   const [broadcastMsg, setBroadcastMsg] = useState('')
+  const [userRoleFilter, setUserRoleFilter] = useState('ALL')
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
 
   // Recalculate stats
   useEffect(() => {
@@ -442,6 +444,25 @@ export default function SuperAdminDashboard() {
     } finally {
       setNotificationDialogOpen(false)
       setSelectedRestoForAction(null)
+    }
+  }
+
+  const handleToggleMerchantActive = async (id: string, currentIsActive: boolean) => {
+    try {
+      const res = await fetch(`/api/restaurants/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !currentIsActive })
+      })
+      const data = await res.json()
+      if (data.success) {
+        updateRestaurant(id, { isActive: !currentIsActive })
+        toast({ title: 'Success', description: `Merchant ${!currentIsActive ? 'Enabled' : 'Suspended'}` })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' })
     }
   }
 
@@ -799,17 +820,24 @@ export default function SuperAdminDashboard() {
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="outline"
+                        className={`text-xs h-8 ${sub.restaurant?.isActive ? 'text-red-400 hover:text-red-500 border-red-400/20' : 'text-emerald-400 hover:text-emerald-500 border-emerald-400/20'}`}
+                        onClick={() => handleToggleMerchantActive(sub.restaurant?.id, sub.restaurant?.isActive)}
+                      >
+                        {sub.restaurant?.isActive ? 'Suspend' : 'Enable'}
+                      </Button>
+                      <Button
+                        variant="outline"
                         className="text-xs h-8 dark:border-slate-700"
                         onClick={() => handleExportMenu(sub.restaurant?.id, sub.restaurant?.name)}
                       >
-                        Export Menu
+                        Export
                       </Button>
                       <Button
                         variant="outline"
                         className="text-xs h-8 dark:border-slate-700"
                         onClick={() => handleImportMenu(sub.restaurant?.id, sub.restaurant?.name)}
                       >
-                        Import Menu
+                        Import
                       </Button>
                       <Button
                         onClick={() => {
@@ -1273,164 +1301,54 @@ export default function SuperAdminDashboard() {
         </div>
       </header>
 
-      {/* Global Feature Toggles */}
-      <div className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-3xl relative overflow-hidden mb-8">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h3 className="text-lg font-bold text-[#F8FAFC]">Global Feature Toggles</h3>
-            <p className="text-slate-500 text-sm">Enable or disable specific features across all subscription plans instantly.</p>
-          </div>
-          <button className="text-slate-500 hover:text-white transition-colors">
-            <span className="material-symbols-outlined">settings</span>
-          </button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-[#111827] border border-[#2A344A] p-4 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#10B981] text-lg">qr_code_scanner</span>
-              <span className="text-sm font-semibold text-[#F8FAFC]">Digital Menu</span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" defaultChecked />
-              <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
-            </label>
-          </div>
-          <div className="bg-[#111827] border border-[#2A344A] p-4 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-blue-400 text-lg">analytics</span>
-              <span className="text-sm font-semibold text-[#F8FAFC]">Advanced Analytics</span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" defaultChecked />
-              <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
-            </label>
-          </div>
-          <div className="bg-[#111827] border border-[#2A344A] p-4 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-purple-400 text-lg">campaign</span>
-              <span className="text-sm font-semibold text-[#F8FAFC]">Marketing Tools</span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" />
-              <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
-            </label>
-          </div>
-          <div className="bg-[#111827] border border-[#2A344A] p-4 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-amber-500 text-lg">chat</span>
-              <span className="text-sm font-semibold text-[#F8FAFC]">WhatsApp Integration</span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" className="sr-only peer" defaultChecked />
-              <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Plan Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        {subscriptionPlans.slice(0, 2).map((plan, i) => {
-          const isPro = plan.name.toUpperCase() === 'PRO' || plan.name.toUpperCase().includes('PRO')
-          const isCustom = i === 2 || plan.name.toUpperCase().includes('ENTERPRISE')
-
-          return (
-            <div key={plan.id} className={`bg-[#1A2235] border ${isPro ? 'border-[#10B981]/50' : 'border-[#2A344A]'} p-8 rounded-[32px] flex flex-col relative group transition-all duration-300`}>
-              {isPro && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#10B981] text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-[#10B981]/20">Most Popular</div>
-              )}
-
-              <div className="flex justify-between items-start mb-6">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isPro ? 'bg-[#10B981]/10 text-[#10B981]' : isCustom ? 'bg-purple-500/10 text-purple-400' : 'bg-slate-700 text-slate-300'}`}>
-                  <span className="material-symbols-outlined">{isPro ? 'auto_awesome' : isCustom ? 'domain' : 'rocket_launch'}</span>
-                </div>
-                <div className="bg-[#111827] border border-[#2A344A] text-slate-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase">
-                  TIER {i + 1}
-                </div>
-              </div>
-
-              <h3 className="text-2xl font-bold mb-2 text-[#F8FAFC]">{plan.name}</h3>
-              <p className="text-slate-500 text-sm mb-6 leading-relaxed min-h-[48px]">{plan.description || 'Essential features for small restaurants starting their digital journey.'}</p>
-
-              <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-4xl font-extrabold text-[#F8FAFC]">Rp {(plan.price || 0).toLocaleString('id-ID')}k</span>
-                <span className="text-slate-500 text-sm">/month</span>
-              </div>
-
-              <div className="space-y-4 mb-8 flex-1">
-                {plan.features.map((feat, idx) => {
-                  const isDisabled = feat.toLowerCase().includes('custom domain') && !isPro && !isCustom
-                  return (
-                    <div key={idx} className="flex items-start gap-3">
-                      <span className={`material-symbols-outlined text-lg mt-0.5 ${isDisabled ? 'text-slate-600' : 'text-[#10B981]'}`}>{isDisabled ? 'cancel' : 'check_circle'}</span>
-                      <span className={`text-sm ${isDisabled ? 'text-slate-600 line-through' : 'text-[#F8FAFC]'}`}>{feat}</span>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div className="pt-6 border-t border-[#2A344A]/50 flex items-center justify-between mb-6">
-                <span className="text-[10px] font-bold text-slate-500 uppercase">SUBSCRIBERS</span>
-                <span className={`text-xs font-bold ${isPro ? 'text-[#10B981]' : 'text-[#F8FAFC]'} px-2 py-1 bg-[#111827] rounded-md`}>
-                  {Math.floor(Math.random() * 200) + 12} Active
-                </span>
-              </div>
-
-              <Button onClick={() => handleEditPlan(plan)} className={`w-full py-6 text-sm font-bold transition-all rounded-full ${isPro ? 'bg-[#10B981] text-white hover:bg-[#059669] shadow-lg shadow-[#10B981]/20' : 'bg-[#111827] border border-[#2A344A] text-slate-300 hover:text-white'}`}>
-                Edit Plan
-              </Button>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Recent Plan Upgrades */}
+      {/* Merchant Subscription Status */}
       <div className="bg-[#1A2235] border border-[#2A344A] rounded-3xl overflow-hidden mt-8">
         <div className="p-6 border-b border-[#2A344A] flex justify-between items-center">
-          <h3 className="text-lg font-bold text-[#F8FAFC]">Recent Plan Upgrades</h3>
-          <button className="text-xs font-bold text-[#10B981] hover:underline">View All Billing</button>
+          <h3 className="text-lg font-bold text-[#F8FAFC]">Merchant Subscription Status</h3>
+          <button className="text-xs font-bold text-[#10B981] hover:underline" onClick={() => setActiveTab('restaurants')}>View All Merchants</button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="text-slate-500 text-[10px] uppercase font-bold border-b border-[#2A344A] bg-[#111827]/50">
                 <th className="px-6 py-4">MERCHANT</th>
-                <th className="px-6 py-4 text-center">PREVIOUS TIER</th>
-                <th className="px-6 py-4 text-center">NEW TIER</th>
-                <th className="px-6 py-4">DATE</th>
-                <th className="px-6 py-4 text-right">AMOUNT</th>
+                <th className="px-6 py-4 text-center">PACKAGE</th>
+                <th className="px-6 py-4 text-center">STATUS</th>
+                <th className="px-6 py-4">EXPIRES AT</th>
+                <th className="px-6 py-4 text-right">ACTION</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#2A344A]/50">
-              {/* Mock Data based on design */}
-              <tr className="hover:bg-white/[0.02] transition-colors">
-                <td className="px-6 py-4 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#111827] border border-[#2A344A] flex items-center justify-center text-xs font-bold text-slate-400">RS</div>
-                  <span className="font-bold text-sm text-[#F8FAFC]">Rotbar Pusat</span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 bg-slate-800 text-slate-300 text-[10px] font-bold rounded-full border border-slate-700">Basic</span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 bg-emerald-500/10 text-[#10B981] text-[10px] font-bold rounded-full border border-emerald-500/20">Pro</span>
-                </td>
-                <td className="px-6 py-4 text-sm text-slate-400">Oct 12, 2023</td>
-                <td className="px-6 py-4 text-right font-bold text-[#F8FAFC]">Rp 499.000</td>
-              </tr>
-              <tr className="hover:bg-white/[0.02] transition-colors">
-                <td className="px-6 py-4 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#111827] border border-[#2A344A] flex items-center justify-center text-xs font-bold text-slate-400">KM</div>
-                  <span className="font-bold text-sm text-[#F8FAFC]">Kopi Malam</span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 bg-slate-800 text-slate-300 text-[10px] font-bold rounded-full border border-slate-700">Free</span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 bg-slate-800 text-slate-300 text-[10px] font-bold rounded-full border border-slate-700">Basic</span>
-                </td>
-                <td className="px-6 py-4 text-sm text-slate-400">Oct 11, 2023</td>
-                <td className="px-6 py-4 text-right font-bold text-[#F8FAFC]">Rp 199.000</td>
-              </tr>
+              {restaurants.slice(0, 10).map((resto) => (
+                <tr key={resto.id} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="px-6 py-4 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[#111827] border border-[#2A344A] flex items-center justify-center text-xs font-bold text-slate-400">
+                      {resto.logo ? <img src={resto.logo} className="w-full h-full object-cover rounded-lg" /> : resto.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <span className="font-bold text-sm text-[#F8FAFC]">{resto.name}</span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-[10px] font-bold rounded-full border border-purple-500/20 uppercase">
+                      {resto.package}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {resto.isActive ? (
+                      <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20 uppercase">Active</span>
+                    ) : (
+                      <span className="px-3 py-1 bg-red-500/10 text-red-400 text-[10px] font-bold rounded-full border border-red-500/20 uppercase">Suspended</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-400">
+                    {resto.activeUntil ? new Date(resto.activeUntil).toLocaleDateString() : 'No Limit'}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleEditRestaurantProfile(resto)} className="text-[#10B981] hover:bg-[#10B981]/10">
+                      Manage
+                    </Button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -1446,6 +1364,42 @@ export default function SuperAdminDashboard() {
           <p className="text-slate-400">Manage internal team roles, access levels, and security logs.</p>
         </div>
         <div className="flex items-center gap-3">
+          <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
+            <SelectTrigger className="bg-[#1A2235] border-[#2A344A] text-white rounded-full w-[180px]">
+              <SelectValue placeholder="Filter Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Roles</SelectItem>
+              <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+              <SelectItem value="RESTAURANT_ADMIN">Resto Admin</SelectItem>
+              <SelectItem value="CUSTOMER">Guest / Customer</SelectItem>
+            </SelectContent>
+          </Select>
+          {selectedUserIds.length > 0 && (
+            <Button onClick={async () => {
+              if (confirm(`Hapus ${selectedUserIds.length} user terpilih?`)) {
+                try {
+                  const res = await fetch('/api/users/bulk-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: selectedUserIds })
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    toast({ title: 'Success', description: `${selectedUserIds.length} users deleted.` })
+                    setSelectedUserIds([])
+                    fetchDashboardData()
+                  } else {
+                    throw new Error(data.error)
+                  }
+                } catch (e: any) {
+                  toast({ title: 'Error', description: e.message, variant: 'destructive' })
+                }
+              }
+            }} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-red-500/20 h-10">
+              Delete ({selectedUserIds.length})
+            </Button>
+          )}
           <Button variant="outline" className="bg-[#1A2235] border-[#2A344A] hover:bg-[#2A344A] text-[#F8FAFC] rounded-full text-sm font-medium transition-all px-4 h-10 flex items-center gap-2">
             <span className="material-symbols-outlined text-sm">history</span>
             Audit Logs
@@ -1459,12 +1413,24 @@ export default function SuperAdminDashboard() {
 
       {/* User Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.map((systemUser, i) => {
+        {users.filter(u => userRoleFilter === 'ALL' || u.role === userRoleFilter).map((systemUser, i) => {
           // Find if this user is attached to a restaurant
           const userRestaurant = restaurants.find(r => r.adminEmail?.toLowerCase() === systemUser.email.toLowerCase())
+          const isSelected = selectedUserIds.includes(systemUser.id)
 
           return (
-            <div key={systemUser.id} className="bg-[#1A2235] border border-[#2A344A] p-6 rounded-[32px] relative flex flex-col group transition-all duration-300">
+            <div key={systemUser.id} className={`bg-[#1A2235] border ${isSelected ? 'border-[#10B981]' : 'border-[#2A344A]'} p-6 rounded-[32px] relative flex flex-col group transition-all duration-300`}>
+              <div className="absolute top-6 right-6 z-10">
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelectedUserIds([...selectedUserIds, systemUser.id])
+                    else setSelectedUserIds(selectedUserIds.filter(id => id !== systemUser.id))
+                  }}
+                  className="w-5 h-5 rounded border-[#2A344A] bg-[#111827] text-[#10B981] focus:ring-[#10B981]"
+                />
+              </div>
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-4">
                   <div className="relative">
@@ -1580,7 +1546,11 @@ export default function SuperAdminDashboard() {
                       <span className="material-symbols-outlined text-sm text-slate-500">history</span>
                       {log.action}
                     </div>
-                    {log.details && <p className="text-xs text-slate-500 mt-1 pl-6">{log.details}</p>}
+                    {log.details && (
+                      <p className="text-xs text-slate-500 mt-1 pl-6">
+                        {typeof log.details === 'object' ? JSON.stringify(log.details) : log.details}
+                      </p>
+                    )}
                   </td>
                   <td className="p-4 text-sm text-slate-300">
                     <div className="flex items-center gap-2">
@@ -1679,24 +1649,106 @@ export default function SuperAdminDashboard() {
                 />
               </div>
             </div>
-            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
-              <div>
-                <p className="font-bold text-sm text-white">Maintenance Mode</p>
-                <p className="text-xs text-slate-500">Restricts user logins for updates</p>
+            <div className="space-y-6 pt-4 border-t border-white/5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-sm text-white">Maintenance Mode</p>
+                  <p className="text-xs text-slate-500">Restricts user logins for updates</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" checked={helpdeskSettings.maintenanceMode} onChange={async () => {
+                    const newMode = !helpdeskSettings.maintenanceMode
+                    updateHelpdeskSettings({ ...helpdeskSettings, maintenanceMode: newMode })
+                    try {
+                      await fetch('/api/settings', {
+                        method: 'PUT',
+                        body: JSON.stringify({ maintenanceMode: newMode })
+                      })
+                    } catch (err) { console.error(err) }
+                  }} />
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" checked={helpdeskSettings.maintenanceMode} onChange={async () => {
-                  const newMode = !helpdeskSettings.maintenanceMode
-                  updateHelpdeskSettings({ ...helpdeskSettings, maintenanceMode: newMode })
-                  try {
-                    await fetch('/api/settings', {
-                      method: 'PUT',
-                      body: JSON.stringify({ maintenanceMode: newMode })
-                    })
-                  } catch (err) { console.error(err) }
-                }} />
-                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-              </label>
+
+              {helpdeskSettings.maintenanceMode && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-400">Maintenance Title</label>
+                    <input
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/50 text-slate-100"
+                      type="text"
+                      value={helpdeskSettings?.maintenanceTitle || ''}
+                      onChange={async (e) => {
+                        const val = e.target.value
+                        updateHelpdeskSettings({ ...helpdeskSettings, maintenanceTitle: val })
+                        try {
+                          await fetch('/api/settings', {
+                            method: 'PUT',
+                            body: JSON.stringify({ maintenanceTitle: val })
+                          })
+                        } catch (err) { console.error(err) }
+                      }}
+                      placeholder="Sistem Maintenance"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-400">Maintenance Message</label>
+                    <textarea
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/50 text-slate-100 min-h-[100px]"
+                      value={helpdeskSettings?.maintenanceMessage || ''}
+                      onChange={async (e) => {
+                        const val = e.target.value
+                        updateHelpdeskSettings({ ...helpdeskSettings, maintenanceMessage: val })
+                        try {
+                          await fetch('/api/settings', {
+                            method: 'PUT',
+                            body: JSON.stringify({ maintenanceMessage: val })
+                          })
+                        } catch (err) { console.error(err) }
+                      }}
+                      placeholder="Kami sedang melakukan pembaruan sistem. Mohon tunggu sebentar."
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-400">Start Time</label>
+                      <input
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/50 text-slate-100"
+                        type="datetime-local"
+                        value={helpdeskSettings?.maintenanceStart || ''}
+                        onChange={async (e) => {
+                          const val = e.target.value
+                          updateHelpdeskSettings({ ...helpdeskSettings, maintenanceStart: val })
+                          try {
+                            await fetch('/api/settings', {
+                              method: 'PUT',
+                              body: JSON.stringify({ maintenanceStart: val })
+                            })
+                          } catch (err) { console.error(err) }
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-400">End Time</label>
+                      <input
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/50 text-slate-100"
+                        type="datetime-local"
+                        value={helpdeskSettings?.maintenanceEnd || ''}
+                        onChange={async (e) => {
+                          const val = e.target.value
+                          updateHelpdeskSettings({ ...helpdeskSettings, maintenanceEnd: val })
+                          try {
+                            await fetch('/api/settings', {
+                              method: 'PUT',
+                              body: JSON.stringify({ maintenanceEnd: val })
+                            })
+                          } catch (err) { console.error(err) }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>

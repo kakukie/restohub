@@ -170,6 +170,10 @@ export interface HelpdeskSettings {
   whatsapp: string
   email: string
   maintenanceMode?: boolean
+  maintenanceTitle?: string
+  maintenanceMessage?: string
+  maintenanceStart?: string
+  maintenanceEnd?: string
   platformName?: string
   landingPageData?: LandingPageData
 }

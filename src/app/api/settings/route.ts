@@ -15,6 +15,10 @@ export async function GET(request: NextRequest) {
                 whatsapp: settingsMap['helpdesk_whatsapp'] || '6281234567890',
                 email: settingsMap['helpdesk_email'] || 'support@meenuin.biz.id',
                 maintenanceMode: settingsMap['maintenance_mode'] === 'true',
+                maintenanceTitle: settingsMap['maintenance_title'] || '',
+                maintenanceMessage: settingsMap['maintenance_message'] || '',
+                maintenanceStart: settingsMap['maintenance_start'] || '',
+                maintenanceEnd: settingsMap['maintenance_end'] || '',
                 platformName: settingsMap['platform_name'] || 'Meenuin',
                 // Payment settings
                 bankName: settingsMap['bank_name'] || '',
@@ -39,7 +43,9 @@ export async function PUT(request: NextRequest) {
 
         const body = await request.json()
         const {
-            whatsapp, email, maintenanceMode, platformName,
+            whatsapp, email, maintenanceMode, 
+            maintenanceTitle, maintenanceMessage, maintenanceStart, maintenanceEnd,
+            platformName,
             bankName, bankAccountNumber, bankAccountName, qrisImageUrl
         } = body
 
@@ -56,6 +62,10 @@ export async function PUT(request: NextRequest) {
         await upsertSetting('helpdesk_whatsapp', whatsapp)
         await upsertSetting('helpdesk_email', email)
         await upsertSetting('maintenance_mode', maintenanceMode !== undefined ? String(maintenanceMode) : undefined)
+        await upsertSetting('maintenance_title', maintenanceTitle)
+        await upsertSetting('maintenance_message', maintenanceMessage)
+        await upsertSetting('maintenance_start', maintenanceStart)
+        await upsertSetting('maintenance_end', maintenanceEnd)
         await upsertSetting('platform_name', platformName)
         await upsertSetting('bank_name', bankName)
         await upsertSetting('bank_account_number', bankAccountNumber)

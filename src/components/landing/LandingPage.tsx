@@ -274,10 +274,14 @@ export default function LandingPage() {
             </div>
             <span className="text-xl font-extrabold tracking-tight text-[#00a669]">{platformName}</span>
           </div>
+          <div className="flex gap-6 text-sm font-semibold text-slate-500">
+            <Link href="/terms" className="hover:text-[#00a669] transition-colors">Syarat & Ketentuan</Link>
+            <Link href="/privacy" className="hover:text-[#00a669] transition-colors">Kebijakan Privasi</Link>
+          </div>
           <p className="text-slate-500 text-sm text-center">© {new Date().getFullYear()} {platformName} Technology. All rights reserved.</p>
           <div
             className="inline-flex items-center bg-emerald-50 dark:bg-emerald-900/20 px-4 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800">
-            <span className="text-[#00a669] font-mono text-xs font-bold">v3.2.0 {platformName}</span>
+            <span className="text-[#00a669] font-mono text-xs font-bold">v3.5.0 {platformName}</span>
           </div>
         </div>
       </footer>

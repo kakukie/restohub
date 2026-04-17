@@ -173,16 +173,6 @@ export async function POST(request: NextRequest) {
             })
         }
 
-        if ((user as any).isTwoFactorEnabled && (user as any).twoFactorSecret) {
-            const preAuthToken = await signPreAuthToken(tokenPayload)
-            return NextResponse.json({
-                success: true,
-                message: '2FA verification required',
-                requires2FA: true,
-                preAuthToken
-            })
-        }
-
         const accessToken = await signAccessToken(tokenPayload)
         const refreshToken = await signRefreshToken(tokenPayload)
 
@@ -213,6 +203,25 @@ export async function POST(request: NextRequest) {
             path: '/'
         })
         cookieStore.set('lastRole', user.role, { path: '/' })
+
+        // ── Audit Log ─────────────────────────────────────────────────────
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    action: 'LOGIN',
+                    userId: user.id,
+                    targetType: 'USER',
+                    targetId: user.id,
+                    details: {
+                        ip: clientIp,
+                        userAgent: request.headers.get('user-agent'),
+                        role: user.role
+                    }
+                }
+            })
+        } catch (auditErr) {
+            console.error('Failed to create audit log:', auditErr)
+        }
 
         return NextResponse.json({
             success: true,

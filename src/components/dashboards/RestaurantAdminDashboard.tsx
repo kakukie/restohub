@@ -169,6 +169,23 @@ export default function RestaurantAdminDashboard() {
     // --- DATA FETCHING (Copied from Old) ---
     // ... (Refer to Old file for loadRestaurantDetails, loadMenuData, loadOrderData)
 
+    useEffect(() => {
+        const checkMaintenance = async () => {
+            try {
+                const res = await fetch('/api/settings')
+                const data = await res.json()
+                if (data.success) {
+                    // Update settings in store to trigger reactive UI
+                    const { updateHelpdeskSettings } = useAppStore.getState()
+                    updateHelpdeskSettings(data.data)
+                }
+            } catch (err) { console.error('Failed to check maintenance', err) }
+        }
+        checkMaintenance()
+        const timer = setInterval(checkMaintenance, 60000) // Every minute
+        return () => clearInterval(timer)
+    }, [])
+
     const loadRestaurantDetails = useCallback(async () => {
         if (!user?.restaurantId) {
             setLoadingRestaurant(false)
@@ -2457,6 +2474,47 @@ export default function RestaurantAdminDashboard() {
             </Dialog>
 
             {/* Manual Order Dialog (Admin Note Feature) */}
+            {/* Maintenance Notification Dialog */}
+            <Dialog open={!!helpdeskSettings.maintenanceMode} onOpenChange={() => {}}>
+                <DialogContent className="sm:max-w-[500px] border-amber-500/50 bg-[#0F172A] p-0 overflow-hidden">
+                    <div className="bg-amber-500 p-6 flex flex-col items-center justify-center text-white space-y-2">
+                        <span className="material-symbols-outlined text-5xl animate-bounce">engineering</span>
+                        <h2 className="text-2xl font-black uppercase tracking-tight">System Maintenance</h2>
+                    </div>
+                    <div className="p-8 space-y-6 text-center">
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-bold text-white">{helpdeskSettings.maintenanceTitle || 'Perbaikan Sistem'}</h3>
+                            <p className="text-slate-400 leading-relaxed">
+                                {helpdeskSettings.maintenanceMessage || 'Kami sedang melakukan pembaruan untuk meningkatkan layanan. Mohon tunggu beberapa saat.'}
+                            </p>
+                        </div>
+
+                        {(helpdeskSettings.maintenanceStart || helpdeskSettings.maintenanceEnd) && (
+                            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex flex-col gap-2">
+                                {helpdeskSettings.maintenanceStart && (
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-500">Mulai</span>
+                                        <span className="text-white font-mono">{new Date(helpdeskSettings.maintenanceStart).toLocaleString('id-ID')}</span>
+                                    </div>
+                                )}
+                                {helpdeskSettings.maintenanceEnd && (
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-500">Selesai (Estimasi)</span>
+                                        <span className="text-white font-mono">{new Date(helpdeskSettings.maintenanceEnd).toLocaleString('id-ID')}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="pt-2">
+                            <Button onClick={() => window.location.reload()} variant="outline" className="w-full border-amber-500/20 text-amber-500 hover:bg-amber-500/10 rounded-xl h-12 font-bold flex items-center justify-center gap-2 transition-all">
+                                <RefreshCw className="w-4 h-4" /> Refresh Page
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             <Dialog open={manualOrderDialogOpen} onOpenChange={setManualOrderDialogOpen}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
                     <DialogHeader>
