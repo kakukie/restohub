@@ -173,6 +173,7 @@ model MenuItem {
   // Stock Management
   isStockManaged Boolean @default(false)
   stock          Int     @default(0)
+  taxRate        Float   @default(0)
 
   // Relations
   restaurantId String

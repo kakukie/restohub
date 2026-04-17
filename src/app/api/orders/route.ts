@@ -188,6 +188,7 @@ export async function POST(request: NextRequest) {
     }
 
     let calculatedSubtotal = 0
+    let totalTax = 0
     const validatedItems = items.map((item: any) => {
       const dbItem = dbMenuItems.find(i => i.id === item.menuItemId)
       if (!dbItem) throw new Error('Menu item not found')
@@ -197,7 +198,9 @@ export async function POST(request: NextRequest) {
       }
       
       const itemPrice = dbItem.price
+      const itemTax = (itemPrice * item.quantity * (dbItem.taxRate || 0)) / 100
       calculatedSubtotal += (itemPrice * item.quantity)
+      totalTax += itemTax
       
       return {
         menuItemId: item.menuItemId,
@@ -207,8 +210,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    const taxAmount = (calculatedSubtotal * (restaurant.taxRate || 0)) / 100
-    const discountAmount = (calculatedSubtotal * (restaurant.discountRate || 0)) / 100
+    const taxAmount = totalTax
+    const discountAmount = 0 // Global discount removed as per user request
     const calculatedTotalAmount = calculatedSubtotal + taxAmount - discountAmount
 
     // Sanitize text inputs

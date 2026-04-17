@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
@@ -134,9 +134,6 @@ export default function RestaurantAdminDashboard() {
         items: []
     })
     const [submittingManualOrder, setSubmittingManualOrder] = useState(false)
-    const [offlineOrders, setOfflineOrders] = useState<any[]>([])
-    const [isSyncingOffline, setIsSyncingOffline] = useState(false)
-    const [isOffline, setIsOffline] = useState(false)
 
     // Reports & Analytics States
     const [reportGranularity, setReportGranularity] = useState<'day' | 'month' | 'year'>('day')
@@ -308,26 +305,7 @@ export default function RestaurantAdminDashboard() {
             loadReportsData()
         }, 15000)
 
-        // Offline Mode Listeners
-        setIsOffline(!navigator.onLine)
-        const handleOnline = () => setIsOffline(false)
-        const handleOffline = () => setIsOffline(true)
-        window.addEventListener('online', handleOnline)
-        window.addEventListener('offline', handleOffline)
-
-        // Load Offline Orders from LocalStorage
-        const savedOffline = localStorage.getItem('restohub_offline_orders')
-        if (savedOffline) {
-            try {
-                setOfflineOrders(JSON.parse(savedOffline))
-            } catch (e) {}
-        }
-
-        return () => {
-            clearInterval(intervalId)
-            window.removeEventListener('online', handleOnline)
-            window.removeEventListener('offline', handleOffline)
-        }
+        return () => clearInterval(intervalId)
     }, [loadOrderData, loadReportsData, user?.restaurantId])
 
     const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
@@ -352,48 +330,13 @@ export default function RestaurantAdminDashboard() {
         }
     }
 
-    // ── Manual Order Handler ──────────────────────────────────────────────
+    // ΓöÇΓöÇ Manual Order Handler ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const handleCreateManualOrder = async () => {
         if (!manualOrderForm.customerName) {
             return toast({ title: 'Error', description: 'Nama customer wajib diisi', variant: 'destructive' })
         }
         if (manualOrderForm.items.length === 0) {
             return toast({ title: 'Error', description: 'Pilih minimal 1 menu item', variant: 'destructive' })
-        }
-
-        if (isOffline) {
-            const newOfflineOrder = {
-                id: `offline-${Date.now()}`,
-                restaurantId: user?.restaurantId,
-                customerName: manualOrderForm.customerName,
-                tableNumber: manualOrderForm.tableNumber || 'ONLINE',
-                notes: `[${manualOrderForm.orderSource}] ${manualOrderForm.adminNotes}`,
-                paymentMethod: manualOrderForm.paymentMethod || 'CASH',
-                orderSource: manualOrderForm.orderSource,
-                adminNotes: manualOrderForm.adminNotes,
-                items: manualOrderForm.items.filter(i => i.quantity > 0).map(i => ({
-                    menuItemId: i.menuItemId,
-                    quantity: i.quantity,
-                    price: 0,
-                    notes: ''
-                })),
-                createdAt: new Date().toISOString()
-            }
-            const newOfflineOrders = [...offlineOrders, newOfflineOrder]
-            setOfflineOrders(newOfflineOrders)
-            localStorage.setItem('restohub_offline_orders', JSON.stringify(newOfflineOrders))
-            
-            toast({ title: 'Tersimpan Offline', description: 'Pesanan disimpan lokal karena Anda offline.' })
-            setManualOrderDialogOpen(false)
-            setManualOrderForm({
-                customerName: '',
-                orderSource: 'GRABFOOD',
-                adminNotes: '',
-                tableNumber: '',
-                paymentMethod: 'CASH',
-                items: []
-            })
-            return
         }
 
         setSubmittingManualOrder(true)
@@ -437,31 +380,6 @@ export default function RestaurantAdminDashboard() {
             toast({ title: 'Error', description: 'Gagal membuat order manual', variant: 'destructive' })
         } finally {
             setSubmittingManualOrder(false)
-        }
-    }
-
-    const handleSyncOfflineOrders = async () => {
-        if (offlineOrders.length === 0 || isOffline) return
-        setIsSyncingOffline(true)
-        try {
-            const res = await fetch('/api/orders/sync', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orders: offlineOrders })
-            })
-            const data = await res.json()
-            if (data.success) {
-                toast({ title: 'Sync Berhasil', description: `${offlineOrders.length} pesanan offline berhasil disinkronisasi.` })
-                setOfflineOrders([])
-                localStorage.removeItem('restohub_offline_orders')
-                loadOrderData()
-            } else {
-                toast({ title: 'Sync Gagal', description: data.error || 'Terjadi kesalahan saat sinkronisasi.', variant: 'destructive' })
-            }
-        } catch (error) {
-            toast({ title: 'Sync Gagal', description: 'Gagal menghubungi server.', variant: 'destructive' })
-        } finally {
-            setIsSyncingOffline(false)
         }
     }
 
@@ -1473,26 +1391,12 @@ export default function RestaurantAdminDashboard() {
 
         return (
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-                
-                {isOffline && (
-                    <div className="mb-6 p-4 bg-red-50 text-red-800 rounded-lg border border-red-200 flex items-center">
-                        <span className="font-bold mr-2">⚠️ Mode Offline Aktif:</span>
-                        Koneksi internet terputus. Pesanan online/POS akan disimpan sementara di perangkat ini.
-                    </div>
-                )}
-
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('orders')}</h2>
                     <div className="flex gap-2">
-                        {!isOffline && offlineOrders.length > 0 && (
-                            <Button onClick={handleSyncOfflineOrders} disabled={isSyncingOffline} size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
-                                {isSyncingOffline ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                                Sync {offlineOrders.length} Offline Order
-                            </Button>
-                        )}
                         <Button onClick={() => setManualOrderDialogOpen(true)} size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
                             <Plus className="h-4 w-4 mr-2" />
-                            POS / Order Online
+                            Order Online
                         </Button>
                         <Button onClick={() => loadOrderData()} variant="outline" size="sm">
                             <RefreshCw className="h-4 w-4 mr-2" />
@@ -1584,11 +1488,11 @@ export default function RestaurantAdminDashboard() {
                                         <div>
                                             <CardTitle>{t('order')} #{order.orderNumber}</CardTitle>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                                {order.customerName} • {new Date(order.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short', hour12: false })}
+                                                {order.customerName} ΓÇó {new Date(order.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short', hour12: false })}
                                             </p>
                                             {order.paymentMethod && (
                                                 <Badge variant="outline" className="mt-2 mr-2">
-                                                    💳 {order.paymentMethod}
+                                                    ≡ƒÆ│ {order.paymentMethod}
                                                 </Badge>
                                             )}
                                             {(order as any).orderSource && (order as any).orderSource !== 'QR_MENU' && (
@@ -1599,15 +1503,15 @@ export default function RestaurantAdminDashboard() {
                                                     (order as any).orderSource === 'POS' ? 'bg-blue-100 text-blue-700 border-blue-300' :
                                                     'bg-gray-100 text-gray-700 border-gray-300'
                                                 }`}>
-                                                    {(order as any).orderSource === 'GRABFOOD' ? '🟢 GrabFood' :
-                                                     (order as any).orderSource === 'GOFOOD' ? '🔴 GoFood' :
-                                                     (order as any).orderSource === 'SHOPEEFOOD' ? '🟠 ShopeeFood' :
-                                                     (order as any).orderSource === 'POS' ? '💻 POS' :
+                                                    {(order as any).orderSource === 'GRABFOOD' ? '≡ƒƒó GrabFood' :
+                                                     (order as any).orderSource === 'GOFOOD' ? '≡ƒö┤ GoFood' :
+                                                     (order as any).orderSource === 'SHOPEEFOOD' ? '≡ƒƒá ShopeeFood' :
+                                                     (order as any).orderSource === 'POS' ? '≡ƒÆ╗ POS' :
                                                      (order as any).orderSource}
                                                 </Badge>
                                             )}
                                             {(order as any).adminNotes && (
-                                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">📝 {(order as any).adminNotes}</p>
+                                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">≡ƒô¥ {(order as any).adminNotes}</p>
                                             )}
                                         </div>
                                         <Badge variant={order.status === 'COMPLETED' ? 'default' : 'secondary'}>
@@ -1846,7 +1750,7 @@ export default function RestaurantAdminDashboard() {
                             <div className="space-y-2">
                                 {reportStats.topPaymentMethods.map((method: any, idx: number) => (
                                     <div key={idx} className="flex justify-between items-center">
-                                        <span className="text-sm">💳 {method.name}</span>
+                                        <span className="text-sm">≡ƒÆ│ {method.name}</span>
                                         <div className="flex gap-4 text-sm text-slate-600">
                                             <span>{method.count} {t('transactions')}</span>
                                             <span className="font-medium">Rp {(method.revenue || 0).toLocaleString('id-ID')}</span>
@@ -1996,7 +1900,7 @@ export default function RestaurantAdminDashboard() {
 
                 {!user?.restaurantId && (
                     <div className="mb-6 p-4 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
-                        <p className="font-bold">⚠️ {t('warningRestaurantIdNotFound')}</p>
+                        <p className="font-bold">ΓÜá∩╕Å {t('warningRestaurantIdNotFound')}</p>
                         <p className="text-sm mt-1">{t('pleaseRelogin')}</p>
                     </div>
                 )}
@@ -2281,41 +2185,6 @@ export default function RestaurantAdminDashboard() {
                                 <Label htmlFor="isRecommended" className="cursor-pointer font-medium">{t('recommended')}</Label>
                             </div>
                         </div>
-                        <div className="border-t pt-4 mt-2 space-y-4">
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    id="isStockManaged"
-                                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                                    checked={menuItemForm.isStockManaged || false}
-                                    onChange={(e) => setMenuItemForm({ ...menuItemForm, isStockManaged: e.target.checked })}
-                                />
-                                <Label htmlFor="isStockManaged" className="cursor-pointer font-medium">Kelola Stok Menu</Label>
-                            </div>
-                            {menuItemForm.isStockManaged && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="stock">Jumlah Stok</Label>
-                                    <Input
-                                        id="stock"
-                                        type="number"
-                                        value={menuItemForm.stock || 0}
-                                        onChange={(e) => setMenuItemForm({ ...menuItemForm, stock: parseInt(e.target.value) || 0 })}
-                                        placeholder="0"
-                                    />
-                                </div>
-                            )}
-                            <div className="space-y-2">
-                                <Label htmlFor="taxRate">Pajak Produk (%)</Label>
-                                <Input
-                                    id="taxRate"
-                                    type="number"
-                                    step="0.1"
-                                    value={menuItemForm.taxRate || 0}
-                                    onChange={(e) => setMenuItemForm({ ...menuItemForm, taxRate: parseFloat(e.target.value) || 0 })}
-                                    placeholder="0"
-                                />
-                            </div>
-                        </div>
                     </div>
                     <DialogFooter>
                         <Button onClick={handleSaveMenuItem} className="bg-green-600 hover:bg-green-700">
@@ -2460,7 +2329,7 @@ export default function RestaurantAdminDashboard() {
             <Dialog open={manualOrderDialogOpen} onOpenChange={setManualOrderDialogOpen}>
                 <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>📋 Input Order Online</DialogTitle>
+                        <DialogTitle>≡ƒôï Input Order Online</DialogTitle>
                         <DialogDescription>Catat pesanan dari platform online (GrabFood, GoFood, ShopeeFood)</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
@@ -2471,11 +2340,10 @@ export default function RestaurantAdminDashboard() {
                                     <SelectValue placeholder="Pilih Platform" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="POS">💻 Input Manual POS</SelectItem>
-                                    <SelectItem value="GRABFOOD">🟢 GrabFood</SelectItem>
-                                    <SelectItem value="GOFOOD">🔴 GoFood</SelectItem>
-                                    <SelectItem value="SHOPEEFOOD">🟠 ShopeeFood</SelectItem>
-                                    <SelectItem value="OTHER">📦 Lainnya</SelectItem>
+                                    <SelectItem value="GRABFOOD">≡ƒƒó GrabFood</SelectItem>
+                                    <SelectItem value="GOFOOD">≡ƒö┤ GoFood</SelectItem>
+                                    <SelectItem value="SHOPEEFOOD">≡ƒƒá ShopeeFood</SelectItem>
+                                    <SelectItem value="OTHER">≡ƒôª Lainnya</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -2558,37 +2426,15 @@ export default function RestaurantAdminDashboard() {
                                     )
                                 })}
                             </div>
-                            {manualOrderForm.items.length > 0 && (() => {
-                                const subtotal = manualOrderForm.items.reduce((total, i) => {
-                                    const mi = menuItems.find(m => m.id === i.menuItemId)
-                                    return total + (mi ? mi.price * i.quantity : 0)
-                                }, 0)
-                                const taxAmount = manualOrderForm.items.reduce((total, i) => {
-                                    const mi = menuItems.find(m => m.id === i.menuItemId)
-                                    return total + (mi ? (mi.price * i.quantity * (mi.taxRate || 0)) / 100 : 0)
-                                }, 0)
-                                const discountAmount = 0
-                                const finalTotal = subtotal + taxAmount - discountAmount
-
-                                return (
-                                    <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-2">
-                                        <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
-                                            <span>Subtotal ({manualOrderForm.items.reduce((s, i) => s + i.quantity, 0)} item)</span>
-                                            <span>Rp {subtotal.toLocaleString('id-ID')}</span>
-                                        </div>
-                                        {taxAmount > 0 ? (
-                                            <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
-                                                <span>Total Pajak Produk</span>
-                                                <span>+ Rp {taxAmount.toLocaleString('id-ID')}</span>
-                                            </div>
-                                        ) : null}
-                                        <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
-                                            <span>Total Akhir</span>
-                                            <span className="text-emerald-600">Rp {finalTotal.toLocaleString('id-ID')}</span>
-                                        </div>
-                                    </div>
-                                )
-                            })()}
+                            {manualOrderForm.items.length > 0 && (
+                                <p className="text-sm text-emerald-600 font-medium">
+                                    {manualOrderForm.items.reduce((s, i) => s + i.quantity, 0)} item dipilih ΓÇó{' '}
+                                    Rp {manualOrderForm.items.reduce((total, i) => {
+                                        const mi = menuItems.find(m => m.id === i.menuItemId)
+                                        return total + (mi ? mi.price * i.quantity : 0)
+                                    }, 0).toLocaleString('id-ID')}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>
@@ -2598,7 +2444,7 @@ export default function RestaurantAdminDashboard() {
                             onClick={handleCreateManualOrder}
                             disabled={submittingManualOrder}
                         >
-                            {submittingManualOrder ? <Loader2 className="animate-spin h-4 w-4" /> : '📋 Catat Order'}
+                            {submittingManualOrder ? <Loader2 className="animate-spin h-4 w-4" /> : '≡ƒôï Catat Order'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

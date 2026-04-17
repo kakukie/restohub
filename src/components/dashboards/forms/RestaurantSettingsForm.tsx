@@ -164,28 +164,6 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                                 Public Menu: <span className="font-mono text-emerald-600">/menu/{form.slug || 'your-slug'}</span>
                             </p>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Tax Rate (%)</Label>
-                                <Input 
-                                    type="number" 
-                                    step="0.1" 
-                                    min="0"
-                                    value={form.taxRate} 
-                                    onChange={e => setForm({ ...form, taxRate: e.target.value })} 
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Discount Rate (%)</Label>
-                                <Input 
-                                    type="number" 
-                                    step="0.1" 
-                                    min="0"
-                                    value={form.discountRate} 
-                                    onChange={e => setForm({ ...form, discountRate: e.target.value })} 
-                                />
-                            </div>
-                        </div>
                     </TabsContent>
 
                     {/* Tab: Location */}

@@ -72,6 +72,9 @@ export async function POST(request: NextRequest) {
       isAvailable,
       image,
       isBestSeller,
+      isStockManaged,
+      stock,
+      taxRate,
       category,     // Exclude
       categoryName, // Exclude
       createdAt,    // Exclude
@@ -112,6 +115,9 @@ export async function POST(request: NextRequest) {
         isAvailable: isAvailable ?? true,
         image,
         isBestSeller: Boolean(isBestSeller),
+        isStockManaged: Boolean(isStockManaged),
+        stock: parseInt(stock) || 0,
+        taxRate: parseFloat(taxRate) || 0,
         displayOrder: count + 1
       }
     })
