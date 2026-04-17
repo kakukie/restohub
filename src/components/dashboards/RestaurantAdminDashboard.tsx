@@ -298,84 +298,6 @@ export default function RestaurantAdminDashboard() {
         // Only pool if user is on the dashboard (don't drain if not logged in)
         if (!user?.restaurantId) return;
 
-
-    // Lightweight menu-only reload for faster saves
-    const loadMenuItems = useCallback(async () => {
-        if (!user?.restaurantId) return
-        try {
-            const res = await fetch(`/api/menu-items?restaurantId=${user.restaurantId}`)
-            const data = await res.json()
-            if (data.success) setMenuItems(data.data || [])
-        } catch (error) {
-            console.error("Failed to reload menu", error)
-        }
-    }, [user?.restaurantId])
-
-    const loadOrderData = useCallback(async () => {
-        if (!user?.restaurantId) return
-
-        const params = new URLSearchParams({
-            restaurantId: user.restaurantId
-        })
-
-        if (orderStatusFilter !== 'ALL') {
-            params.append('status', orderStatusFilter)
-        }
-
-        if (orderPaymentFilter !== 'ALL') {
-            params.append('paymentMethod', orderPaymentFilter)
-        }
-
-        if (orderDateRange.start) {
-            params.append('startDate', orderDateRange.start)
-        }
-
-        if (orderDateRange.end) {
-            params.append('endDate', orderDateRange.end)
-        }
-
-        try {
-            const res = await fetch(`/api/orders?${params.toString()}`)
-            const data = await res.json()
-            if (data.success) {
-                setOrders(data.data)
-            }
-        } catch (e) {
-            console.error("Failed to load orders", e)
-        }
-    }, [user?.restaurantId, orderStatusFilter, orderPaymentFilter, orderDateRange, setOrders])
-
-    const loadReportsData = useCallback(async () => {
-        if (!user?.restaurantId) return
-        setLoadingReports(true)
-
-        const params = new URLSearchParams({
-            restaurantId: user.restaurantId,
-            granularity: reportGranularity
-        })
-
-        if (reportDateRange.start && reportDateRange.start !== '') params.append('startDate', reportDateRange.start)
-        if (reportDateRange.end && reportDateRange.end !== '') params.append('endDate', reportDateRange.end)
-
-        try {
-            const res = await fetch(`/api/reports?${params.toString()}`)
-            const data = await res.json()
-            if (data.success) {
-                setReportStats(data.data)
-            }
-        } catch (e) {
-            console.error("Failed to load reports", e)
-            toast({ title: "Error", description: "Failed to load report data", variant: "destructive" })
-        } finally {
-            setLoadingReports(false)
-        }
-    }, [user?.restaurantId, reportGranularity, reportDateRange])
-
-    // --- AUTO-REFRESH ORDERS & REPORTS ---
-    useEffect(() => {
-        // Only pool if user is on the dashboard (don't drain if not logged in)
-        if (!user?.restaurantId) return;
-
         // Initial load
         loadOrderData()
         loadReportsData()
@@ -1551,21 +1473,21 @@ export default function RestaurantAdminDashboard() {
 
         return (
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                
                 {isOffline && (
-                    <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg border border-red-200 flex items-center justify-between">
-                        <div className="flex items-center">
-                            <XCircle className="h-5 w-5 mr-2" />
-                            <span className="font-medium">Anda sedang offline. Mode POS akan menyimpan order secara lokal.</span>
-                        </div>
+                    <div className="mb-6 p-4 bg-red-50 text-red-800 rounded-lg border border-red-200 flex items-center">
+                        <span className="font-bold mr-2">⚠️ Mode Offline Aktif:</span>
+                        Koneksi internet terputus. Pesanan online/POS akan disimpan sementara di perangkat ini.
                     </div>
                 )}
+
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('orders')}</h2>
                     <div className="flex gap-2">
-                        {offlineOrders.length > 0 && (
-                            <Button onClick={handleSyncOfflineOrders} disabled={isSyncingOffline || isOffline} size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
-                                {isSyncingOffline ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                                Sync ({offlineOrders.length})
+                        {!isOffline && offlineOrders.length > 0 && (
+                            <Button onClick={handleSyncOfflineOrders} disabled={isSyncingOffline} size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
+                                {isSyncingOffline ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                                Sync {offlineOrders.length} Offline Order
                             </Button>
                         )}
                         <Button onClick={() => setManualOrderDialogOpen(true)} size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
@@ -2359,7 +2281,6 @@ export default function RestaurantAdminDashboard() {
                                 <Label htmlFor="isRecommended" className="cursor-pointer font-medium">{t('recommended')}</Label>
                             </div>
                         </div>
-                    </div>
                         <div className="border-t pt-4 mt-2 space-y-4">
                             <div className="flex items-center space-x-2">
                                 <input
@@ -2384,6 +2305,285 @@ export default function RestaurantAdminDashboard() {
                                 </div>
                             )}
                         </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleSaveMenuItem} className="bg-green-600 hover:bg-green-700">
+                            {editingMenuItem ? t('saveChanges') : t('add')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Validation Dialog */}
+            <Dialog open={!!validateOrderId} onOpenChange={(open) => !open && setValidateOrderId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t('confirmAcceptOrder')}</DialogTitle>
+                        <DialogDescription>
+                            {t('manualNotifyDesc')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3 py-2">
+                        <div className="space-y-1">
+                            <Label>{t('manualEmail')}</Label>
+                            <Input
+                                placeholder="customer@example.com"
+                                value={manualEmail}
+                                onChange={(e) => setManualEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label>{t('manualPhone')}</Label>
+                            <Input
+                                placeholder="62812..."
+                                value={manualPhone}
+                                onChange={(e) => setManualPhone(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setValidateOrderId(null)}>{t('cancelItem')}</Button>
+                        <Button className="bg-green-600 text-white" onClick={handleValidateOrder}>{t('confirmAndNotify')}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* View Order Dialog */}
+            <Dialog open={!!viewOrder} onOpenChange={(open) => !open && setViewOrder(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{t('orderDetails')} #{viewOrder?.orderNumber}</DialogTitle>
+                    </DialogHeader>
+                    {viewOrder && (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">{t('date')}:</span>
+                                <span className="font-medium">{new Date(viewOrder.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short', hour12: false })}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">{t('customer')}:</span>
+                                <span className="font-medium">{viewOrder.customerName}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">{t('type')}:</span>
+                                <Badge variant="outline">
+                                    {(!viewOrder.tableNumber || viewOrder.tableNumber === 'TAKEAWAY') ? t('takeAway') : t('dineIn')}
+                                </Badge>
+                            </div>
+                            {viewOrder.tableNumber && viewOrder.tableNumber !== 'TAKEAWAY' && (
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">{t('table')}:</span>
+                                    <span className="font-medium">{viewOrder.tableNumber}</span>
+                                </div>
+                            )}
+
+                            {(viewOrder as any)?.orderSource && (viewOrder as any).orderSource !== 'QR_MENU' && (
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500">Sumber:</span>
+                                    <Badge variant="outline" className={`${
+                                        (viewOrder as any).orderSource === 'GRABFOOD' ? 'bg-green-100 text-green-700' :
+                                        (viewOrder as any).orderSource === 'GOFOOD' ? 'bg-red-100 text-red-700' :
+                                        (viewOrder as any).orderSource === 'SHOPEEFOOD' ? 'bg-orange-100 text-orange-700' :
+                                        'bg-blue-100 text-blue-700'
+                                    }`}>
+                                        {(viewOrder as any).orderSource}
+                                    </Badge>
+                                </div>
+                            )}
+                            {(viewOrder as any)?.adminNotes && (
+                                <div className="flex justify-between items-start text-sm">
+                                    <span className="text-gray-500">Catatan Admin:</span>
+                                    <span className="font-medium text-right max-w-[60%]">{(viewOrder as any).adminNotes}</span>
+                                </div>
+                            )}
+                            <div className="border-t border-b py-2 my-2 space-y-2">
+                                {viewOrder.items.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between text-sm">
+                                        <span>{item.quantity}x {item.menuItemName}</span>
+                                        <span>Rp {(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-between items-center font-bold text-lg">
+                                <span>{t('total')}:</span>
+                                <span>Rp {viewOrder.totalAmount.toLocaleString('id-ID')}</span>
+                            </div>
+
+                            <div className="flex gap-2 justify-end pt-2">
+                                {viewOrder.customerId && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                        onClick={async () => {
+                                            if (confirm(`${t('deleteCustomerWarning')} ${viewOrder.customerName}? ${t('deleteCustomerWarningDesc')}`)) {
+                                                try {
+                                                    const res = await fetch(`/api/users/${viewOrder.customerId}`, { method: 'DELETE' })
+                                                    const data = await res.json()
+                                                    if (data.success) {
+                                                        toast({ title: 'Success', description: data.message || t('customerDeleted') })
+                                                        setViewOrder(null) // Close dialog
+                                                    } else {
+                                                        toast({ title: 'Error', variant: 'destructive', description: data.error || t('failedToDeleteCustomer') })
+                                                    }
+                                                } catch (err) {
+                                                    toast({ title: 'Error', variant: 'destructive', description: t('networkErrorDeletingCustomer') })
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-1" /> {t('deleteCustomer')}
+                                    </Button>
+                                )}
+                                <Button variant="outline" onClick={() => handlePrintOrder(viewOrder)}>
+                                    <Printer className="h-4 w-4 mr-2" /> {t('print')}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Manual Order Dialog (Admin Note Feature) */}
+            <Dialog open={manualOrderDialogOpen} onOpenChange={setManualOrderDialogOpen}>
+                <DialogContent className="max-h-[90vh] overflow-y-auto w-[95vw] max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>📋 Input Order Online</DialogTitle>
+                        <DialogDescription>Catat pesanan dari platform online (GrabFood, GoFood, ShopeeFood)</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label>Platform Sumber *</Label>
+                            <Select value={manualOrderForm.orderSource} onValueChange={(val) => setManualOrderForm({ ...manualOrderForm, orderSource: val })}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih Platform" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="GRABFOOD">🟢 GrabFood</SelectItem>
+                                    <SelectItem value="GOFOOD">🔴 GoFood</SelectItem>
+                                    <SelectItem value="SHOPEEFOOD">🟠 ShopeeFood</SelectItem>
+                                    <SelectItem value="OTHER">📦 Lainnya</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Nama Customer *</Label>
+                            <Input
+                                value={manualOrderForm.customerName}
+                                onChange={(e) => setManualOrderForm({ ...manualOrderForm, customerName: e.target.value })}
+                                placeholder="Nama dari aplikasi..."
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Catatan Admin (opsional)</Label>
+                            <Input
+                                value={manualOrderForm.adminNotes}
+                                onChange={(e) => setManualOrderForm({ ...manualOrderForm, adminNotes: e.target.value })}
+                                placeholder="No. order Grab/Gojek, instruksi khusus, dll..."
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Metode Bayar</Label>
+                            <Select value={manualOrderForm.paymentMethod} onValueChange={(val) => setManualOrderForm({ ...manualOrderForm, paymentMethod: val })}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="CASH">Tunai</SelectItem>
+                                    {paymentMethods.filter(m => m.isActive).map(m => (
+                                        <SelectItem key={m.id} value={m.type}>{m.type}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Menu Item Picker */}
+                        <div className="space-y-2">
+                            <Label>Pilih Menu *</Label>
+                            <div className="max-h-60 overflow-y-auto space-y-2 border rounded-lg p-3">
+                                {menuItems.filter(m => m.isAvailable).map(item => {
+                                    const existingIdx = manualOrderForm.items.findIndex(i => i.menuItemId === item.id)
+                                    const qty = existingIdx >= 0 ? manualOrderForm.items[existingIdx].quantity : 0
+                                    return (
+                                        <div key={item.id} className="flex items-center justify-between py-1">
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium">{item.name}</p>
+                                                <p className="text-xs text-gray-500">Rp {item.price.toLocaleString('id-ID')}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button variant="outline" size="icon" className="h-7 w-7"
+                                                    onClick={() => {
+                                                        if (qty <= 0) return
+                                                        const newItems = [...manualOrderForm.items]
+                                                        if (qty === 1) {
+                                                            newItems.splice(existingIdx, 1)
+                                                        } else {
+                                                            newItems[existingIdx].quantity = qty - 1
+                                                        }
+                                                        setManualOrderForm({ ...manualOrderForm, items: newItems })
+                                                    }}
+                                                    disabled={qty === 0}
+                                                >
+                                                    <Minus className="h-3 w-3" />
+                                                </Button>
+                                                <span className="text-sm font-bold w-6 text-center">{qty}</span>
+                                                <Button variant="outline" size="icon" className="h-7 w-7"
+                                                    onClick={() => {
+                                                        const newItems = [...manualOrderForm.items]
+                                                        if (existingIdx >= 0) {
+                                                            newItems[existingIdx].quantity = qty + 1
+                                                        } else {
+                                                            newItems.push({ menuItemId: item.id, quantity: 1 })
+                                                        }
+                                                        setManualOrderForm({ ...manualOrderForm, items: newItems })
+                                                    }}
+                                                >
+                                                    <Plus className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            {manualOrderForm.items.length > 0 && (() => {
+                                const subtotal = manualOrderForm.items.reduce((total, i) => {
+                                    const mi = menuItems.find(m => m.id === i.menuItemId)
+                                    return total + (mi ? mi.price * i.quantity : 0)
+                                }, 0)
+                                const taxAmount = (subtotal * (currentRestaurant?.taxRate || 0)) / 100
+                                const discountAmount = (subtotal * (currentRestaurant?.discountRate || 0)) / 100
+                                const finalTotal = subtotal + taxAmount - discountAmount
+
+                                return (
+                                    <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg space-y-2">
+                                        <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
+                                            <span>Subtotal ({manualOrderForm.items.reduce((s, i) => s + i.quantity, 0)} item)</span>
+                                            <span>Rp {subtotal.toLocaleString('id-ID')}</span>
+                                        </div>
+                                        {currentRestaurant?.taxRate ? (
+                                            <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
+                                                <span>Pajak ({currentRestaurant.taxRate}%)</span>
+                                                <span>+ Rp {taxAmount.toLocaleString('id-ID')}</span>
+                                            </div>
+                                        ) : null}
+                                        {currentRestaurant?.discountRate ? (
+                                            <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
+                                                <span>Diskon ({currentRestaurant.discountRate}%)</span>
+                                                <span className="text-red-500">- Rp {discountAmount.toLocaleString('id-ID')}</span>
+                                            </div>
+                                        ) : null}
+                                        <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+                                            <span>Total Akhir</span>
+                                            <span className="text-emerald-600">Rp {finalTotal.toLocaleString('id-ID')}</span>
+                                        </div>
+                                    </div>
+                                )
+                            })()}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setManualOrderDialogOpen(false)}>Batal</Button>
                         <Button
                             className="bg-orange-500 hover:bg-orange-600 text-white"
                             onClick={handleCreateManualOrder}
