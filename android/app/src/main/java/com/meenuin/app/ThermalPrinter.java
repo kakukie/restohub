@@ -153,7 +153,31 @@ public class ThermalPrinter {
 
             out.write(ALIGN_LEFT);
             writeln(out, "No: #" + order.optString("orderNumber"));
-            writeln(out, "Tgl: " + order.optString("createdAt"));
+            String createdAtStr = order.optString("createdAt");
+            String formattedDate = createdAtStr;
+            try {
+                // Parse ISO 8601 (Prisma/JS format)
+                // We use multiple formats to be safe
+                java.text.SimpleDateFormat isoFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US);
+                isoFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                java.util.Date date = null;
+                try {
+                    date = isoFormat.parse(createdAtStr);
+                } catch (Exception e1) {
+                    java.text.SimpleDateFormat isoFormatSimple = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US);
+                    isoFormatSimple.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                    date = isoFormatSimple.parse(createdAtStr);
+                }
+                
+                if (date != null) {
+                    java.text.SimpleDateFormat localFormat = new java.text.SimpleDateFormat("dd/MM/yyyy, HH.mm.ss", new java.util.Locale("id", "ID"));
+                    localFormat.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Jakarta"));
+                    formattedDate = localFormat.format(date);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Date parse error: " + e.getMessage());
+            }
+            writeln(out, "Tgl: " + formattedDate);
             writeln(out, "Cust: " + order.optString("customerName", "Guest"));
             writeln(out, "Bayar: " + order.optString("paymentMethod", "-"));
             String tipe = order.optString("tableNumber", "").isEmpty()

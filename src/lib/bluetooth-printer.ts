@@ -271,7 +271,7 @@ export class CapacitorBluetoothPrinterService {
         receipt = receipt.newline().line('-').newline();
         receipt = receipt.align('left')
             .text(`No: #${order.orderNumber}`).newline()
-            .text(`Tgl: ${new Date(order.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}`).newline()
+            .text(`Tgl: ${new Date(order.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'short' })}`).newline()
             .text(`Cust: ${order.customerName || 'Guest'}`).newline()
             .text(`Tipe: ${order.tableNumber ? `Meja ${order.tableNumber}` : 'Takeaway'}`).newline();
 
