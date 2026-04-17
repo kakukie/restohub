@@ -1481,20 +1481,20 @@ export default function RestaurantAdminDashboard() {
                     </div>
                 )}
 
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('orders')}</h2>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                         {!isOffline && offlineOrders.length > 0 && (
-                            <Button onClick={handleSyncOfflineOrders} disabled={isSyncingOffline} size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
+                            <Button onClick={handleSyncOfflineOrders} disabled={isSyncingOffline} size="sm" className="bg-blue-500 hover:bg-blue-600 text-white flex-1 sm:flex-none justify-center">
                                 {isSyncingOffline ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                                Sync {offlineOrders.length} Offline Order
+                                Sync {offlineOrders.length}
                             </Button>
                         )}
-                        <Button onClick={() => setManualOrderDialogOpen(true)} size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
+                        <Button onClick={() => setManualOrderDialogOpen(true)} size="sm" className="bg-orange-500 hover:bg-orange-600 text-white flex-1 sm:flex-none justify-center">
                             <Plus className="h-4 w-4 mr-2" />
-                            POS / Order Online
+                            POS / Online
                         </Button>
-                        <Button onClick={() => loadOrderData()} variant="outline" size="sm">
+                        <Button onClick={() => loadOrderData()} variant="outline" size="sm" className="flex-1 sm:flex-none justify-center">
                             <RefreshCw className="h-4 w-4 mr-2" />
                             {t('refresh')}
                         </Button>

@@ -165,7 +165,12 @@ export default function PublicMenuPage() {
     })
 
     const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
-    const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    const cartSubtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    const cartTaxTotal = cart.reduce((sum, item) => {
+        const itemTotal = item.price * item.quantity
+        return sum + (itemTotal * (item.taxRate || 0)) / 100
+    }, 0)
+    const cartTotal = cartSubtotal + cartTaxTotal
 
     // Handlers
     const handleAddToCart = (item: any) => {
@@ -175,7 +180,8 @@ export default function PublicMenuPage() {
             price: item.price,
             quantity: 1,
             image: item.image,
-            categoryName: item.categoryName
+            categoryName: item.categoryName,
+            taxRate: item.taxRate || 0
         })
         toast({ title: 'Added to cart', description: `${item.name} added successfully` })
     }
@@ -600,9 +606,21 @@ export default function PublicMenuPage() {
                     </DialogHeader>
 
                     <div className="space-y-4 py-2">
-                        <div className="p-3 bg-gray-50 dark:bg-slate-800 rounded-lg flex justify-between items-center text-slate-900 dark:text-white">
-                            <span className="text-sm">Total Payment</span>
-                            <span className="font-bold text-lg text-emerald-600 dark:text-emerald-500">Rp {cartTotal.toLocaleString()}</span>
+                        <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg space-y-1">
+                            <div className="flex justify-between text-sm text-slate-600 dark:text-gray-400">
+                                <span>Subtotal</span>
+                                <span>Rp {cartSubtotal.toLocaleString()}</span>
+                            </div>
+                            {cartTaxTotal > 0 && (
+                                <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
+                                    <span>Tax</span>
+                                    <span>+ Rp {cartTaxTotal.toLocaleString()}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between items-center pt-2 border-t dark:border-slate-700 text-slate-900 dark:text-white">
+                                <span className="text-sm font-semibold">Total Payment</span>
+                                <span className="font-bold text-lg text-emerald-600 dark:text-emerald-500">Rp {cartTotal.toLocaleString()}</span>
+                            </div>
                         </div>
 
                         <div className="space-y-3">

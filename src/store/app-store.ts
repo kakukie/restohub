@@ -93,6 +93,7 @@ export interface CartItem {
   quantity: number
   image?: string
   categoryName?: string
+  taxRate?: number
 }
 
 export interface Category {
@@ -118,6 +119,7 @@ export interface MenuItem {
   isRecommended?: boolean
   isBestSeller?: boolean
   stock?: number // Optional stock quantity
+  taxRate?: number
   maxSlugChanges?: number
   maxBranches?: number
 }
@@ -391,7 +393,11 @@ export const useAppStore = create<AppState>()(
 
       setSelectedRestaurant: (restaurantId) => set({ selectedRestaurant: restaurantId, cart: [] }),
 
-      getTotalCartAmount: () => get().cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+      getTotalCartAmount: () => get().cart.reduce((total, item) => {
+        const itemTotal = item.price * item.quantity
+        const itemTax = (itemTotal * (item.taxRate || 0)) / 100
+        return total + itemTotal + itemTax
+      }, 0),
 
       getTotalCartItems: () => get().cart.reduce((total, item) => total + item.quantity, 0),
 
