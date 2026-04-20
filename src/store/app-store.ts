@@ -47,6 +47,7 @@ export interface Restaurant {
   slugChangeCount?: number
   maxSlugChanges?: number
   maxBranches?: number
+  enabledFeatures?: string[]
 }
 
 export interface PaymentMethod {

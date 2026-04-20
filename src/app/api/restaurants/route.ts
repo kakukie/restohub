@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description, address, phone, email, adminEmail, parentId, adminId, maxBranches, maxCategories, maxMenuItems, maxAdmins, maxStaff, allowBranches, allowMaps, enableAnalytics } = body
+    const { name, description, address, phone, email, adminEmail, parentId, adminId, maxBranches, maxCategories, maxMenuItems, maxAdmins, maxStaff, allowBranches, allowMaps, enableAnalytics, enabledFeatures } = body
 
     if (!name) {
       return NextResponse.json({
@@ -210,7 +210,8 @@ export async function POST(request: NextRequest) {
           maxStaff: maxStaff || 0,
           allowBranches: allowBranches || false,
           allowMaps: allowMaps || false,
-          enableAnalytics: enableAnalytics || false
+          enableAnalytics: enableAnalytics || false,
+          enabledFeatures: enabledFeatures || []
         }
       })
 

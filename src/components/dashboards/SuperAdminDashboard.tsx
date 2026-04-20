@@ -251,6 +251,7 @@ export default function SuperAdminDashboard() {
       maxCategories: restaurant.maxCategories,
       allowMaps: restaurant.allowMaps,
       enableAnalytics: restaurant.enableAnalytics,
+      enabledFeatures: restaurant.enabledFeatures || [],
       maxSlugChanges: restaurant.maxSlugChanges,
       activeUntil: restaurant.activeUntil ? toInputDateTime(restaurant.activeUntil) : ''
     })
@@ -340,6 +341,7 @@ export default function SuperAdminDashboard() {
             maxCategories: restaurantForm.maxCategories,
             allowMaps: restaurantForm.allowMaps,
             enableAnalytics: restaurantForm.enableAnalytics,
+            enabledFeatures: restaurantForm.enabledFeatures || [],
             activeUntil: restaurantForm.activeUntil,
             logo: restaurantForm.logo
           })
@@ -2224,6 +2226,55 @@ export default function SuperAdminDashboard() {
                     onChange={(e) => setRestaurantForm({ ...restaurantForm, enableAnalytics: e.target.checked })}
                   />
                   <Label htmlFor="enableAnalytics" className="cursor-pointer dark:text-white">Enable Advanced Analytics?</Label>
+                </div>
+
+                <div className="pt-4 pb-2 border-t dark:border-slate-800">
+                  <h4 className="text-sm font-bold mb-3 dark:text-white uppercase tracking-wider text-primary">Modular Features</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
+                          <CheckCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">Custom Invoice</p>
+                          <p className="text-[10px] text-slate-400">Professional sales invoice & WA</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={restaurantForm.enabledFeatures?.includes('CUSTOM_INVOICE') || false}
+                        onCheckedChange={(checked) => {
+                          const current = restaurantForm.enabledFeatures || [];
+                          const updated = checked 
+                            ? [...current, 'CUSTOM_INVOICE']
+                            : current.filter(f => f !== 'CUSTOM_INVOICE');
+                          setRestaurantForm({ ...restaurantForm, enabledFeatures: updated });
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-500/20 text-purple-400 rounded-lg">
+                          <CheckCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">Advanced Stock</p>
+                          <p className="text-[10px] text-slate-400">Mutasi, Expiry, and Returns</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={restaurantForm.enabledFeatures?.includes('ADVANCED_STOCK') || false}
+                        onCheckedChange={(checked) => {
+                          const current = restaurantForm.enabledFeatures || [];
+                          const updated = checked 
+                            ? [...current, 'ADVANCED_STOCK']
+                            : current.filter(f => f !== 'ADVANCED_STOCK');
+                          setRestaurantForm({ ...restaurantForm, enabledFeatures: updated });
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="dark:text-white">Max Categories (0 = Unlimited)</Label>
