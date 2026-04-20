@@ -162,7 +162,9 @@ export async function PUT(
         if (logoUrl) updates.logo = logoUrl
         if (bannerUrl) updates.banner = bannerUrl
         
-        if (updates.activeUntil) {
+        if (updates.activeUntil === "") {
+            updates.activeUntil = null
+        } else if (updates.activeUntil) {
             const dt = new Date(updates.activeUntil)
             if (isNaN(dt.getTime())) {
                 return NextResponse.json({ success: false, error: 'Invalid activeUntil date' }, { status: 400 })

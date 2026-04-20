@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description, address, phone, email, adminEmail, parentId, adminId, maxBranches, maxCategories, maxMenuItems, maxAdmins, maxStaff, allowBranches, allowMaps, enableAnalytics, enabledFeatures } = body
+    const { name, description, address, phone, email, adminEmail, parentId, adminId, maxBranches, maxCategories, maxMenuItems, maxAdmins, maxStaff, allowBranches, allowMaps, enableAnalytics, enabledFeatures, activeUntil: activeUntilRaw } = body
 
     if (!name) {
       return NextResponse.json({
@@ -187,6 +187,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    let activeUntil = null
+    if (activeUntilRaw && activeUntilRaw !== "") {
+      const dt = new Date(activeUntilRaw)
+      if (!isNaN(dt.getTime())) {
+        activeUntil = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
+      }
+    }
+
     // Create restaurant
     // Use transaction to ensure data sync if requested
     const newRestaurant = await prisma.$transaction(async (tx) => {
@@ -211,7 +219,8 @@ export async function POST(request: NextRequest) {
           allowBranches: allowBranches || false,
           allowMaps: allowMaps || false,
           enableAnalytics: enableAnalytics || false,
-          enabledFeatures: enabledFeatures || []
+          enabledFeatures: enabledFeatures || [],
+          activeUntil: activeUntil
         }
       })
 
