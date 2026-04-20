@@ -31,7 +31,7 @@ import ReturnModal from './restaurant/ReturnModal'
 import RestaurantSettingsForm from './forms/RestaurantSettingsForm'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs' // Might still need for sub-tabs
-import { Plus, Minus, Search, Trash2, Edit2, Camera, Bell, CheckCircle2, XCircle, FileText, ChevronDown, ChevronUp, Clock, FileDown, Eye, Filter, Loader2, Printer, Grid, List, Check, X, Edit, RefreshCw, Download, Save } from 'lucide-react'
+import { Plus, Minus, Search, Trash2, Edit2, Camera, Bell, CheckCircle2, XCircle, FileText, ChevronDown, ChevronUp, Clock, FileDown, Eye, Filter, Loader2, Printer, Grid, List, Check, X, Edit, RefreshCw, Download, Save, Receipt } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { CapacitorBluetoothPrinterService, printerService } from '@/lib/bluetooth-printer'
@@ -129,7 +129,8 @@ export default function RestaurantAdminDashboard() {
         items: { menuItemId: string; quantity: number }[]
     }>({
         customerName: '',
-        orderSource: 'GRABFOOD',
+        customerPhone: '',
+        orderSource: 'POS',
         adminNotes: '',
         tableNumber: '',
         paymentMethod: 'CASH',
@@ -383,9 +384,26 @@ export default function RestaurantAdminDashboard() {
             const data = await res.json()
             if (data.success) {
                 toast({ title: "Success", description: "Invoice sent via WhatsApp" })
+            } else {
+                if (data.error === 'Missing phone number') {
+                    const phone = prompt("Customer tidak memiliki nomor WA. Masukkan nomor WA (contoh: 62812...):")
+                    if (phone) {
+                        // Retry with phone
+                        const res2 = await fetch(`/api/orders/${orderId}/invoice`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sendWhatsApp: true, customerPhone: phone })
+                        })
+                        const data2 = await res2.json()
+                        if (data2.success) toast({ title: "Success", description: "Invoice sent via WhatsApp" })
+                        else toast({ title: "Error", description: data2.error || "Failed to send invoice", variant: 'destructive' })
+                    }
+                } else {
+                    toast({ title: "Error", description: data.error || "Failed to send invoice", variant: 'destructive' })
+                }
             }
         } catch (error) {
-            toast({ title: "Error", description: "Failed to send invoice" })
+            toast({ title: "Error", description: "Failed to send invoice", variant: 'destructive' })
         }
     }
 
@@ -441,6 +459,7 @@ export default function RestaurantAdminDashboard() {
                 body: JSON.stringify({
                     restaurantId: user?.restaurantId,
                     customerName: manualOrderForm.customerName,
+                    customerPhone: manualOrderForm.customerPhone,
                     tableNumber: manualOrderForm.tableNumber || 'ONLINE',
                     notes: `[${manualOrderForm.orderSource}] ${manualOrderForm.adminNotes}`,
                     paymentMethod: manualOrderForm.paymentMethod || 'CASH',
@@ -460,7 +479,8 @@ export default function RestaurantAdminDashboard() {
                 setManualOrderDialogOpen(false)
                 setManualOrderForm({
                     customerName: '',
-                    orderSource: 'GRABFOOD',
+                    customerPhone: '',
+                    orderSource: 'POS',
                     adminNotes: '',
                     tableNumber: '',
                     paymentMethod: 'CASH',
@@ -2678,7 +2698,15 @@ export default function RestaurantAdminDashboard() {
                             <Input
                                 value={manualOrderForm.customerName}
                                 onChange={(e) => setManualOrderForm({ ...manualOrderForm, customerName: e.target.value })}
-                                placeholder="Nama dari aplikasi..."
+                                placeholder="Nama customer..."
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Nomor WhatsApp (opsional)</Label>
+                            <Input
+                                value={manualOrderForm.customerPhone}
+                                onChange={(e) => setManualOrderForm({ ...manualOrderForm, customerPhone: e.target.value })}
+                                placeholder="62812..."
                             />
                         </div>
                         <div className="space-y-2">

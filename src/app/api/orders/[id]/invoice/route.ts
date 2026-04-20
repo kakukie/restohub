@@ -91,20 +91,32 @@ export async function POST(
 
     if (!order) return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 })
 
-    if (sendWhatsApp && order.customer?.phone) {
+    const targetPhone = body.customerPhone || order.customer?.phone
+    
+    if (sendWhatsApp) {
+      if (!targetPhone) {
+        return NextResponse.json({ success: false, error: 'Missing phone number' }, { status: 400 })
+      }
+
       // Integration with WhatsApp Gateway (Fonnte)
       const token = process.env.FONNTE_TOKEN
       if (token) {
-        const message = `Halo ${order.customer.name},\n\nTerima kasih telah berkunjung ke ${order.restaurant.name}. Berikut adalah link invoice digital Anda: ${process.env.NEXT_PUBLIC_BASE_URL}/invoice/${order.id}\n\nSampai jumpa kembali!`
+        const message = `Halo ${order.customer?.name || 'Customer'},\n\nTerima kasih telah berkunjung ke ${order.restaurant.name}. Berikut adalah link invoice digital Anda: ${process.env.NEXT_PUBLIC_BASE_URL}/invoice/${order.id}\n\nSampai jumpa kembali!`
         
-        await fetch('https://api.fonnte.com/send', {
+        const fonnteRes = await fetch('https://api.fonnte.com/send', {
           method: 'POST',
           headers: { Authorization: token },
           body: new URLSearchParams({
-            target: order.customer.phone,
+            target: targetPhone,
             message: message
           })
         })
+        const fonnteData = await fonnteRes.json()
+        if (!fonnteData.status) {
+           return NextResponse.json({ success: false, error: fonnteData.reason || 'Gagal mengirim pesan via Fonnte' }, { status: 500 })
+        }
+      } else {
+        return NextResponse.json({ success: false, error: 'WhatsApp Gateway belum dikonfigurasi (Token Missing)' }, { status: 500 })
       }
     }
 

@@ -234,6 +234,7 @@ export async function POST(request: NextRequest) {
               data: {
                 email: `guest-${Date.now()}-${uuidv4()}@temp.com`,
                 name: sanitizedCustomerName,
+                phone: body.customerPhone || null,
                 role: 'CUSTOMER'
               }
             })
