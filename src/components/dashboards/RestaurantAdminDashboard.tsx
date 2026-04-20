@@ -467,6 +467,13 @@ export default function RestaurantAdminDashboard() {
                     items: []
                 })
                 loadOrderData()
+
+                if (currentRestaurant?.enabledFeatures?.includes('CUSTOM_INVOICE')) {
+                    toast({
+                        title: 'Invoice Professional Aktif',
+                        description: 'Anda bisa mengirim invoice via WA melalui detail pesanan atau daftar pesanan.',
+                    })
+                }
             } else {
                 toast({ title: 'Error', description: data.error || 'Gagal membuat order', variant: 'destructive' })
             }
@@ -2519,6 +2526,14 @@ export default function RestaurantAdminDashboard() {
                                 <Button variant="outline" onClick={() => handlePrintOrder(viewOrder)}>
                                     <Printer className="h-4 w-4 mr-2" /> {t('print')}
                                 </Button>
+                                {currentRestaurant?.enabledFeatures?.includes('CUSTOM_INVOICE') && (
+                                    <Button 
+                                        className="bg-blue-600 hover:bg-blue-700 text-white" 
+                                        onClick={() => handleSendInvoice(viewOrder.id)}
+                                    >
+                                        <FileText className="h-4 w-4 mr-2" /> WA Invoice
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     )}
