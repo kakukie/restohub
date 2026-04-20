@@ -583,7 +583,7 @@ export default function RestaurantAdminDashboard() {
 
             const orderData = {
                 id: order.id,
-                orderNumber: order.orderNumber,
+                orderNumber: order.invoiceNumber || order.orderNumber,
                 createdAt: order.createdAt,
                 customerName: order.customerName || 'Guest',
                 tableNumber: order.tableNumber || '',
