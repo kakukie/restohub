@@ -4,9 +4,10 @@ import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await props.params
     const orderId = params.id
     const user = await getAuthenticatedUser(request)
     if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -77,9 +78,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await props.params
     const orderId = params.id
     const body = await request.json()
     const { sendWhatsApp } = body
