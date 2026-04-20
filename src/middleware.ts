@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
         const validRefresh = isRefreshValid && isRefreshValid.role === 'SUPER_ADMIN'
 
         if (!validAccess && !validRefresh) {
-            return NextResponse.redirect(new URL('/', request.url))
+            return NextResponse.redirect(new URL('/login', request.url))
         }
         return NextResponse.next()
     }
@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
 
     if (pathname.startsWith('/dashboard')) {
         if (!isAccessValid && !isRefreshValid) {
-            return NextResponse.redirect(new URL('/', request.url))
+            return NextResponse.redirect(new URL('/login', request.url))
         }
     }
 
