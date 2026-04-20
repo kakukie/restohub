@@ -23,6 +23,8 @@ import PaymentMethodDialog from './restaurant/PaymentMethodDialog' // Imported
 import StaffManagement from './restaurant/StaffManagement'
 import BestSellers from './restaurant/BestSellers'
 import HelpdeskChat from './HelpdeskChat'
+import StockManagement from './restaurant/StockManagement'
+import ReturnModal from './restaurant/ReturnModal'
 
 // Legacy / Existing Sub-Components (We will reuse these or refactor later)
 // For now, we reuse the logic and render them conditionally
@@ -137,6 +139,8 @@ export default function RestaurantAdminDashboard() {
     const [offlineOrders, setOfflineOrders] = useState<any[]>([])
     const [isSyncingOffline, setIsSyncingOffline] = useState(false)
     const [isOffline, setIsOffline] = useState(false)
+    const [returnModalOpen, setReturnModalOpen] = useState(false)
+    const [orderToReturn, setOrderToReturn] = useState<any>(null)
 
     // Reports & Analytics States
     const [reportGranularity, setReportGranularity] = useState<'day' | 'month' | 'year'>('day')
@@ -364,8 +368,21 @@ export default function RestaurantAdminDashboard() {
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to update order", variant: "destructive" })
-        } finally {
-            setUpdatingOrderId(null)
+    }
+
+    const handleSendInvoice = async (orderId: string) => {
+        try {
+            const res = await fetch(`/api/orders/${orderId}/invoice`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sendWhatsApp: true })
+            })
+            const data = await res.json()
+            if (data.success) {
+                toast({ title: "Success", description: "Invoice sent via WhatsApp" })
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to send invoice" })
         }
     }
 
@@ -1710,6 +1727,31 @@ export default function RestaurantAdminDashboard() {
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
+
+                                        {currentRestaurant?.enabledFeatures?.includes('CUSTOM_INVOICE') && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="border-blue-500 text-blue-500 hover:bg-blue-50"
+                                                onClick={() => handleSendInvoice(order.id)}
+                                            >
+                                                <FileText className="h-4 w-4 mr-1" /> WA
+                                            </Button>
+                                        )}
+
+                                        {currentRestaurant?.enabledFeatures?.includes('ADVANCED_STOCK') && order.status === 'COMPLETED' && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="border-orange-500 text-orange-500 hover:bg-orange-50"
+                                                onClick={() => {
+                                                    setOrderToReturn(order)
+                                                    setReturnModalOpen(true)
+                                                }}
+                                            >
+                                                <RefreshCw className="h-4 w-4 mr-1" /> Retur
+                                            </Button>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -2032,6 +2074,13 @@ export default function RestaurantAdminDashboard() {
                 )}
                 {activeTab === 'settings' && renderSettingsContent()}
                 {activeTab === 'helpdesk' && <HelpdeskChat role="RESTAURANT_ADMIN" />}
+                {activeTab === 'stock' && (
+                    <StockManagement 
+                        restaurantId={user?.restaurantId || ''} 
+                        menuItems={menuItems} 
+                        onUpdate={loadMenuItems}
+                    />
+                )}
 
 
             </main>
@@ -2473,7 +2522,13 @@ export default function RestaurantAdminDashboard() {
                 </DialogContent>
             </Dialog>
 
-            {/* Manual Order Dialog (Admin Note Feature) */}
+            <ReturnModal
+                order={orderToReturn}
+                open={returnModalOpen}
+                onOpenChange={setReturnModalOpen}
+                onSuccess={loadOrderData}
+            />
+
             {/* Maintenance Notification Dialog */}
             <Dialog open={!!helpdeskSettings.maintenanceMode} onOpenChange={() => {}}>
                 <DialogContent className="sm:max-w-[500px] border-amber-500/50 bg-[#0F172A] p-0 overflow-hidden">

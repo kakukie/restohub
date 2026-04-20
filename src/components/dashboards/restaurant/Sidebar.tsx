@@ -50,6 +50,7 @@ const translations = {
         logout: "Logout",
         staff: "Staff",
         helpdesk: "Helpdesk",
+        stock: "Stock",
         more: "More"
     },
     id: {
@@ -63,6 +64,7 @@ const translations = {
         logout: "Keluar",
         staff: "Staf",
         helpdesk: "Bantuan",
+        stock: "Stok",
         more: "Lainnya"
     }
 }
@@ -78,6 +80,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
     const mainNavItems = [
         { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
         { id: 'orders', label: t.orders, icon: Receipt, badge: pendingOrderCount },
+        { id: 'stock', label: t.stock, icon: Package },
         { id: 'menu', label: t.menu, icon: UtensilsCrossed },
         { id: 'payments', label: t.payments, icon: Wallet },
     ]

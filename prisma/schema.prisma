@@ -53,6 +53,28 @@ enum OrderSource {
   OTHER
 }
 
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum StockMovementType {
+  STOCK_IN
+  SALE
+  RETURN_GOOD
+  RETURN_DAMAGED
+  ADJUSTMENT
+  CORRECTION
+  WASTE
+}
+
+enum ItemDisposition {
+  GOOD
+  DAMAGED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -103,6 +125,9 @@ model Restaurant {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Feature Management
+  enabledFeatures String[] @default([]) // ["CUSTOM_INVOICE", "ADVANCED_STOCK", "WA_NOTIF"]
+
   // Limits
   maxMenuItems    Int?    @default(15) // Default for Free
   maxAdmins       Int? // Subscription Limits
@@ -113,28 +138,29 @@ model Restaurant {
   allowMaps       Boolean @default(false)
   enableAnalytics Boolean @default(false)
   printerSettings Json? // { paperSize: "58mm" | "80mm", autoPrint: boolean, ... }
+  invoiceSettings Json? // { npwp: string, prefix: string, footer: string, signature: string }
   slugChangeCount Int     @default(0)
   maxSlugChanges  Int     @default(3)
 
   // Tax & Discount Settings
-  taxRate         Float   @default(0) // Percentage, e.g. 11 for 11%
-  discountRate    Float   @default(0) // Percentage, e.g. 10 for 10%
+  taxRate      Float @default(0) // Percentage, e.g. 11 for 11%
+  discountRate Float @default(0) // Percentage, e.g. 10 for 10%
 
   // Relations
   adminId          String
-  admin            User              @relation(fields: [adminId], references: [id])
+  admin            User                  @relation(fields: [adminId], references: [id])
   freeTrialEndsAt  DateTime?
   parentId         String? // For Multi-branch support
-  parent           Restaurant?       @relation("BranchParent", fields: [parentId], references: [id])
-  branches         Restaurant[]      @relation("BranchParent")
+  parent           Restaurant?           @relation("BranchParent", fields: [parentId], references: [id])
+  branches         Restaurant[]          @relation("BranchParent")
   categories       Category[]
   menuItems        MenuItem[]
   paymentMethods   PaymentMethod[]
   orders           Order[]
+  returns          Return[]
+  stockMovements   StockMovement[]
   helpdeskMessages HelpdeskMessage[]
   deletedAt        DateTime? // Soft Delete for Restaurant
-
-  // Subscription payments
   subscriptionPayments SubscriptionPayment[]
 }
 
@@ -171,26 +197,31 @@ model MenuItem {
   isRecommended Boolean @default(false)
 
   // Stock Management
-  isStockManaged Boolean @default(false)
-  stock          Int     @default(0)
-  taxRate        Float   @default(0)
+  isStockManaged    Boolean   @default(false)
+  stock             Int       @default(0)
+  lowStockThreshold Int       @default(5)
+  expiryDate        DateTime?
+  taxRate           Float     @default(0)
 
   // Relations
-  restaurantId String
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  categoryId   String
-  category     Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  orderItems   OrderItem[]
+  restaurantId   String
+  restaurant     Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categoryId     String
+  category       Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
 }
 
 model Order {
-  id            String        @id @default(cuid())
-  orderNumber   String        @unique
-  totalAmount   Float
-  notes         String?
-  tableNumber   String?
-  status        OrderStatus   @default(PENDING)
-  paymentStatus PaymentStatus @default(PENDING)
+  id             String        @id @default(cuid())
+  orderNumber    String        @unique
+  invoiceNumber  String?       @unique
+  invoiceDate    DateTime?
+  totalAmount    Float
+  notes          String?
+  tableNumber    String?
+  status         OrderStatus   @default(PENDING)
+  paymentStatus  PaymentStatus @default(PENDING)
   orderSource    OrderSource   @default(QR_MENU)
   adminNotes     String?
   taxAmount      Float         @default(0)
@@ -205,6 +236,7 @@ model Order {
   restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orderItems   OrderItem[]
   payment      Payment?
+  returns      Return[]
 }
 
 model OrderItem {
@@ -217,9 +249,58 @@ model OrderItem {
 
   // Relations
   orderId    String
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order      Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItemId String
-  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  menuItem   MenuItem     @relation(fields: [menuItemId], references: [id])
+  returnItems ReturnItem[]
+}
+
+model Return {
+  id           String       @id @default(cuid())
+  returnNumber String       @unique
+  reason       String?
+  status       ReturnStatus @default(PENDING)
+  totalRefund  Float        @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  orderId      String
+  order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  restaurantId String
+  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  returnItems  ReturnItem[]
+}
+
+model ReturnItem {
+  id          String          @id @default(cuid())
+  quantity    Int
+  price       Float // Price at time of return
+  disposition ItemDisposition @default(GOOD) // GOOD = back to stock, DAMAGED = waste
+  notes       String?
+
+  // Relations
+  returnId    String
+  return      Return    @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+}
+
+model StockMovement {
+  id           String            @id @default(cuid())
+  type         StockMovementType
+  quantity     Int
+  previousStock Int
+  newStock     Int
+  reason       String?
+  expiryDate   DateTime?
+  createdAt    DateTime          @default(now())
+
+  // Relations
+  menuItemId   String
+  menuItem     MenuItem   @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 }
 
 model PaymentMethod {

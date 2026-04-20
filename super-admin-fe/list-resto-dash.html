@@ -256,6 +256,11 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-end gap-2">
                                         <button
+                                            class="p-2 glass rounded-lg text-slate-400 hover:text-primary hover:border-primary/50 transition-all group/btn"
+                                            title="Manage Features" onclick="openFeatureModal('Rotbar Pusat')">
+                                            <span class="material-symbols-outlined text-lg">extension</span>
+                                        </button>
+                                        <button
                                             class="p-2 glass rounded-lg text-slate-400 hover:text-white hover:border-primary/50 transition-all group/btn"
                                             title="Quick Edit">
                                             <span class="material-symbols-outlined text-lg">edit_square</span>
@@ -499,6 +504,78 @@
                     </div>
                 </div>
             </div>
+            <!-- Feature Management Modal -->
+            <div id="featureModal" class="fixed inset-0 z-[100] hidden">
+                <div class="absolute inset-0 bg-background-dark/80 backdrop-blur-sm" onclick="closeFeatureModal()"></div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6">
+                    <div class="glass rounded-3xl border border-white/10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div class="p-6 border-b border-white/5 flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-lg text-white">Manage Features</h3>
+                                <p id="modalRestoName" class="text-xs text-primary font-bold uppercase tracking-wider"></p>
+                            </div>
+                            <button onclick="closeFeatureModal()" class="text-slate-500 hover:text-white">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-primary/30 transition-all group">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl">
+                                        <span class="material-symbols-outlined">receipt</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm">Custom Invoice</p>
+                                        <p class="text-[10px] text-slate-500">Professional sales invoice & WA</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input class="sr-only peer" type="checkbox" id="feat-invoice" />
+                                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-primary/30 transition-all group">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2.5 bg-purple-500/20 text-purple-400 rounded-xl">
+                                        <span class="material-symbols-outlined">inventory_2</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm">Advanced Stock</p>
+                                        <p class="text-[10px] text-slate-500">Mutasi, Expiry, and Returns</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input class="sr-only peer" type="checkbox" id="feat-stock" />
+                                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-white/[0.02] border-t border-white/5 flex gap-3">
+                            <button onclick="closeFeatureModal()" class="flex-1 px-4 py-2.5 glass rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all">Cancel</button>
+                            <button onclick="saveFeatures()" class="flex-1 px-4 py-2.5 bg-primary hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-primary/20 transition-all">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function openFeatureModal(restoName) {
+                    document.getElementById('modalRestoName').innerText = restoName;
+                    document.getElementById('featureModal').classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                }
+
+                function closeFeatureModal() {
+                    document.getElementById('featureModal').classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
+
+                function saveFeatures() {
+                    alert('Features updated for ' + document.getElementById('modalRestoName').innerText);
+                    closeFeatureModal();
+                }
+            </script>
         </main>
     </div>
     <div
