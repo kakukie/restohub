@@ -179,7 +179,7 @@ export async function PUT(
             'detailAddress', 'googleMapsUrl', 'latitude', 'longitude',
             'allowMaps', 'enableAnalytics', 'printerSettings',
             'maxCategories', 'maxMenuItems', 'maxBranches', 'maxStaff', 'maxAdmins', 'package', 'allowBranches', 'maxSlugChanges',
-            'activeUntil'
+            'activeUntil', 'enabledFeatures'
         ]
 
         const cleanUpdates: any = {}

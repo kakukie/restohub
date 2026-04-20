@@ -2049,6 +2049,7 @@ export default function RestaurantAdminDashboard() {
                 language={language as 'en' | 'id'}
                 onToggleLanguage={() => setLanguage(language === 'en' ? 'id' : 'en')}
                 pendingOrderCount={orders.filter(o => o.status === 'PENDING').length}
+                enabledFeatures={currentRestaurant?.enabledFeatures || []}
             />
 
             <main className="w-full lg:ml-24 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
@@ -2069,6 +2070,68 @@ export default function RestaurantAdminDashboard() {
                         <p className="text-sm mt-1">{t('pleaseRelogin')}</p>
                     </div>
                 )}
+
+                {activeTab === 'invoices' && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div>
+                                        <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Invoice Management</h2>
+                                        <p className="text-slate-500 font-medium">Kelola faktur penjualan dan pengiriman WhatsApp</p>
+                                    </div>
+                                    <Button className="bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 px-6 py-6 rounded-2xl font-bold" onClick={() => setManualOrderDialogOpen(true)}>
+                                        <Plus className="w-5 h-5 mr-2" /> {t('newOrder')} / Invoice
+                                    </Button>
+                                </div>
+
+                                <Card className="border-slate-200 dark:border-slate-800 shadow-xl rounded-3xl overflow-hidden">
+                                    <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Receipt className="w-5 h-5 text-emerald-500" />
+                                            Sales Invoices
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-6">
+                                        <div className="space-y-3">
+                                            {orders.filter(o => o.status !== 'CANCELLED').length === 0 ? (
+                                                <div className="text-center py-10 text-slate-500 italic">Belum ada invoice yang diterbitkan.</div>
+                                            ) : (
+                                                orders.filter(o => o.status !== 'CANCELLED').map(order => (
+                                                    <div key={order.id} className="group flex flex-col md:flex-row items-start md:items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-emerald-500/50 transition-all shadow-sm hover:shadow-md">
+                                                        <div className="flex items-center gap-4 mb-4 md:mb-0">
+                                                            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600">
+                                                                <FileText className="w-6 h-6" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                                                    {order.invoiceNumber || order.orderNumber}
+                                                                </p>
+                                                                <p className="text-xs font-bold text-slate-400 mt-0.5">
+                                                                    {new Date(order.createdAt).toLocaleString('id-ID')} • {order.customerName}
+                                                                </p>
+                                                                <Badge variant="outline" className="mt-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-none">
+                                                                    Rp {order.totalAmount.toLocaleString('id-ID')}
+                                                                </Badge>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 w-full md:w-auto">
+                                                            <Button variant="outline" size="sm" className="flex-1 md:flex-none rounded-xl" onClick={() => setViewOrder(order)}>
+                                                                <Eye className="w-4 h-4 mr-2" /> Detail
+                                                            </Button>
+                                                            <Button variant="outline" size="sm" className="flex-1 md:flex-none rounded-xl" onClick={() => handlePrintOrder(order)}>
+                                                                <Printer className="w-4 h-4 mr-2" /> Print
+                                                            </Button>
+                                                            <Button className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20" size="sm" onClick={() => handleSendInvoice(order.id)}>
+                                                                <FileText className="w-4 h-4 mr-2" /> WA
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
 
                 {activeTab === 'dashboard' && renderDashboardContent()}
                 {activeTab === 'menu' && renderMenuContent()}

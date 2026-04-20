@@ -36,6 +36,7 @@ interface SidebarProps {
     language?: 'en' | 'id'
     onToggleLanguage?: () => void
     pendingOrderCount?: number
+    enabledFeatures?: string[]
 }
 
 const translations = {
@@ -51,6 +52,7 @@ const translations = {
         staff: "Staff",
         helpdesk: "Helpdesk",
         stock: "Stock",
+        invoices: "Invoices",
         more: "More"
     },
     id: {
@@ -65,11 +67,12 @@ const translations = {
         staff: "Staf",
         helpdesk: "Bantuan",
         stock: "Stok",
+        invoices: "Invoice",
         more: "Lainnya"
     }
 }
 
-export default function Sidebar({ activeTab, setActiveTab, user, onLogout, language = 'en', onToggleLanguage, pendingOrderCount = 0 }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, user, onLogout, language = 'en', onToggleLanguage, pendingOrderCount = 0, enabledFeatures = [] }: SidebarProps) {
     const t = translations[language]
     const { theme, setTheme } = useTheme()
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -81,6 +84,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
         { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
         { id: 'orders', label: t.orders, icon: Receipt, badge: pendingOrderCount },
         { id: 'stock', label: t.stock, icon: Package },
+        ...(enabledFeatures.includes('CUSTOM_INVOICE') ? [{ id: 'invoices', label: t.invoices, icon: Receipt }] : []),
         { id: 'menu', label: t.menu, icon: UtensilsCrossed },
         { id: 'payments', label: t.payments, icon: Wallet },
     ]
