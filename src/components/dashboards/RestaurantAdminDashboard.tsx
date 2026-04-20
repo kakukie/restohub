@@ -368,6 +368,9 @@ export default function RestaurantAdminDashboard() {
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to update order", variant: "destructive" })
+        } finally {
+            setUpdatingOrderId(null)
+        }
     }
 
     const handleSendInvoice = async (orderId: string) => {
