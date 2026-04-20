@@ -257,7 +257,7 @@
                                     <div class="flex items-center justify-end gap-2">
                                         <button
                                             class="p-2 glass rounded-lg text-slate-400 hover:text-primary hover:border-primary/50 transition-all group/btn"
-                                            title="Manage Features" onclick="openFeatureModal('Rotbar Pusat')">
+                                            title="Manage Features" onclick="openFeatureModal('resto_id_here', 'Rotbar Pusat', [])">
                                             <span class="material-symbols-outlined text-lg">extension</span>
                                         </button>
                                         <button
@@ -560,8 +560,16 @@
             </div>
 
             <script>
-                function openFeatureModal(restoName) {
+                let currentRestoId = null;
+
+                function openFeatureModal(restoId, restoName, enabledFeatures = []) {
+                    currentRestoId = restoId;
                     document.getElementById('modalRestoName').innerText = restoName;
+                    
+                    // Reset checkboxes
+                    document.getElementById('feat-invoice').checked = enabledFeatures.includes('CUSTOM_INVOICE');
+                    document.getElementById('feat-stock').checked = enabledFeatures.includes('ADVANCED_STOCK');
+                    
                     document.getElementById('featureModal').classList.remove('hidden');
                     document.body.style.overflow = 'hidden';
                 }
@@ -571,9 +579,38 @@
                     document.body.style.overflow = 'auto';
                 }
 
-                function saveFeatures() {
-                    alert('Features updated for ' + document.getElementById('modalRestoName').innerText);
-                    closeFeatureModal();
+                async function saveFeatures() {
+                    if (!currentRestoId) return;
+
+                    const features = [];
+                    if (document.getElementById('feat-invoice').checked) features.push('CUSTOM_INVOICE');
+                    if (document.getElementById('feat-stock').checked) features.push('ADVANCED_STOCK');
+
+                    const btn = event.target;
+                    const originalText = btn.innerText;
+                    btn.innerText = 'Saving...';
+                    btn.disabled = true;
+
+                    try {
+                        const res = await fetch(`/api/admin/restaurants/${currentRestoId}/features`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ features })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            alert('Features updated successfully!');
+                            closeFeatureModal();
+                            location.reload(); // Reload to reflect changes if needed
+                        } else {
+                            alert('Error: ' + (data.error || 'Failed to update'));
+                        }
+                    } catch (e) {
+                        alert('Network error occurred');
+                    } finally {
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }
                 }
             </script>
         </main>
