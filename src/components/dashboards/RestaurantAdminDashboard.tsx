@@ -2157,7 +2157,7 @@ export default function RestaurantAdminDashboard() {
                 {activeTab === 'menu' && renderMenuContent()}
                 {activeTab === 'categories' && renderCategoriesContent()}
                 {activeTab === 'orders' && renderOrdersContent()}
-                {activeTab === 'analytics' && renderAnalyticsContent()}
+                {activeTab === 'analytics' && currentRestaurant?.enabledFeatures?.includes('ADVANCED_ANALYTICS') && renderAnalyticsContent()}
                 {activeTab === 'payments' && renderPaymentsContent()}
                 {activeTab === 'staff' && (
                     <StaffManagement

@@ -91,7 +91,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
 
     const moreNavItems = [
         { id: 'categories', label: t.categories, icon: Package },
-        { id: 'analytics', label: t.analytics, icon: Package },
+        ...(enabledFeatures.includes('ADVANCED_ANALYTICS') ? [{ id: 'analytics', label: t.analytics, icon: Package }] : []),
         { id: 'settings', label: t.settings, icon: Settings },
         { id: 'staff', label: t.staff, icon: UserIcon },
         { id: 'helpdesk', label: t.helpdesk, icon: LifeBuoy },

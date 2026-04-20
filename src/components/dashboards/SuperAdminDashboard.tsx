@@ -2185,48 +2185,6 @@ export default function SuperAdminDashboard() {
                     />
                   </div>
                 </div>
-                <div className="flex items-center space-x-2 py-2">
-                  <input
-                    type="checkbox"
-                    id="allowBranches"
-                    className="h-4 w-4 rounded border-gray-300 dark:border-slate-700 dark:bg-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white"
-                    checked={restaurantForm.allowBranches || false}
-                    onChange={(e) => setRestaurantForm({ ...restaurantForm, allowBranches: e.target.checked })}
-                  />
-                  <Label htmlFor="allowBranches" className="cursor-pointer dark:text-white">Allow Multi-Branch?</Label>
-                </div>
-                {restaurantForm.allowBranches && (
-                  <div className="space-y-2 ml-6">
-                    <Label className="dark:text-white">Max Branches (0 = Unlimited)</Label>
-                    <Input
-                      className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                      type="number"
-                      value={restaurantForm.maxBranches || 0}
-                      onChange={(e) => setRestaurantForm({ ...restaurantForm, maxBranches: parseInt(e.target.value) || 0 })}
-                      placeholder="Unlimited"
-                    />
-                  </div>
-                )}
-                <div className="flex items-center space-x-2 py-2">
-                  <input
-                    type="checkbox"
-                    id="allowMaps"
-                    className="h-4 w-4 rounded border-gray-300 dark:border-slate-700 dark:bg-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white"
-                    checked={restaurantForm.allowMaps || false}
-                    onChange={(e) => setRestaurantForm({ ...restaurantForm, allowMaps: e.target.checked })}
-                  />
-                  <Label htmlFor="allowMaps" className="cursor-pointer dark:text-white">Allow Google Maps?</Label>
-                </div>
-                <div className="flex items-center space-x-2 py-2">
-                  <input
-                    type="checkbox"
-                    id="enableAnalytics"
-                    className="h-4 w-4 rounded border-gray-300 dark:border-slate-700 dark:bg-slate-800 text-emerald-600 focus:ring-emerald-500 bg-white"
-                    checked={restaurantForm.enableAnalytics || false}
-                    onChange={(e) => setRestaurantForm({ ...restaurantForm, enableAnalytics: e.target.checked })}
-                  />
-                  <Label htmlFor="enableAnalytics" className="cursor-pointer dark:text-white">Enable Advanced Analytics?</Label>
-                </div>
 
                 <div className="pt-4 pb-2 border-t dark:border-slate-800">
                   <h4 className="text-sm font-bold mb-3 dark:text-white uppercase tracking-wider text-primary">Modular Features</h4>
@@ -2272,6 +2230,86 @@ export default function SuperAdminDashboard() {
                             : current.filter(f => f !== 'ADVANCED_STOCK');
                           setRestaurantForm({ ...restaurantForm, enabledFeatures: updated });
                         }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
+                          <CheckCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">Multi-Branch</p>
+                          <p className="text-[10px] text-slate-400">Manage multiple restaurant outlets</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={restaurantForm.allowBranches || false}
+                        onCheckedChange={(checked) => {
+                          const current = restaurantForm.enabledFeatures || [];
+                          const updated = checked 
+                            ? [...current.filter(f => f !== 'MULTI_BRANCH'), 'MULTI_BRANCH']
+                            : current.filter(f => f !== 'MULTI_BRANCH');
+                          setRestaurantForm({ 
+                            ...restaurantForm, 
+                            allowBranches: checked, 
+                            enabledFeatures: updated 
+                          });
+                        }}
+                      />
+                    </div>
+
+                    {restaurantForm.allowBranches && (
+                      <div className="bg-slate-800/20 p-3 rounded-xl border border-slate-700/30 ml-4 animate-in slide-in-from-top-2">
+                        <Label className="text-xs font-bold dark:text-slate-400 uppercase">Max Branches (0 = Unlimited)</Label>
+                        <Input
+                          className="mt-1 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                          type="number"
+                          value={restaurantForm.maxBranches || 0}
+                          onChange={(e) => setRestaurantForm({ ...restaurantForm, maxBranches: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-orange-500/20 text-orange-400 rounded-lg">
+                          <CheckCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">Advanced Analytics</p>
+                          <p className="text-[10px] text-slate-400">Deep reports & sales insights</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={restaurantForm.enableAnalytics || false}
+                        onCheckedChange={(checked) => {
+                          const current = restaurantForm.enabledFeatures || [];
+                          const updated = checked 
+                            ? [...current.filter(f => f !== 'ADVANCED_ANALYTICS'), 'ADVANCED_ANALYTICS']
+                            : current.filter(f => f !== 'ADVANCED_ANALYTICS');
+                          setRestaurantForm({ 
+                            ...restaurantForm, 
+                            enableAnalytics: checked,
+                            enabledFeatures: updated 
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-slate-500/20 text-slate-400 rounded-lg">
+                          <CheckCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">Google Maps</p>
+                          <p className="text-[10px] text-slate-400">Show location on QR Menu</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={restaurantForm.allowMaps || false}
+                        onCheckedChange={(checked) => setRestaurantForm({ ...restaurantForm, allowMaps: checked })}
                       />
                     </div>
                   </div>
