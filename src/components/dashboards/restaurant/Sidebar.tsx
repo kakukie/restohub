@@ -83,7 +83,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
     const mainNavItems = [
         { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard },
         { id: 'orders', label: t.orders, icon: Receipt, badge: pendingOrderCount },
-        { id: 'stock', label: t.stock, icon: Package },
+        ...(enabledFeatures.includes('ADVANCED_STOCK') ? [{ id: 'stock', label: t.stock, icon: Package }] : []),
         ...(enabledFeatures.includes('CUSTOM_INVOICE') ? [{ id: 'invoices', label: t.invoices, icon: Receipt }] : []),
         { id: 'menu', label: t.menu, icon: UtensilsCrossed },
         { id: 'payments', label: t.payments, icon: Wallet },

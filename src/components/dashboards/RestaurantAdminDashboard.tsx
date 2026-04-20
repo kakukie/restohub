@@ -2091,7 +2091,7 @@ export default function RestaurantAdminDashboard() {
                     </div>
                 )}
 
-                {activeTab === 'invoices' && (
+                {activeTab === 'invoices' && currentRestaurant?.enabledFeatures?.includes('CUSTOM_INVOICE') && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                     <div>
@@ -2167,7 +2167,7 @@ export default function RestaurantAdminDashboard() {
                 )}
                 {activeTab === 'settings' && renderSettingsContent()}
                 {activeTab === 'helpdesk' && <HelpdeskChat role="RESTAURANT_ADMIN" />}
-                {activeTab === 'stock' && (
+                {activeTab === 'stock' && currentRestaurant?.enabledFeatures?.includes('ADVANCED_STOCK') && (
                     <StockManagement 
                         restaurantId={user?.restaurantId || ''} 
                         menuItems={menuItems} 
