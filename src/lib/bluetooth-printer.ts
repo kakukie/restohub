@@ -250,38 +250,106 @@ export class CapacitorBluetoothPrinterService {
     }
 
     /**
+     * Fetch an image from URL and convert to ImageData for ESC/POS printing.
+     * Optimized for 58mm/80mm thermal printers.
+     */
+    private async getImageData(url: string, maxWidth = 250): Promise<ImageData | null> {
+        if (typeof window === 'undefined') return null;
+        
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Resize if too wide
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                if (!ctx) {
+                    resolve(null);
+                    return;
+                }
+
+                // Draw white background (thermal printers don't do transparency well)
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const imageData = ctx.getImageData(0, 0, width, height);
+                resolve(imageData);
+            };
+            img.onerror = () => {
+                console.warn("Failed to load logo image for printing:", url);
+                resolve(null);
+            };
+            img.src = url;
+        });
+    }
+
+    /**
      * Build ESC/POS receipt bytes.
      */
-    buildReceipt(order: any, restaurant: any): Uint8Array {
+    async buildReceipt(order: any, restaurant: any): Promise<Uint8Array> {
         const encoder = new EscPosEncoder();
         let receipt = encoder.initialize()
             .codepage('cp858')
             .align('center');
 
+        // 1. Logo
+        const logoUrl = restaurant?.logo;
+        if (logoUrl) {
+            try {
+                const imageData = await this.getImageData(logoUrl);
+                if (imageData) {
+                    receipt = receipt.image(imageData, imageData.width, imageData.height, 'atkinson', 128);
+                    receipt = receipt.newline();
+                }
+            } catch (e) {
+                console.error("Error processing logo for receipt:", e);
+            }
+        }
+
+        // 2. Header Information
         if (restaurant?.name) {
-            receipt = receipt.bold(true).text(restaurant.name).newline().bold(false);
+            receipt = receipt.bold(true).size('normal').text(restaurant.name.toUpperCase()).newline().bold(false);
         }
         if (restaurant?.address) {
             receipt = receipt.text(restaurant.address).newline();
         }
         if (restaurant?.phone) {
-            receipt = receipt.text(restaurant.phone).newline();
+            receipt = receipt.text(`Telp: ${restaurant.phone}`).newline();
         }
 
         receipt = receipt.newline().line('-').newline();
+
+        // 3. Order Metadata
         receipt = receipt.align('left')
-            .text(`No: #${order.orderNumber}`).newline()
+            .text(`No: #${order.orderNumber || order.id}`).newline()
             .text(`Tgl: ${new Date(order.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'short' })}`).newline()
             .text(`Cust: ${order.customerName || 'Guest'}`).newline()
             .text(`Tipe: ${order.tableNumber ? `Meja ${order.tableNumber}` : 'Takeaway'}`).newline();
 
         receipt = receipt.newline().line('-').newline();
 
+        // 4. Order Items
         if (order.items && order.items.length > 0) {
             order.items.forEach((item: any) => {
                 const itemTotal = item.price * item.quantity;
-                receipt = receipt.text(`${item.quantity}x ${item.menuItemName || item.name || ''}`).newline();
-                receipt = receipt.align('right').text(`Rp ${(itemTotal).toLocaleString('id-ID')}`).newline().align('left');
+                const nameLine = `${item.quantity}x ${item.menuItemName || item.name || ''}`;
+                receipt = receipt.text(nameLine).newline();
+                
+                // Price on the right
+                const priceText = `Rp ${(itemTotal).toLocaleString('id-ID')}`;
+                receipt = receipt.align('right').text(priceText).newline().align('left');
+                
                 if (item.notes) {
                     receipt = receipt.text(`  catatan: ${item.notes}`).newline();
                 }
@@ -289,11 +357,15 @@ export class CapacitorBluetoothPrinterService {
         }
 
         receipt = receipt.newline().line('-').newline();
+
+        // 5. Totals
         receipt = receipt.align('right').bold(true)
             .text(`TOTAL: Rp ${order.totalAmount.toLocaleString('id-ID')}`).newline()
             .bold(false).align('center');
 
         receipt = receipt.newline().line('-').newline();
+
+        // 6. Footer
         receipt = receipt.text("Terima kasih atas kunjungan Anda!").newline()
             .text("Layanan Menu Digital oleh Meenuin").newline();
 
@@ -343,7 +415,7 @@ export class CapacitorBluetoothPrinterService {
      * Print a receipt.
      */
     async printReceipt(order: any, restaurant: any): Promise<void> {
-        const data = this.buildReceipt(order, restaurant);
+        const data = await this.buildReceipt(order, restaurant);
         await this.writeData(data);
     }
 

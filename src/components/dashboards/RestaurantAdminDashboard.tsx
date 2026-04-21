@@ -627,7 +627,8 @@ export default function RestaurantAdminDashboard() {
             const restaurantData = {
                 name: currentRestaurant?.name || 'Restaurant',
                 address: currentRestaurant?.address || '',
-                phone: currentRestaurant?.phone || ''
+                phone: currentRestaurant?.phone || '',
+                logo: currentRestaurant?.logo || null
             };
 
             // === Path 1: Native Android bridge (PrinterBridge.java via WebView) ===
@@ -716,8 +717,8 @@ export default function RestaurantAdminDashboard() {
             // 3) Fallback: Browser print dialog / PDF
             const printWindow = window.open('', '_blank')
             if (printWindow) {
-                const logoHtml = currentRestaurant?.logoUrl
-                    ? `<div style=\"text-align: center; margin-bottom: 10px;\"><img src=\"${currentRestaurant.logoUrl}\" style=\"max-height: 50px; border-radius: 8px;\" /></div>`
+                const logoHtml = currentRestaurant?.logo
+                    ? `<div style="text-align: center; margin-bottom: 12px;"><img src="${currentRestaurant.logo}" style="max-height: 60px; max-width: 100%; object-fit: contain;" /></div>`
                     : '';
 
                 printWindow.document.write(`
@@ -788,8 +789,8 @@ export default function RestaurantAdminDashboard() {
                         <div class="dashed-line"></div>
                         
                         <div class="footer">
-                            <p>Terima kasih atas kunjungan Anda!</p>
-                            <p>Layanan Menu Digital oleh Meenuin</p>
+                            <p style="font-weight: bold; margin-bottom: 5px;">Terima kasih atas kunjungan Anda!</p>
+                            <p style="font-size: 8px; color: #666;">Layanan Menu Digital oleh Meenuin</p>
                         </div>
                     </body>
                     </html>

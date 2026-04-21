@@ -40,38 +40,40 @@ export const printReceipt = async (characteristic: any, order: any, restaurantNa
 
     // Header
     center()
+    boldOn()
     bigOn()
-    text(restaurantName)
+    text(restaurantName.toUpperCase())
     bigOff()
-    text('--------------------------------')
+    boldOff()
+    text('================================')
 
     // Order Info
     left()
-    text(`Order #${order.orderNumber}`)
+    text(`Order #${order.orderNumber || order.id}`)
     text(`Tgl: ${new Date(order.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'short' })}`)
     text(`Table: ${order.tableNumber || 'Takeaway'}`)
-    text(`Cust: ${order.customerName}`)
+    text(`Cust: ${order.customerName || 'Guest'}`)
     text('--------------------------------')
 
     // Items
     order.items.forEach((item: any) => {
-        let line = `${item.quantity}x ${item.menuItemName}`
-        // Simple wrapping logic could go here, for now truncate or let wrap
+        let line = `${item.quantity}x ${item.menuItemName || item.name}`
         text(line)
         if (item.notes) text(`   Note: ${item.notes}`)
         const price = new Intl.NumberFormat('id-ID').format(item.price * item.quantity)
-        text(price.padStart(32)) // Right align price loosely
+        text(`Rp ${price}`.padStart(32))
     })
 
     text('--------------------------------')
     boldOn()
     const total = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.totalAmount)
-    text(`TOTAL: ${total}`)
+    text(`TOTAL: ${total}`.padStart(32))
     boldOff()
-    text('--------------------------------')
+    text('================================')
 
     center()
-    text('Thank You!')
+    text('Terima Kasih!')
+    text('Powered by Meenuin')
     text('\n\n\n') // Feed
 
     // Send chunks
