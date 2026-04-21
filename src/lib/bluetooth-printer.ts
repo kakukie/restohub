@@ -251,46 +251,75 @@ export class CapacitorBluetoothPrinterService {
 
     /**
      * Fetch an image from URL and convert to ImageData for ESC/POS printing.
-     * Optimized for 58mm/80mm thermal printers.
      */
-    private async getImageData(url: string, maxWidth = 250): Promise<ImageData | null> {
+    private async getImageData(url: string, maxWidth = 180): Promise<ImageData | null> {
         if (typeof window === 'undefined') return null;
         
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
+        return new Promise(async (resolve) => {
+            try {
+                // Try fetching first to handle potential CORS issues better
+                const response = await fetch(url, { mode: 'cors' });
+                const blob = await response.blob();
+                const objectURL = URL.createObjectURL(blob);
+                
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
 
-                // Resize if too wide
-                if (width > maxWidth) {
-                    height *= maxWidth / width;
-                    width = maxWidth;
-                }
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
 
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                if (!ctx) {
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    if (!ctx) {
+                        URL.revokeObjectURL(objectURL);
+                        resolve(null);
+                        return;
+                    }
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const imageData = ctx.getImageData(0, 0, width, height);
+                    URL.revokeObjectURL(objectURL);
+                    resolve(imageData);
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(objectURL);
                     resolve(null);
-                    return;
-                }
-
-                // Draw white background (thermal printers don't do transparency well)
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, width, height);
-                ctx.drawImage(img, 0, 0, width, height);
-
-                const imageData = ctx.getImageData(0, 0, width, height);
-                resolve(imageData);
-            };
-            img.onerror = () => {
-                console.warn("Failed to load logo image for printing:", url);
-                resolve(null);
-            };
-            img.src = url;
+                };
+                img.src = objectURL;
+            } catch (e) {
+                console.warn("Fetch failed for logo, trying direct Image load:", e);
+                // Fallback to direct Image load
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) { resolve(null); return; }
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(ctx.getImageData(0, 0, width, height));
+                };
+                img.onerror = () => resolve(null);
+                img.src = url;
+            }
         });
     }
 
@@ -299,28 +328,28 @@ export class CapacitorBluetoothPrinterService {
      */
     async buildReceipt(order: any, restaurant: any): Promise<Uint8Array> {
         const encoder = new EscPosEncoder();
+        const lineWidth = 32; // Standard for 58mm
+        
         let receipt = encoder.initialize()
             .codepage('cp858')
             .align('center');
 
         // 1. Logo
-        const logoUrl = restaurant?.logo || restaurant?.logoUrl || restaurant?.image;
+        const logoUrl = restaurant?.logo || restaurant?.logoUrl;
         if (logoUrl) {
             try {
-                const imageData = await this.getImageData(logoUrl);
+                const imageData = await this.getImageData(logoUrl, 160); // Smaller logo for reliability
                 if (imageData) {
-                    // Use 'threshold' for better compatibility and speed on thermal printers
                     receipt = receipt.image(imageData, imageData.width, imageData.height, 'threshold', 128);
                     receipt = receipt.newline();
                 }
-            } catch (e) {
-                console.warn("Logo printing skipped due to error:", e);
-            }
+            } catch (e) {}
         }
 
         // 2. Header Information
+        receipt = receipt.align('center');
         if (restaurant?.name) {
-            receipt = receipt.bold(true).size('normal').text(restaurant.name.toUpperCase()).newline().bold(false);
+            receipt = receipt.bold(true).text(restaurant.name.toUpperCase()).newline().bold(false);
         }
         if (restaurant?.address) {
             receipt = receipt.text(restaurant.address).newline();
@@ -329,45 +358,56 @@ export class CapacitorBluetoothPrinterService {
             receipt = receipt.text(`Telp: ${restaurant.phone}`).newline();
         }
 
-        receipt = receipt.newline().line('-').newline();
+        receipt = receipt.text('-'.repeat(lineWidth)).newline();
 
         // 3. Order Metadata
         receipt = receipt.align('left')
-            .text(`No: #${order.orderNumber || order.id}`).newline()
+            .text(`No: #${order.orderNumber || order.id.slice(-8).toUpperCase()}`).newline()
             .text(`Tgl: ${new Date(order.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'short' })}`).newline()
             .text(`Cust: ${order.customerName || 'Guest'}`).newline()
             .text(`Tipe: ${order.tableNumber ? `Meja ${order.tableNumber}` : 'Takeaway'}`).newline();
 
-        receipt = receipt.newline().line('-').newline();
+        receipt = receipt.text('-'.repeat(lineWidth)).newline();
 
         // 4. Order Items
         if (order.items && order.items.length > 0) {
             order.items.forEach((item: any) => {
                 const itemTotal = item.price * item.quantity;
-                const nameLine = `${item.quantity}x ${item.menuItemName || item.name || ''}`;
-                receipt = receipt.text(nameLine).newline();
+                const name = `${item.quantity}x ${item.menuItemName || item.name || ''}`;
+                const price = `Rp ${itemTotal.toLocaleString('id-ID')}`;
                 
-                // Price on the right
-                const priceText = `Rp ${(itemTotal).toLocaleString('id-ID')}`;
-                receipt = receipt.align('right').text(priceText).newline().align('left');
+                // If name + price fits on one line, use padding. Else split.
+                if (name.length + price.length + 1 <= lineWidth) {
+                    const padding = lineWidth - name.length - price.length;
+                    receipt = receipt.text(name + ' '.repeat(padding) + price).newline();
+                } else {
+                    receipt = receipt.text(name).newline();
+                    const padding = lineWidth - price.length;
+                    receipt = receipt.text(' '.repeat(padding) + price).newline();
+                }
                 
                 if (item.notes) {
-                    receipt = receipt.text(`  catatan: ${item.notes}`).newline();
+                    receipt = receipt.text(`  (${item.notes})`).newline();
                 }
             });
         }
 
-        receipt = receipt.newline().line('-').newline();
+        receipt = receipt.text('-'.repeat(lineWidth)).newline();
 
         // 5. Totals
-        receipt = receipt.align('right').bold(true)
-            .text(`TOTAL: Rp ${order.totalAmount.toLocaleString('id-ID')}`).newline()
-            .bold(false).align('center');
+        const totalLabel = "TOTAL:";
+        const totalVal = `Rp ${order.totalAmount.toLocaleString('id-ID')}`;
+        const totalPadding = lineWidth - totalLabel.length - totalVal.length;
+        
+        receipt = receipt.align('left').bold(true)
+            .text(totalLabel + ' '.repeat(Math.max(0, totalPadding)) + totalVal).newline()
+            .bold(false);
 
-        receipt = receipt.newline().line('-').newline();
+        receipt = receipt.text('-'.repeat(lineWidth)).newline();
 
         // 6. Footer
-        receipt = receipt.text("Terima kasih atas kunjungan Anda!").newline()
+        receipt = receipt.align('center')
+            .text("Terima kasih atas kunjungan Anda!").newline()
             .text("Layanan Menu Digital oleh Meenuin").newline();
 
         receipt = receipt.newline().newline().newline().cut().encode();

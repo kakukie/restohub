@@ -738,21 +738,23 @@ export default function RestaurantAdminDashboard() {
                             }
                             body { 
                                 font-family: 'Courier New', Courier, monospace; 
-                                line-height: 1.2;
+                                line-height: 1.4;
                                 font-size: 12px;
-                                width: 58mm; /* Default to 58mm width */
+                                width: 58mm;
                                 margin: 0 auto;
                                 color: #000;
+                                padding: 5px;
                             }
                             .header { text-align: center; margin-bottom: 10px; }
-                            .logo { max-height: 40px; margin-bottom: 5px; }
+                            .logo { max-height: 60px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
                             .center { text-align: center; }
-                            .dashed-line { border-top: 1px dashed #000; margin: 8px 0; }
-                            .item { display: flex; justify-content: space-between; margin: 2px 0; }
-                            .item-name { flex: 1; padding-right: 5px; }
-                            .item-price { white-space: nowrap; }
-                            .total { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-top: 5px; }
-                            .footer { text-align: center; margin-top: 15px; font-size: 10px; }
+                            .dashed-line { border-top: 1px dashed #000; margin: 10px 0; }
+                            .item { margin: 5px 0; }
+                            .item-row { display: flex; justify-content: space-between; align-items: flex-start; }
+                            .item-name { flex: 1; }
+                            .item-price { margin-left: 10px; font-weight: bold; }
+                            .total { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-top: 10px; border-top: 1px solid #000; padding-top: 5px; }
+                            .footer { text-align: center; margin-top: 20px; font-size: 10px; }
                         </style>
                     </head>
                     <body>
@@ -774,10 +776,12 @@ export default function RestaurantAdminDashboard() {
 
                         ${order.items.map((item: any) => `
                             <div class="item">
-                                <span class="item-name">${item.quantity}x ${item.menuItemName}</span>
-                                <span class="item-price">Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                                <div class="item-row">
+                                    <span class="item-name">${item.quantity}x ${item.menuItemName}</span>
+                                    <span class="item-price">Rp${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                                </div>
+                                ${item.notes ? `<div style="font-size: 10px; font-style: italic; margin-left: 20px; color: #444;">- ${item.notes}</div>` : ''}
                             </div>
-                            ${item.notes ? `<div style="font-size: 10px; font-style: italic; margin-left: 10px;">- ${item.notes}</div>` : ''}
                         `).join('')}
 
                         <div class="dashed-line"></div>
