@@ -26,8 +26,8 @@ export const metadata: Metadata = {
   keywords: ["Meenuin", "Restaurant", "SaaS", "Menu Management", "QRIS", "E-wallet", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui"],
   authors: [{ name: "Meenuin Team" }],
   icons: {
-    icon: "/icon-192x192.png",
-    apple: "/icon-192x192.png",
+    icon: "/icon-192x192.png?v=3",
+    apple: "/icon-192x192.png?v=3",
   },
   manifest: "/manifest.json",
   openGraph: {
