@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useAppStore } from '@/store/app-store'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { toast } from '@/hooks/use-toast'
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
@@ -193,11 +194,15 @@ function LoginPageContent() {
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                 }}>
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="bg-white p-2 rounded-lg">
-                            <span className="material-symbols-rounded text-[#00a669] text-3xl">restaurant</span>
-                        </div>
-                        <span className="text-2xl font-extrabold tracking-tight">{platformName}</span>
+                    <Link href="/" className="flex items-center gap-2 mb-12">
+                        <Image 
+                          src="/logo.png" 
+                          alt={platformName} 
+                          width={180} 
+                          height={56} 
+                          className="h-12 w-auto object-contain bg-white p-2 rounded-xl"
+                          priority
+                        />
                     </Link>
                     <div className="max-w-md">
                         <div className="mb-8">
@@ -262,11 +267,13 @@ function LoginPageContent() {
                             <>
                                 <div className="lg:hidden flex justify-center mb-8">
                             <Link href="/" className="flex items-center gap-2">
-                                <div className="bg-[#00a669] p-2 rounded-lg">
-                                    <span className="material-symbols-rounded text-white text-2xl">restaurant</span>
-                                </div>
-                                <span
-                                    className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{platformName}</span>
+                                <Image 
+                                  src="/logo.png" 
+                                  alt={platformName} 
+                                  width={160} 
+                                  height={50} 
+                                  className="h-10 w-auto object-contain"
+                                />
                             </Link>
                         </div>
                         <div className="mb-10 text-center lg:text-left">

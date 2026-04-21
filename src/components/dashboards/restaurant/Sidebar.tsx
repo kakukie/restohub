@@ -15,6 +15,7 @@ import {
     ChevronDown,
     LifeBuoy
 } from 'lucide-react'
+import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import {
     DropdownMenu,
@@ -134,7 +135,13 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
             {/* Desktop Logo Area */}
             <div className="hidden lg:flex items-center gap-3 p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
                 <div className="flex items-center justify-between w-full h-[60px] cursor-pointer hover:bg-slate-100 dark:hover:bg-[#1A2235] rounded-xl px-4 transition-colors group">
-                    <h1 className="font-bold text-xl text-slate-900 dark:text-white leading-tight">{helpdeskSettings?.platformName || 'Meenuin'}</h1>
+                    <Image 
+                      src="/logo.png" 
+                      alt="Logo" 
+                      width={140} 
+                      height={40} 
+                      className="h-8 w-auto object-contain dark:brightness-100 brightness-0 dark:invert-0 invert" 
+                    />
                     <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
                 </div>
             </div>

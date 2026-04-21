@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '@/store/app-store'
 import PhoneMockup3D from './PhoneMockup3D'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface SubscriptionPlan {
   id: 'BASIC' | 'PRO' | 'ENTERPRISE' | string
@@ -87,10 +88,14 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="bg-[#00a669] p-1.5 rounded-lg">
-              <span className="material-symbols-outlined text-white text-2xl">restaurant_menu</span>
-            </div>
-            <span className="text-2xl font-extrabold tracking-tight text-[#00a669]">{platformName}</span>
+            <Image 
+              src="/logo.png" 
+              alt={platformName} 
+              width={160} 
+              height={50} 
+              className="h-10 w-auto object-contain"
+              priority
+            />
           </div>
           <div className="hidden md:flex items-center gap-10 font-semibold text-slate-600 dark:text-slate-400">
             <a className="hover:text-[#00a669] transition-colors" href="#fitur">Fitur</a>
@@ -269,10 +274,13 @@ export default function LandingPage() {
       <footer className="py-12 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-[#020617]">
         <div className="max-w-7xl mx-auto px-6 flex flex-col items-center space-y-6">
           <div className="flex items-center gap-2">
-            <div className="bg-[#00a669] p-1.5 rounded-lg">
-              <span className="material-symbols-outlined text-white text-xl">restaurant_menu</span>
-            </div>
-            <span className="text-xl font-extrabold tracking-tight text-[#00a669]">{platformName}</span>
+            <Image 
+              src="/logo.png" 
+              alt={platformName} 
+              width={120} 
+              height={40} 
+              className="h-8 w-auto object-contain brightness-0 invert dark:brightness-100 dark:invert-0"
+            />
           </div>
           <div className="flex gap-6 text-sm font-semibold text-slate-500">
             <Link href="/terms" className="hover:text-[#00a669] transition-colors">Syarat & Ketentuan</Link>
