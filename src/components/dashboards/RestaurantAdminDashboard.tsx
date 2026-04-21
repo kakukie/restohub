@@ -628,7 +628,7 @@ export default function RestaurantAdminDashboard() {
                 name: currentRestaurant?.name || 'Restaurant',
                 address: currentRestaurant?.address || '',
                 phone: currentRestaurant?.phone || '',
-                logo: currentRestaurant?.logo || null
+                logo: currentRestaurant?.logo || currentRestaurant?.logoUrl || null
             };
 
             // === Path 1: Native Android bridge (PrinterBridge.java via WebView) ===
@@ -717,8 +717,9 @@ export default function RestaurantAdminDashboard() {
             // 3) Fallback: Browser print dialog / PDF
             const printWindow = window.open('', '_blank')
             if (printWindow) {
-                const logoHtml = currentRestaurant?.logo
-                    ? `<div style="text-align: center; margin-bottom: 12px;"><img src="${currentRestaurant.logo}" style="max-height: 60px; max-width: 100%; object-fit: contain;" /></div>`
+                const logoUrl = currentRestaurant?.logo || currentRestaurant?.logoUrl;
+                const logoHtml = logoUrl
+                    ? `<div style="text-align: center; margin-bottom: 12px;"><img id="receipt-logo" src="${logoUrl}" style="max-height: 60px; max-width: 100%; object-fit: contain;" /></div>`
                     : '';
 
                 printWindow.document.write(`
@@ -796,7 +797,19 @@ export default function RestaurantAdminDashboard() {
                     </html>
                 `)
                 printWindow.document.close()
-                setTimeout(() => { printWindow.print() }, 200) // Small delay for logo load
+                // Wait for all resources (images) to load before printing
+                printWindow.onload = function() {
+                    setTimeout(() => {
+                        printWindow.print();
+                        // printWindow.close(); // Optional: close after print
+                    }, 500);
+                };
+                // Fallback if onload doesn't fire
+                setTimeout(() => { 
+                    if (printWindow.document.readyState === 'complete') {
+                        printWindow.print();
+                    }
+                }, 2000);
             }
         } catch (error: any) {
              console.error("Print feature error", error);

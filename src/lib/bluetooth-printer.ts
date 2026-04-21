@@ -304,16 +304,17 @@ export class CapacitorBluetoothPrinterService {
             .align('center');
 
         // 1. Logo
-        const logoUrl = restaurant?.logo;
+        const logoUrl = restaurant?.logo || restaurant?.logoUrl || restaurant?.image;
         if (logoUrl) {
             try {
                 const imageData = await this.getImageData(logoUrl);
                 if (imageData) {
-                    receipt = receipt.image(imageData, imageData.width, imageData.height, 'atkinson', 128);
+                    // Use 'threshold' for better compatibility and speed on thermal printers
+                    receipt = receipt.image(imageData, imageData.width, imageData.height, 'threshold', 128);
                     receipt = receipt.newline();
                 }
             } catch (e) {
-                console.error("Error processing logo for receipt:", e);
+                console.warn("Logo printing skipped due to error:", e);
             }
         }
 
