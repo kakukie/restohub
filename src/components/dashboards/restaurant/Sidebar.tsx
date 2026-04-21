@@ -136,7 +136,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
             <div className="hidden lg:flex items-center gap-3 p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
                 <div className="flex items-center justify-between w-full h-[60px] cursor-pointer hover:bg-slate-100 dark:hover:bg-[#1A2235] rounded-xl px-4 transition-colors group">
                     <Image 
-                      src="/logo.png" 
+                      src="/logo.png?v=3" 
                       alt="Logo" 
                       width={140} 
                       height={40} 
