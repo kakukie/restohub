@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAppStore } from '@/store/app-store'
 import { toast } from '@/hooks/use-toast'
+import Image from 'next/image'
 
 interface PlanData {
     id: string
@@ -206,10 +207,14 @@ function RegisterContent() {
             <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-green-100 dark:border-slate-800">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="bg-[#00a669] p-2 rounded-lg">
-                            <span className="material-symbols-rounded text-white text-2xl">restaurant</span>
-                        </div>
-                        <span className="text-2xl font-extrabold text-[#064e3b] dark:text-white">{platformName}</span>
+                        <Image 
+                          src="/logo.png" 
+                          alt={platformName} 
+                          width={160} 
+                          height={50} 
+                          className="h-10 w-auto object-contain dark:brightness-100 brightness-0 dark:invert-0 invert" 
+                          priority
+                        />
                     </Link>
                     <div className="flex items-center gap-6">
                         <Link className="text-sm font-semibold bg-green-50 dark:bg-slate-800 text-[#00a669] px-5 py-2.5 rounded-full hover:bg-green-100 transition-all" href="/login">Sudah punya akun? Login</Link>
