@@ -212,7 +212,7 @@ function RegisterContent() {
                           alt={platformName} 
                           width={160} 
                           height={50} 
-                          className="h-10 w-auto object-contain dark:brightness-100 brightness-0 dark:invert-0 invert" 
+                          className="h-10 w-auto object-contain" 
                           priority
                         />
                     </Link>

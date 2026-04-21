@@ -200,7 +200,7 @@ function LoginPageContent() {
                           alt={platformName} 
                           width={180} 
                           height={56} 
-                          className="h-12 w-auto object-contain bg-white p-2 rounded-xl"
+                          className="h-12 w-auto object-contain"
                           priority
                         />
                     </Link>

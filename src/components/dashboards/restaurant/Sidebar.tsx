@@ -140,7 +140,7 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, langu
                       alt="Logo" 
                       width={140} 
                       height={40} 
-                      className="h-8 w-auto object-contain dark:brightness-100 brightness-0 dark:invert-0 invert" 
+                      className="h-8 w-auto object-contain" 
                     />
                     <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors" />
                 </div>

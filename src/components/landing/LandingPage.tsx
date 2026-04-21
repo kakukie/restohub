@@ -93,7 +93,7 @@ export default function LandingPage() {
               alt={platformName} 
               width={160} 
               height={50} 
-              className="h-10 w-auto object-contain"
+              className="h-11 w-auto object-contain"
               priority
             />
           </div>
@@ -279,7 +279,7 @@ export default function LandingPage() {
               alt={platformName} 
               width={120} 
               height={40} 
-              className="h-8 w-auto object-contain brightness-0 invert dark:brightness-100 dark:invert-0"
+              className="h-8 w-auto object-contain"
             />
           </div>
           <div className="flex gap-6 text-sm font-semibold text-slate-500">
