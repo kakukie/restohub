@@ -27,6 +27,7 @@ export interface Restaurant {
   package: 'BASIC' | 'PRO' | 'ENTERPRISE' | 'FREE_TRIAL'
   logo?: string
   banner?: string
+  qrLogo?: string
   rating?: number
   adminEmail: string // Email of the admin
   status: 'ACTIVE' | 'PENDING' | 'REJECTED'

@@ -2312,6 +2312,28 @@ export default function SuperAdminDashboard() {
                         onCheckedChange={(checked) => setRestaurantForm({ ...restaurantForm, allowMaps: checked })}
                       />
                     </div>
+
+                    <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-pink-500/20 text-pink-400 rounded-lg">
+                          <CheckCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">QR Code Branding</p>
+                          <p className="text-[10px] text-slate-400">Allow merchant to upload custom QR logo</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={restaurantForm.enabledFeatures?.includes('CUSTOM_QR_LOGO') || false}
+                        onCheckedChange={(checked) => {
+                          const current = restaurantForm.enabledFeatures || [];
+                          const updated = checked 
+                            ? [...current, 'CUSTOM_QR_LOGO']
+                            : current.filter(f => f !== 'CUSTOM_QR_LOGO');
+                          setRestaurantForm({ ...restaurantForm, enabledFeatures: updated });
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-2">

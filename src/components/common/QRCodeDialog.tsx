@@ -1,23 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Copy, Download } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import { useAppStore } from '@/store/app-store'
 import { useTranslation } from '@/lib/i18n'
+import { QRCodeCanvas } from 'qrcode.react'
 
 interface QRCodeDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   restaurantSlug: string
   restaurantName: string
+  qrLogo?: string
 }
 
-export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, restaurantName }: QRCodeDialogProps) {
+export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, restaurantName, qrLogo }: QRCodeDialogProps) {
   const { language } = useAppStore()
   const t = useTranslation(language as 'en' | 'id')
+  const qrRef = useRef<HTMLDivElement>(null)
 
   // Use slug for the URL (properly formatted for sharing)
   const [tableNumber, setTableNumber] = useState('')
@@ -31,13 +34,15 @@ export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, resta
   }
 
   const handleDownloadQR = () => {
-    // Simple QR code generation using Google Charts API
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(menuUrl)}`
-    const link = document.createElement('a')
-    link.href = qrUrl
-    link.download = `qr-${restaurantName}${tableNumber ? `-table-${tableNumber}` : ''}.png`
-    link.click()
-    toast({ title: t('downloaded'), description: t('qrDownloaded') })
+    const canvas = qrRef.current?.querySelector('canvas')
+    if (canvas) {
+      const url = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `qr-${restaurantName}${tableNumber ? `-table-${tableNumber}` : ''}.png`
+      link.click()
+      toast({ title: t('downloaded'), description: t('qrDownloaded') })
+    }
   }
 
   return (
@@ -65,11 +70,20 @@ export default function QRCodeDialog({ open, onOpenChange, restaurantSlug, resta
           </div>
 
           {/* QR Code Image */}
-          <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(menuUrl)}`}
-              alt="QR Code"
-              className="w-64 h-64"
+          <div className="bg-white p-4 rounded-lg border-2 border-gray-200" ref={qrRef}>
+            <QRCodeCanvas
+              value={menuUrl}
+              size={256}
+              level="H" // High error correction for logo
+              includeMargin={true}
+              imageSettings={qrLogo ? {
+                src: qrLogo,
+                x: undefined,
+                y: undefined,
+                height: 50,
+                width: 50,
+                excavate: true,
+              } : undefined}
             />
           </div>
 

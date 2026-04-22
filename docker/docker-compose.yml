@@ -3,6 +3,7 @@ version: '3.8'
 services:
   # RestoHub Application
   app:
+    image: luckii15/meenuin:${WEBAPP_VERSION:-latest}
     build:
       context: ..
       dockerfile: docker/Dockerfile.node

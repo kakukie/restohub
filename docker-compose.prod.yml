@@ -1,7 +1,7 @@
 version: "3.9"
 
 x-app-base: &app-base
-  image: meenuin/restohub-app:${WEBAPP_VERSION:-latest}
+  image: luckii15/meenuin:${WEBAPP_VERSION:-latest}
   build:
     context: .
     dockerfile: docker/Dockerfile.node

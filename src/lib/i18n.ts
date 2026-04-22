@@ -273,6 +273,10 @@ export const translations = {
         menuUrl: "Menu URL:",
         downloadQr: "Download QR",
         previewMenu: "Preview Menu",
+        qrLogo: "QR Code Logo",
+        qrLogoDescription: "Upload a logo to appear in the center of your menu QR code.",
+        uploadQrLogo: "Upload QR Logo",
+        customQrBranding: "QR Code Branding",
         
         staffManagement: "Staff Management",
         manageStaffDesc: "Manage your restaurant team members.",
@@ -605,6 +609,10 @@ export const translations = {
         menuUrl: "URL Menu:",
         downloadQr: "Unduh QR",
         previewMenu: "Pratinjau Menu",
+        qrLogo: "Logo Kode QR",
+        qrLogoDescription: "Unggah logo untuk ditampilkan di tengah kode QR menu Anda.",
+        uploadQrLogo: "Unggah Logo QR",
+        customQrBranding: "Branding Kode QR",
 
         staffManagement: "Manajemen Staf",
         manageStaffDesc: "Kelola anggota tim restoran Anda.",

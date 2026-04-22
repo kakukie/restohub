@@ -29,6 +29,7 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
         phone: string;
         logo?: string;
         banner?: string;
+        qrLogo?: string;
         slug: string;
         theme: 'modern-emerald' | 'classic-orange' | 'minimal-blue';
         taxRate: string;
@@ -44,6 +45,7 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
         phone: '',
         logo: '',
         banner: '',
+        qrLogo: '',
         slug: '',
         theme: 'modern-emerald',
         taxRate: '0',
@@ -64,6 +66,7 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                 phone: restaurant.phone || '',
                 logo: restaurant.logo || '',
                 banner: restaurant.banner || '',
+                qrLogo: restaurant.qrLogo || '',
                 slug: restaurant.slug || '',
                 theme: (restaurant.theme as any) || 'modern-emerald',
                 taxRate: restaurant.taxRate?.toString() || '0',
@@ -353,6 +356,54 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                                 </div>
                             </div>
                         </div>
+
+                        {/* Custom QR Logo Branding - Premium Feature Managed by SuperAdmin */}
+                        {restaurant.enabledFeatures?.includes('CUSTOM_QR_LOGO') && (
+                            <div className="space-y-4 pt-4 border-t">
+                                <div className="flex items-center gap-2">
+                                    <Palette className="h-4 w-4 text-emerald-600" />
+                                    <h4 className="font-bold text-sm">QR Code Custom Branding</h4>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>QR Code Center Logo</Label>
+                                    <p className="text-xs text-gray-500 mb-2">Unggah logo yang akan muncul di tengah kode QR menu Anda.</p>
+                                    <div className="flex items-center gap-4">
+                                        <Input
+                                            type="file"
+                                            accept="image/*"
+                                            className="w-full"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0]
+                                                if (!file) return
+
+                                                const formData = new FormData()
+                                                formData.append('file', file)
+
+                                                try {
+                                                    const res = await fetch('/api/upload', {
+                                                        method: 'POST',
+                                                        body: formData
+                                                    })
+                                                    const data = await res.json()
+                                                    if (data.success) {
+                                                        setForm({ ...form, qrLogo: data.url })
+                                                    } else {
+                                                        toast({ title: 'Error', description: 'QR Logo upload failed', variant: 'destructive' })
+                                                    }
+                                                } catch (error) {
+                                                    toast({ title: 'Error', description: 'QR Logo upload failed', variant: 'destructive' })
+                                                }
+                                            }}
+                                        />
+                                        {form.qrLogo && (
+                                            <div className="relative w-16 h-16 border-2 border-emerald-500 rounded p-1 overflow-hidden shrink-0 bg-white shadow-sm">
+                                                <Image src={form.qrLogo} alt="QR Logo" fill className="object-contain p-1" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </TabsContent>
                 </Tabs>
 

@@ -116,6 +116,7 @@ model Restaurant {
   email         String?
   logo          String?
   banner        String?
+  qrLogo        String?
   theme         String?   @default("modern-emerald")
   package       String?   @default("FREE_TRIAL")
   status        String    @default("PENDING")

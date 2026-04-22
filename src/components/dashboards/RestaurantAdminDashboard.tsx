@@ -2202,6 +2202,7 @@ export default function RestaurantAdminDashboard() {
                 onOpenChange={setQrCodeDialogOpen}
                 restaurantSlug={currentRestaurant?.slug || currentRestaurant?.id || ''}
                 restaurantName={currentRestaurant?.name || 'Restaurant'}
+                qrLogo={currentRestaurant?.qrLogo}
             />
 
             {/* Payment Method Dialog (Global) */}
