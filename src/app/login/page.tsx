@@ -196,7 +196,7 @@ function LoginPageContent() {
                 }}>
                     <Link href="/" className="flex items-center gap-2 mb-12">
                         <Image 
-                          src="/logo.png?v=3" 
+                          src="/logo.png?v=4" 
                           alt={platformName} 
                           width={180} 
                           height={56} 
@@ -268,7 +268,7 @@ function LoginPageContent() {
                                 <div className="lg:hidden flex justify-center mb-8">
                             <Link href="/" className="flex items-center gap-2">
                                 <Image 
-                                  src="/logo.png?v=3" 
+                                  src="/logo.png?v=4" 
                                   alt={platformName} 
                                   width={160} 
                                   height={50} 

@@ -89,7 +89,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 group cursor-pointer">
             <Image 
-              src="/logo.png?v=3" 
+              src="/logo.png?v=4" 
               alt={platformName} 
               width={160} 
               height={50} 
@@ -275,7 +275,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col items-center space-y-6">
           <div className="flex items-center gap-2">
             <Image 
-              src="/logo.png?v=3" 
+              src="/logo.png?v=4" 
               alt={platformName} 
               width={120} 
               height={40} 

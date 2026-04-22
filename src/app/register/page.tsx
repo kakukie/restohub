@@ -208,7 +208,7 @@ function RegisterContent() {
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2">
                         <Image 
-                          src="/logo.png?v=3" 
+                          src="/logo.png?v=4" 
                           alt={platformName} 
                           width={160} 
                           height={50} 
