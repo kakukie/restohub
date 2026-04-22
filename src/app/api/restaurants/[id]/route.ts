@@ -11,13 +11,28 @@ export async function GET(
 ) {
     const params = await props.params;
     const idOrSlug = params.id
-    const cacheKey = `dashboard:${idOrSlug}`
+    const { searchParams } = new URL(request.url)
+    const showAll = searchParams.get('all') === 'true'
+    const cacheKey = showAll ? `dashboard:${idOrSlug}:all` : `dashboard:${idOrSlug}`
 
     try {
         // 1. Check Redis Cache
         const cachedData = await getCache(cacheKey)
         if (cachedData) {
             return NextResponse.json({ success: true, data: cachedData })
+        }
+
+        // Build menu item filter
+        const menuItemWhere: any = {
+            deletedAt: null,
+            category: {
+                deletedAt: null // Fix: Exclude items from soft-deleted categories
+            }
+        }
+
+        // If not 'all', only show available items (default for public menu)
+        if (!showAll) {
+            menuItemWhere.isAvailable = true
         }
 
         // 2. Fetch from DB
@@ -31,13 +46,7 @@ export async function GET(
             },
             include: {
                 menuItems: {
-                    where: {
-                        isAvailable: true,
-                        deletedAt: null,
-                        category: {
-                            deletedAt: null // Fix: Exclude items from soft-deleted categories
-                        }
-                    },
+                    where: menuItemWhere,
                     include: { category: true }
                 },
                 categories: {
@@ -135,8 +144,8 @@ export async function DELETE(
         })
 
         // Also invalidate the cache so it doesn't show up again
-        await invalidateCache(`dashboard:${restaurant.id}`)
-        await invalidateCache(`dashboard:${idOrSlug}`)
+        await invalidateCache(`dashboard:${restaurant.id}*`)
+        await invalidateCache(`dashboard:${idOrSlug}*`)
 
         return NextResponse.json({ success: true, message: 'Restaurant deleted successfully' })
     } catch (error) {
@@ -233,10 +242,10 @@ export async function PUT(
         })
 
         // Redis Invalidation
-        await invalidateCache(`dashboard:${restaurant.id}`)
-        await invalidateCache(`dashboard:${restaurant.slug}`)
+        await invalidateCache(`dashboard:${restaurant.id}*`)
+        await invalidateCache(`dashboard:${restaurant.slug}*`)
         if (updated.slug !== restaurant.slug) {
-            await invalidateCache(`dashboard:${updated.slug}`)
+            await invalidateCache(`dashboard:${updated.slug}*`)
         }
 
         return NextResponse.json({ success: true, data: updated })

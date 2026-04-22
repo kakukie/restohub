@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { normalizeMediaUrl } from '@/lib/media-url'
 import { getAuthenticatedUser, authorizeAction } from '@/lib/api-auth'
+import { invalidateCache } from '@/lib/redis'
 
 async function getRestaurantId(idOrSlug: string) {
   if (!idOrSlug) return null
@@ -102,7 +103,10 @@ export async function POST(request: NextRequest) {
     const count = await prisma.menuItem.count({ where: { restaurantId: resolvedId, deletedAt: null } })
 
     if (restaurant?.maxMenuItems && restaurant.maxMenuItems > 0 && count >= restaurant.maxMenuItems) {
-      return NextResponse.json({ success: false, error: `Menu item limit reached (${restaurant.maxMenuItems} items). Upgrade your plan.` }, { status: 403 })
+      return NextResponse.json({ 
+        success: false, 
+        error: `Menu item limit reached (Active: ${count} / Max: ${restaurant.maxMenuItems}). Upgrade your plan.` 
+      }, { status: 403 })
     }
 
     const newItem = await prisma.menuItem.create({
@@ -121,6 +125,8 @@ export async function POST(request: NextRequest) {
         displayOrder: count + 1
       }
     })
+
+    await invalidateCache(`dashboard:${resolvedId}*`)
 
     return NextResponse.json({ success: true, data: newItem }, { status: 201 })
   } catch (error) {
@@ -153,6 +159,8 @@ export async function PUT(request: NextRequest) {
       data: updates
     })
 
+    await invalidateCache(`dashboard:${existing.restaurantId}*`)
+
     return NextResponse.json({ success: true, data: updated })
   } catch (error) {
     console.error("Update Menu Item Error", error)
@@ -182,6 +190,8 @@ export async function DELETE(request: NextRequest) {
       where: { id },
       data: { deletedAt: new Date(), isAvailable: false }
     })
+    await invalidateCache(`dashboard:${existing.restaurantId}*`)
+    
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Delete Error", error)

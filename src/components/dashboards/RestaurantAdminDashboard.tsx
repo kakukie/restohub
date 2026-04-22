@@ -199,7 +199,7 @@ export default function RestaurantAdminDashboard() {
         setRestaurantId(user.restaurantId)
         setLoadingRestaurant(true)
         try {
-            const res = await fetch(`/api/restaurants/${user.restaurantId}`)
+            const res = await fetch(`/api/restaurants/${user.restaurantId}?all=true`)
             const data = await res.json()
             if (data.success) {
                 setCurrentRestaurant(data.data)

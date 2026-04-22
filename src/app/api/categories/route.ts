@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     // Invalidate
     await invalidateCache(`categories:${resolvedId}`)
-    await invalidateCache(`dashboard:${resolvedId}`)
+    await invalidateCache(`dashboard:${resolvedId}*`)
 
     return NextResponse.json({ success: true, data: newCategory }, { status: 201 })
   } catch (error) {
@@ -121,7 +121,7 @@ export async function PUT(request: NextRequest) {
     // Invalidate
     if (updated.restaurantId) {
       await invalidateCache(`categories:${updated.restaurantId}`)
-      await invalidateCache(`dashboard:${updated.restaurantId}`)
+      await invalidateCache(`dashboard:${updated.restaurantId}*`)
     }
 
     return NextResponse.json({ success: true, data: updated })
@@ -155,7 +155,7 @@ export async function DELETE(request: NextRequest) {
 
     if (category.restaurantId) {
       await invalidateCache(`categories:${category.restaurantId}`)
-      await invalidateCache(`dashboard:${category.restaurantId}`)
+      await invalidateCache(`dashboard:${category.restaurantId}*`)
     }
 
     return NextResponse.json({ success: true })
