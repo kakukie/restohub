@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAppStore } from '@/store/app-store'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
-import { Trash2, MapPin, Map, Globe, Store, Palette, ImageIcon } from 'lucide-react'
+import { Trash2, MapPin, Map, Globe, Store, Palette, ImageIcon, Loader2 } from 'lucide-react'
+import { compressImage } from '@/lib/image-utils'
 
 export default function RestaurantSettingsForm({ restaurantId, initialData }: { restaurantId: string; initialData?: any }) {
     const { restaurants, updateRestaurant } = useAppStore()
@@ -76,6 +77,10 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
     }, [restaurant])
 
     if (!restaurant) return <div>Restaurant not found</div>
+
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+    const [isUploadingBanner, setIsUploadingBanner] = useState(false)
+    const [isUploadingQRLogo, setIsUploadingQRLogo] = useState(false)
 
     const handleSave = async () => {
         try {
@@ -275,10 +280,12 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                                         const file = e.target.files?.[0]
                                         if (!file) return
 
-                                        const formData = new FormData()
-                                        formData.append('file', file)
-
+                                        setIsUploadingLogo(true)
                                         try {
+                                            const compressedBlob = await compressImage(file, 800, 800, 0.7)
+                                            const formData = new FormData()
+                                            formData.append('file', compressedBlob, 'logo.jpg')
+
                                             const res = await fetch('/api/upload', {
                                                 method: 'POST',
                                                 body: formData
@@ -291,10 +298,13 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                                             }
                                         } catch (error) {
                                             toast({ title: 'Error', description: 'Logo upload failed', variant: 'destructive' })
+                                        } finally {
+                                            setIsUploadingLogo(false)
                                         }
                                     }}
                                 />
-                                {form.logo && (
+                                {isUploadingLogo && <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />}
+                                {form.logo && !isUploadingLogo && (
                                     <div className="relative w-16 h-16 border rounded overflow-hidden shrink-0">
                                         <Image src={form.logo} alt="Logo" fill className="object-cover" />
                                     </div>
@@ -334,10 +344,12 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                                             const file = e.target.files?.[0]
                                             if (!file) return
 
-                                            const formData = new FormData()
-                                            formData.append('file', file)
-
+                                            setIsUploadingBanner(true)
                                             try {
+                                                const compressedBlob = await compressImage(file, 1600, 900, 0.7)
+                                                const formData = new FormData()
+                                                formData.append('file', compressedBlob, 'banner.jpg')
+
                                                 const res = await fetch('/api/upload', {
                                                     method: 'POST',
                                                     body: formData
@@ -350,9 +362,12 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                                                 }
                                             } catch (error) {
                                                 toast({ title: 'Error', description: 'Banner upload failed', variant: 'destructive' })
+                                            } finally {
+                                                setIsUploadingBanner(false)
                                             }
                                         }}
                                     />
+                                    {isUploadingBanner && <Loader2 className="h-4 w-4 animate-spin mx-auto mt-2 text-emerald-600" />}
                                 </div>
                             </div>
                         </div>
@@ -376,10 +391,13 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                                                 const file = e.target.files?.[0]
                                                 if (!file) return
 
-                                                const formData = new FormData()
-                                                formData.append('file', file)
-
+                                                setIsUploadingQRLogo(true)
                                                 try {
+                                                    // QR Logo is small, resize to 200x200 max
+                                                    const compressedBlob = await compressImage(file, 200, 200, 0.9)
+                                                    const formData = new FormData()
+                                                    formData.append('file', compressedBlob, 'qr-logo.jpg')
+
                                                     const res = await fetch('/api/upload', {
                                                         method: 'POST',
                                                         body: formData
@@ -392,10 +410,13 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                                                     }
                                                 } catch (error) {
                                                     toast({ title: 'Error', description: 'QR Logo upload failed', variant: 'destructive' })
+                                                } finally {
+                                                    setIsUploadingQRLogo(false)
                                                 }
                                             }}
                                         />
-                                        {form.qrLogo && (
+                                        {isUploadingQRLogo && <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />}
+                                        {form.qrLogo && !isUploadingQRLogo && (
                                             <div className="relative w-16 h-16 border-2 border-emerald-500 rounded p-1 overflow-hidden shrink-0 bg-white shadow-sm">
                                                 <Image src={form.qrLogo} alt="QR Logo" fill className="object-contain p-1" />
                                             </div>

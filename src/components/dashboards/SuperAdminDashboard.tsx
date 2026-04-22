@@ -19,6 +19,8 @@ import { BarChart3, Users, Utensils, DollarSign, LogOut, Plus, Edit, Trash2, Sea
 import { useTheme } from 'next-themes'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
+import { compressImage } from '@/lib/image-utils'
+import { Loader2 } from 'lucide-react'
 import LandingEditorTab from './LandingEditorTab'
 import HelpdeskChat from './HelpdeskChat'
 import { useTranslation } from '@/lib/i18n'
@@ -165,14 +167,31 @@ export default function SuperAdminDashboard() {
   const [importTargetRestaurant, setImportTargetRestaurant] = useState<{ id: string, name?: string } | null>(null)
 
   // Helper for image upload
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (base64: string) => void) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
     const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        callback(reader.result as string)
+      setIsUploadingLogo(true)
+      try {
+        const compressedBlob = await compressImage(file, 800, 800, 0.7)
+        const formData = new FormData()
+        formData.append('file', compressedBlob, 'logo.jpg')
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        })
+        const data = await res.json()
+        if (data.success) {
+          callback(data.url)
+        } else {
+          toast({ title: 'Error', description: 'Upload failed', variant: 'destructive' })
+        }
+      } catch (error) {
+        console.error('Upload error:', error)
+        toast({ title: 'Error', description: 'Upload failed', variant: 'destructive' })
+      } finally {
+        setIsUploadingLogo(false)
       }
-      reader.readAsDataURL(file)
     }
   }
   const [searchQuery, setSearchQuery] = useState('')
@@ -184,6 +203,7 @@ export default function SuperAdminDashboard() {
   const [newSubscriptionType, setNewSubscriptionType] = useState<'BASIC' | 'PRO' | 'ENTERPRISE'>('BASIC')
   const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false)
   const [qrCodeRestaurant, setQrCodeRestaurant] = useState<Restaurant | null>(null)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
 
   const toInputDateTime = (date?: string | Date | null) => {
     if (!date) return ''
@@ -2360,9 +2380,15 @@ export default function SuperAdminDashboard() {
                     className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleImageUpload(e, (base64) => setRestaurantForm({ ...restaurantForm, logo: base64 }))}
+                    onChange={(e) => handleImageUpload(e, (url) => setRestaurantForm({ ...restaurantForm, logo: url }))}
                   />
-                  {restaurantForm.logo && (
+                  {isUploadingLogo && (
+                    <div className="mt-2 flex items-center gap-2 text-xs text-emerald-500">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Uploading...
+                    </div>
+                  )}
+                  {restaurantForm.logo && !isUploadingLogo && (
                     <div className="mt-2 w-20 h-20 border dark:border-slate-700 rounded overflow-hidden relative">
                       <Image src={restaurantForm.logo} alt="Preview" fill className="object-cover" onError={(e) => { const target = e.target as HTMLImageElement; target.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=Preview'; target.srcset = ''; }} />
                     </div>
