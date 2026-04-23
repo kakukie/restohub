@@ -56,7 +56,13 @@ export async function GET(request: NextRequest) {
             const year = yearParam ? parseInt(yearParam) : now.getFullYear()
             const month = monthParam ? parseInt(monthParam) : now.getMonth() + 1
 
-            if (granularity === 'day') {
+            if (granularity === 'today') {
+                startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+                endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+
+                prevStartDate = new Date(startDate.getTime() - 86400000)
+                prevEndDate = new Date(endDate.getTime() - 86400000)
+            } else if (granularity === 'day') {
                 startDate = new Date(year, month - 1, 1)
                 endDate = new Date(year, month, 0, 23, 59, 59)
 

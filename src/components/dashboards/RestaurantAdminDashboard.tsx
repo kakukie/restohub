@@ -161,6 +161,7 @@ export default function RestaurantAdminDashboard() {
         topPaymentMethods: [],
         chartData: {}
     })
+    const [dashboardStats, setDashboardStats] = useState<any>(null)
 
     const [restaurantId, setRestaurantId] = useState<string>('')
     const [currentRestaurant, setCurrentRestaurant] = useState<any>(null)
@@ -314,6 +315,19 @@ export default function RestaurantAdminDashboard() {
             setLoadingReports(false)
         }
     }, [user?.restaurantId, reportGranularity, reportDateRange])
+    
+    const loadDashboardStats = useCallback(async () => {
+        if (!user?.restaurantId) return
+        try {
+            const res = await fetch(`/api/reports?restaurantId=${user.restaurantId}&granularity=today`)
+            const data = await res.json()
+            if (data.success) {
+                setDashboardStats(data.data.stats)
+            }
+        } catch (e) {
+            console.error("Failed to load dashboard stats", e)
+        }
+    }, [user?.restaurantId])
 
     // --- AUTO-REFRESH ORDERS & REPORTS ---
     useEffect(() => {
@@ -323,11 +337,13 @@ export default function RestaurantAdminDashboard() {
         // Initial load
         loadOrderData()
         loadReportsData()
+        loadDashboardStats()
 
         // Background polling every 15 seconds
         const intervalId = setInterval(() => {
             loadOrderData()
             loadReportsData()
+            loadDashboardStats()
         }, 15000)
 
         // Offline Mode Listeners
@@ -350,7 +366,7 @@ export default function RestaurantAdminDashboard() {
             window.removeEventListener('online', handleOnline)
             window.removeEventListener('offline', handleOffline)
         }
-    }, [loadOrderData, loadReportsData, user?.restaurantId])
+    }, [loadOrderData, loadReportsData, loadDashboardStats, user?.restaurantId])
 
     const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
         setUpdatingOrderId(orderId)
@@ -1035,11 +1051,11 @@ export default function RestaurantAdminDashboard() {
     const renderDashboardContent = () => (
         <>
             <StatsGrid stats={{
-                totalOrders: reportStats?.stats?.totalOrders || 0,
-                revenue: reportStats?.stats?.totalRevenue || 0,
+                totalOrders: dashboardStats?.totalOrders || 0,
+                revenue: dashboardStats?.totalRevenue || 0,
                 totalCategories: categories.length,
-                cancelledOrders: reportStats?.stats?.cancelledOrders || 0,
-                trends: reportStats?.stats?.trends
+                cancelledOrders: dashboardStats?.cancelledOrders || 0,
+                trends: dashboardStats?.trends
             }} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
