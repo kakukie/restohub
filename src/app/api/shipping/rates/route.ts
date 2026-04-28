@@ -5,10 +5,15 @@ import prisma from '@/lib/prisma'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { restaurantId, destinationLat, destinationLng, items } = body
+    const { restaurantId, destinationLat, destinationLng, items = [] } = body
 
     if (!restaurantId || !destinationLat || !destinationLng) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Missing required fields (restaurantId, destinationLat, destinationLng)' }, { status: 400 })
+    }
+
+    if (!prisma) {
+      console.error('Prisma client is not initialized!')
+      return NextResponse.json({ success: false, error: 'Internal database error' }, { status: 500 })
     }
 
     // 1. Get restaurant location
