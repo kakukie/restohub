@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Minus, Plus, ShoppingCart, ShoppingBag, Search, Info, Clock, MapPin, Phone, Star, User, Home, LayoutGrid, CheckCircle, CreditCard, ChevronDown, ChevronUp, Loader2, ArrowLeft, Trash2, QrCode, Download, Flame, ThumbsUp, Utensils, Coffee, Cake, Cookie } from 'lucide-react'
+import { Minus, Plus, ShoppingCart, ShoppingBag, Search, Info, Clock, MapPin, Phone, Star, User, Home, LayoutGrid, CheckCircle, CreditCard, ChevronDown, ChevronUp, Loader2, ArrowLeft, Trash2, QrCode, Download, Flame, ThumbsUp, Utensils, Coffee, Cake, Cookie, Truck } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
+import Link from 'next/link'
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Menu } from 'lucide-react'
@@ -434,33 +435,36 @@ export default function PublicMenuPage() {
                 */}
             </div>
 
-            {/* 3. Order Type Selector */}
+            {/* 3. Order Type Selector - Explicit Selection */}
             <div className="px-4 mt-6">
-                <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border dark:border-slate-800 shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                    onClick={() => {
-                        const types: ('DINE_IN' | 'TAKEAWAY' | 'DELIVERY')[] = ['DINE_IN', 'TAKEAWAY', 'DELIVERY']
-                        const nextIndex = (types.indexOf(orderType) + 1) % types.length
-                        setOrderType(types[nextIndex])
-                    }}
-                >
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${
-                            orderType === 'DINE_IN' ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' : 
-                            orderType === 'TAKEAWAY' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' :
-                            'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400'
-                        }`}>
-                            {orderType === 'DINE_IN' ? <Utensils className="h-5 w-5" /> : orderType === 'TAKEAWAY' ? <ShoppingBag className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
-                        </div>
-                        <div className="text-left">
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Order Method</div>
-                            <div className="font-bold text-sm text-slate-900 dark:text-white">
-                                {orderType === 'DINE_IN' ? 'Dine In / Makan di Tempat' : 
-                                 orderType === 'TAKEAWAY' ? 'Takeaway / Bungkus' : 
-                                 'Delivery / Antar ke Rumah'}
-                            </div>
-                        </div>
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border dark:border-slate-800 shadow-sm">
+                    <Label className="text-xs font-bold text-gray-400 uppercase mb-3 block">Pilih Metode Pesanan</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                        {[
+                            { id: 'DINE_IN', label: 'Dine In', icon: Utensils, color: 'orange' },
+                            { id: 'TAKEAWAY', label: 'Takeaway', icon: ShoppingBag, color: 'blue' },
+                            { id: 'DELIVERY', label: 'Delivery', icon: Truck, color: 'emerald' }
+                        ].map((type) => (
+                            <button
+                                key={type.id}
+                                onClick={() => setOrderType(type.id as any)}
+                                className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all ${
+                                    orderType === type.id 
+                                    ? `border-${type.color}-600 bg-${type.color}-50 dark:bg-${type.color}-500/10 ring-1 ring-${type.color}-600` 
+                                    : 'border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800'
+                                }`}
+                            >
+                                <div className={`p-2 rounded-full ${
+                                    orderType === type.id 
+                                    ? `bg-${type.color}-100 text-${type.color}-600 dark:bg-${type.color}-500/20` 
+                                    : 'bg-gray-100 text-gray-500 dark:bg-slate-800'
+                                }`}>
+                                    <type.icon className="h-5 w-5" />
+                                </div>
+                                <span className={`text-[10px] font-bold ${orderType === type.id ? `text-${type.color}-600` : 'text-gray-500'}`}>{type.label}</span>
+                            </button>
+                        ))}
                     </div>
-                    <ChevronDown className="h-4 w-4 text-gray-400" />
                 </div>
             </div>
 
@@ -738,6 +742,26 @@ export default function PublicMenuPage() {
                                                 className="h-8 text-xs dark:bg-slate-800"
                                             />
                                         </div>
+                                        <Button 
+                                            variant="outline" 
+                                            size="icon" 
+                                            className="mt-6 h-8 w-8"
+                                            onClick={() => {
+                                                if (navigator.geolocation) {
+                                                    navigator.geolocation.getCurrentPosition((pos) => {
+                                                        const { latitude, longitude } = pos.coords;
+                                                        setDeliveryLat(latitude);
+                                                        setDeliveryLng(longitude);
+                                                        calculateShipping(latitude, longitude);
+                                                        toast({ title: "Lokasi Berhasil Diambil" });
+                                                    }, () => {
+                                                        toast({ title: "Gagal Mengambil Lokasi", variant: "destructive" });
+                                                    });
+                                                }
+                                            }}
+                                        >
+                                            <MapPin className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                     {calculatingRates && <div className="text-xs text-blue-500 animate-pulse flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Calculating shipping...</div>}
                                     {shippingRates.length > 0 && (
@@ -850,9 +874,19 @@ export default function PublicMenuPage() {
                         </div>
                         <h2 className="text-2xl font-bold mb-2">Order Confirmed!</h2>
                         <p className="text-gray-500 dark:text-gray-400 mb-6">Your order #{completedOrder?.orderNumber} has been received.</p>
-                        <Button onClick={() => setOrderConfirmationOpen(false)} variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800">
-                            Back to Menu
-                        </Button>
+                        
+                        <div className="flex flex-col gap-2 w-full">
+                            {completedOrder?.deliveryAddress && (
+                                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" asChild>
+                                    <Link href={`/track/${completedOrder.id}`}>
+                                        <Truck className="h-4 w-4 mr-2" /> Pantau Pengiriman
+                                    </Link>
+                                </Button>
+                            )}
+                            <Button onClick={() => setOrderConfirmationOpen(false)} variant="outline" className="dark:border-slate-700 dark:hover:bg-slate-800">
+                                Back to Menu
+                            </Button>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
