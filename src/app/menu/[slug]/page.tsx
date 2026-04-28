@@ -248,6 +248,8 @@ export default function PublicMenuPage() {
                 deliveryLat: orderType === 'DELIVERY' ? deliveryLat : undefined,
                 deliveryLng: orderType === 'DELIVERY' ? deliveryLng : undefined,
                 shippingCost: selectedRate?.price || 0,
+                courierCode: selectedRate?.courier_code || selectedRate?.courier_name,
+                courierService: selectedRate?.courier_service_code || selectedRate?.courier_service_name,
                 items: cart.map(item => ({
                     menuItemId: item.menuItemId,
                     quantity: item.quantity,

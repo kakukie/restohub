@@ -135,7 +135,9 @@ export async function POST(request: NextRequest) {
       deliveryAddress,
       deliveryLat,
       deliveryLng,
-      shippingCost
+      shippingCost,
+      courierCode,
+      courierService
     } = body
 
     // ── Input Validation ─────────────────────────────────────────────────
@@ -288,6 +290,8 @@ export async function POST(request: NextRequest) {
               deliveryLat,
               deliveryLng,
               shippingCost,
+              courierCode,
+              courierService,
               shippingStatus: deliveryAddress ? 'PENDING' : null,
               payment: paymentCreateData,
               orderItems: {
@@ -331,6 +335,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
+import { biteship } from '@/lib/biteship'
+
 // PUT /api/orders - Update Order Status
 export async function PUT(request: NextRequest) {
   try {
@@ -343,7 +349,12 @@ export async function PUT(request: NextRequest) {
 
     // 1. Fetch Order and Check Ownership
     const existingOrder = await prisma.order.findUnique({
-      where: { id: orderId }
+      where: { id: orderId },
+      include: { 
+        orderItems: { include: { menuItem: true } },
+        restaurant: true,
+        customer: true
+      }
     })
 
     if (!existingOrder) {
@@ -363,6 +374,55 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Invalid order status' }, { status: 400 })
       }
       updates.status = status
+      
+      // Handle Delivery Status Transitions
+      if (existingOrder.deliveryAddress) {
+        if (status === 'CONFIRMED') {
+          updates.shippingStatus = 'CONFIRMED'
+        } else if (status === 'READY' && !existingOrder.biteshipOrderId) {
+          // TRIGGER BITESHIP ORDER CREATION
+          try {
+            const biteshipPayload = {
+              origin_contact_name: existingOrder.restaurant.name,
+              origin_contact_phone: existingOrder.restaurant.phone,
+              origin_address: existingOrder.restaurant.address,
+              origin_coordinate: {
+                latitude: existingOrder.restaurant.latitude,
+                longitude: existingOrder.restaurant.longitude
+              },
+              destination_contact_name: existingOrder.customer.name,
+              destination_contact_phone: existingOrder.customer.phone || '08123456789',
+              destination_address: existingOrder.deliveryAddress,
+              destination_coordinate: {
+                latitude: existingOrder.deliveryLat,
+                longitude: existingOrder.deliveryLng
+              },
+              courier_company: (existingOrder as any).courierCode || 'gojek',
+              courier_type: (existingOrder as any).courierService || 'instant',
+              delivery_type: "now",
+              items: existingOrder.orderItems.map(i => ({
+                name: i.menuItem?.name || 'Food Item',
+                description: i.notes || '',
+                value: i.price,
+                quantity: i.quantity,
+                weight: 500
+              }))
+            }
+
+            const biteshipRes = await biteship.createOrder(biteshipPayload)
+            
+            if (biteshipRes.success || biteshipRes.id) {
+              updates.biteshipOrderId = biteshipRes.id
+              updates.biteshipTrackingId = biteshipRes.courier?.tracking_id
+              updates.shippingStatus = 'ON_THE_WAY'
+            }
+          } catch (bsError) {
+            console.error('Failed to create Biteship order:', bsError)
+            // Continue order update but log error
+          }
+        }
+      }
+
       // If confirming order, assume payment is collected
       if (status === 'CONFIRMED' && !paymentStatus) {
         updates.paymentStatus = 'PAID'

@@ -76,6 +76,19 @@ export const biteship = {
    * Create a shipment order in Biteship
    */
   async createOrder(payload: any) {
+    if (!BITESHIP_API_KEY || BITESHIP_API_KEY === 'your_biteship_api_key_here') {
+      console.warn('Biteship API Key missing. Returning mock data for order creation.');
+      return {
+        success: true,
+        id: "mock_biteship_order_" + Date.now(),
+        courier: {
+          tracking_id: "BSH-" + Math.random().toString(36).substring(2, 9).toUpperCase(),
+          waybill_id: "WB-" + Date.now()
+        },
+        status: "allocated"
+      };
+    }
+
     try {
       const response = await fetch(`${BITESHIP_BASE_URL}/v1/orders`, {
         method: 'POST',
@@ -87,9 +100,13 @@ export const biteship = {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        console.error('Biteship Create Order Error Response:', data);
+        throw new Error(data.error || 'Failed to create Biteship order');
+      }
       return data;
     } catch (error) {
-      console.error('Biteship createOrder Error:', error);
+      console.error('Biteship createOrder Exception:', error);
       throw error;
     }
   },

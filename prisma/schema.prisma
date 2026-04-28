@@ -235,6 +235,8 @@ model Order {
   shippingCost       Float?        @default(0)
   biteshipOrderId    String?
   biteshipTrackingId String?
+  courierCode        String?       // e.g., grab, gojek
+  courierService     String?       // e.g., instant, sameday
   shippingStatus     String?       // PENDING, PICKUP, DELIVERED, etc.
   
   createdAt      DateTime      @default(now())
