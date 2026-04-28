@@ -204,6 +204,8 @@ export default function PublicMenuPage() {
                 setShippingRates(data.data.pricing)
                 // Auto-select cheapest/first one
                 if (data.data.pricing.length > 0) setSelectedRate(data.data.pricing[0])
+            } else {
+                toast({ title: "Gagal memuat ongkir", description: data.error || "Layanan pengiriman tidak tersedia untuk rute ini.", variant: "destructive" })
             }
         } catch (error) {
             console.error("Failed to calculate shipping", error)

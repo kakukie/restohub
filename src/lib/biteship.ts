@@ -3,8 +3,12 @@
  * Provides methods for shipping rate calculation, order creation, and tracking.
  */
 
-const BITESHIP_API_KEY = process.env.BITESHIP_API_KEY;
+const BITESHIP_API_KEY = process.env.BITESHIP_API_KEY?.trim();
 const BITESHIP_BASE_URL = 'https://api.biteship.com';
+
+if (BITESHIP_API_KEY && !BITESHIP_API_KEY.startsWith('biteship_')) {
+  console.warn('Warning: BITESHIP_API_KEY does not start with "biteship_". Please ensure you are using a valid API Key from Biteship Dashboard.');
+}
 
 export interface BiteshipRateRequest {
   origin_latitude: number;
