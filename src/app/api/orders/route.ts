@@ -410,15 +410,21 @@ export async function PUT(request: NextRequest) {
             }
 
             const biteshipRes = await biteship.createOrder(biteshipPayload)
+            console.log('[BITESHIP] Create Order Response:', JSON.stringify(biteshipRes, null, 2));
             
             if (biteshipRes.success || biteshipRes.id) {
               updates.biteshipOrderId = biteshipRes.id
-              updates.biteshipTrackingId = biteshipRes.courier?.tracking_id
+              updates.biteshipTrackingId = biteshipRes.courier?.tracking_id || biteshipRes.courier?.waybill_id
               updates.shippingStatus = 'ON_THE_WAY'
+            } else {
+              throw new Error(biteshipRes.error || 'Biteship API failed to create order');
             }
-          } catch (bsError) {
+          } catch (bsError: any) {
             console.error('Failed to create Biteship order:', bsError)
-            // Continue order update but log error
+            return NextResponse.json({ 
+              success: false, 
+              error: `Gagal menghubungkan ke Biteship: ${bsError.message}. Pastikan saldo cukup dan data alamat/koordinat benar.` 
+            }, { status: 400 })
           }
         }
       }
