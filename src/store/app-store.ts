@@ -86,6 +86,11 @@ export interface Order {
   tableNumber?: string
   createdAt: string
   notes?: string
+  deliveryAddress?: string
+  deliveryLat?: number
+  deliveryLng?: number
+  shippingCost?: number
+  shippingStatus?: string
 }
 
 export interface CartItem {

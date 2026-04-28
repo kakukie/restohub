@@ -103,6 +103,11 @@ export async function GET(request: NextRequest) {
       adminNotes: o.adminNotes,
       taxAmount: o.taxAmount,
       discountAmount: o.discountAmount,
+      deliveryAddress: (o as any).deliveryAddress,
+      deliveryLat: (o as any).deliveryLat,
+      deliveryLng: (o as any).deliveryLng,
+      shippingCost: (o as any).shippingCost,
+      shippingStatus: (o as any).shippingStatus,
       createdAt: o.createdAt.toISOString()
     }))
 
@@ -126,7 +131,11 @@ export async function POST(request: NextRequest) {
       customerId,
       paymentMethod,
       orderSource,
-      adminNotes
+      adminNotes,
+      deliveryAddress,
+      deliveryLat,
+      deliveryLng,
+      shippingCost
     } = body
 
     // ── Input Validation ─────────────────────────────────────────────────
@@ -212,7 +221,7 @@ export async function POST(request: NextRequest) {
 
     const taxAmount = totalTax
     const discountAmount = 0 // Global discount removed as per user request
-    const calculatedTotalAmount = calculatedSubtotal + taxAmount - discountAmount
+    const calculatedTotalAmount = calculatedSubtotal + taxAmount - discountAmount + (shippingCost || 0)
 
     // Sanitize text inputs
     const sanitizedNotes = sanitizeString(notes, 500)
@@ -275,6 +284,11 @@ export async function POST(request: NextRequest) {
               adminNotes: sanitizedAdminNotes || null,
               taxAmount,
               discountAmount,
+              deliveryAddress,
+              deliveryLat,
+              deliveryLng,
+              shippingCost,
+              shippingStatus: deliveryAddress ? 'PENDING' : null,
               payment: paymentCreateData,
               orderItems: {
                 create: validatedItems

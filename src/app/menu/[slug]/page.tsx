@@ -81,7 +81,13 @@ export default function PublicMenuPage() {
     const [isSearchOpen, setIsSearchOpen] = useState(false)
 
     // Order Type State (New)
-    const [orderType, setOrderType] = useState<'DINE_IN' | 'TAKEAWAY'>('DINE_IN')
+    const [orderType, setOrderType] = useState<'DINE_IN' | 'TAKEAWAY' | 'DELIVERY'>('DINE_IN')
+    const [deliveryAddress, setDeliveryAddress] = useState('')
+    const [deliveryLat, setDeliveryLat] = useState<number | null>(null)
+    const [deliveryLng, setDeliveryLng] = useState<number | null>(null)
+    const [shippingRates, setShippingRates] = useState<any[]>([])
+    const [selectedRate, setSelectedRate] = useState<any>(null)
+    const [calculatingRates, setCalculatingRates] = useState(false)
 
     // Checkout states
     const [cartDialogOpen, setCartDialogOpen] = useState(false)
@@ -175,9 +181,35 @@ export default function PublicMenuPage() {
         const itemTotal = item.price * item.quantity
         return sum + (itemTotal * (item.taxRate || 0)) / 100
     }, 0)
-    const cartTotal = cartSubtotal + cartTaxTotal
+    const cartTotal = cartSubtotal + cartTaxTotal + (selectedRate?.price || 0)
 
     // Handlers
+    const calculateShipping = async (lat: number, lng: number) => {
+        if (cart.length === 0) return
+        setCalculatingRates(true)
+        try {
+            const res = await fetch('/api/shipping/rates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    restaurantId: restaurant.id,
+                    destinationLat: lat,
+                    destinationLng: lng,
+                    items: cart.map(i => ({ name: i.menuItemName, price: i.price, quantity: i.quantity }))
+                })
+            })
+            const data = await res.json()
+            if (data.success && data.data.pricing) {
+                setShippingRates(data.data.pricing)
+                // Auto-select cheapest/first one
+                if (data.data.pricing.length > 0) setSelectedRate(data.data.pricing[0])
+            }
+        } catch (error) {
+            console.error("Failed to calculate shipping", error)
+        } finally {
+            setCalculatingRates(false)
+        }
+    }
     const handleAddToCart = (item: any) => {
         addToCart({
             menuItemId: item.id,
@@ -208,9 +240,13 @@ export default function PublicMenuPage() {
                 restaurantId: restaurant?.id,
                 customerName: guestName,
                 customerPhone: guestPhone,
-                tableNumber: orderType === 'DINE_IN' ? tableNumber : 'TAKEAWAY',
+                tableNumber: orderType === 'DINE_IN' ? tableNumber : (orderType === 'TAKEAWAY' ? 'TAKEAWAY' : 'DELIVERY'),
                 notes: `[${orderType}] ${notes}`,
                 paymentMethod: selectedPaymentMethod,
+                deliveryAddress: orderType === 'DELIVERY' ? deliveryAddress : undefined,
+                deliveryLat: orderType === 'DELIVERY' ? deliveryLat : undefined,
+                deliveryLng: orderType === 'DELIVERY' ? deliveryLng : undefined,
+                shippingCost: selectedRate?.price || 0,
                 items: cart.map(item => ({
                     menuItemId: item.menuItemId,
                     quantity: item.quantity,
@@ -401,15 +437,27 @@ export default function PublicMenuPage() {
             {/* 3. Order Type Selector */}
             <div className="px-4 mt-6">
                 <div className="bg-white dark:bg-slate-900 p-3 rounded-lg border dark:border-slate-800 shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                    onClick={() => setOrderType(orderType === 'DINE_IN' ? 'TAKEAWAY' : 'DINE_IN')}
+                    onClick={() => {
+                        const types: ('DINE_IN' | 'TAKEAWAY' | 'DELIVERY')[] = ['DINE_IN', 'TAKEAWAY', 'DELIVERY']
+                        const nextIndex = (types.indexOf(orderType) + 1) % types.length
+                        setOrderType(types[nextIndex])
+                    }}
                 >
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${orderType === 'DINE_IN' ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'}`}>
-                            {orderType === 'DINE_IN' ? <Utensils className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
+                        <div className={`p-2 rounded-full ${
+                            orderType === 'DINE_IN' ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' : 
+                            orderType === 'TAKEAWAY' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' :
+                            'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400'
+                        }`}>
+                            {orderType === 'DINE_IN' ? <Utensils className="h-5 w-5" /> : orderType === 'TAKEAWAY' ? <ShoppingBag className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
                         </div>
                         <div className="text-left">
                             <div className="text-xs text-gray-500 dark:text-gray-400">Order Method</div>
-                            <div className="font-bold text-sm text-slate-900 dark:text-white">{orderType === 'DINE_IN' ? 'Dine In / Makan di Tempat' : 'Takeaway / Bungkus'}</div>
+                            <div className="font-bold text-sm text-slate-900 dark:text-white">
+                                {orderType === 'DINE_IN' ? 'Dine In / Makan di Tempat' : 
+                                 orderType === 'TAKEAWAY' ? 'Takeaway / Bungkus' : 
+                                 'Delivery / Antar ke Rumah'}
+                            </div>
                         </div>
                     </div>
                     <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -623,19 +671,25 @@ export default function PublicMenuPage() {
                                 </div>
                             )}
                             <div className="flex justify-between items-center pt-2 border-t dark:border-slate-700 text-slate-900 dark:text-white">
-                                <span className="text-sm font-semibold">Total Payment</span>
+                                <span className="text-sm font-semibold">Subtotal</span>
                                 <span className="font-bold text-lg text-emerald-600 dark:text-emerald-500">Rp {cartTotal.toLocaleString()}</span>
                             </div>
+                            {orderType === 'DELIVERY' && selectedRate && (
+                                <div className="flex justify-between text-xs text-slate-500 mt-1 italic">
+                                    <span>Shipping ({selectedRate.courier_name} {selectedRate.courier_service_name})</span>
+                                    <span>+ Rp {selectedRate.price.toLocaleString()}</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-3">
                             <Label className="text-slate-900 dark:text-white">Your Name</Label>
-                            <Input placeholder="John Doe" value={guestName} onChange={e => setGuestName(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
+                                    <Input placeholder="John Doe" value={guestName} onChange={e => setGuestName(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
 
                             <Label className="text-slate-900 dark:text-white">WhatsApp Number (Opsional)</Label>
                             <Input placeholder="08..." value={guestPhone} onChange={e => setGuestPhone(e.target.value)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400" />
 
-                            {orderType === 'DINE_IN' && (
+                             {orderType === 'DINE_IN' && (
                                 <>
                                     <Label className="text-slate-900 dark:text-white">Table Number</Label>
                                     <Input 
@@ -646,6 +700,67 @@ export default function PublicMenuPage() {
                                         className="dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-gray-400 disabled:opacity-70" 
                                     />
                                 </>
+                            )}
+
+                            {orderType === 'DELIVERY' && (
+                                <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                    <Label className="text-slate-900 dark:text-white">Delivery Address</Label>
+                                    <Input 
+                                        placeholder="Full address (Street, House No, Area)" 
+                                        value={deliveryAddress} 
+                                        onChange={e => setDeliveryAddress(e.target.value)}
+                                        className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                    />
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <Label className="text-[10px] text-gray-400">Latitude</Label>
+                                            <Input 
+                                                placeholder="-6.21..." 
+                                                value={deliveryLat || ''} 
+                                                onChange={e => {
+                                                    const val = parseFloat(e.target.value);
+                                                    setDeliveryLat(val);
+                                                    if (!isNaN(val) && deliveryLng) calculateShipping(val, deliveryLng);
+                                                }}
+                                                className="h-8 text-xs dark:bg-slate-800"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <Label className="text-[10px] text-gray-400">Longitude</Label>
+                                            <Input 
+                                                placeholder="106.8..." 
+                                                value={deliveryLng || ''} 
+                                                onChange={e => {
+                                                    const val = parseFloat(e.target.value);
+                                                    setDeliveryLng(val);
+                                                    if (!isNaN(val) && deliveryLat) calculateShipping(deliveryLat, val);
+                                                }}
+                                                className="h-8 text-xs dark:bg-slate-800"
+                                            />
+                                        </div>
+                                    </div>
+                                    {calculatingRates && <div className="text-xs text-blue-500 animate-pulse flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Calculating shipping...</div>}
+                                    {shippingRates.length > 0 && (
+                                        <div className="space-y-2">
+                                            <Label className="text-xs">Select Courier</Label>
+                                            <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto pr-2">
+                                                {shippingRates.map((rate, i) => (
+                                                    <div 
+                                                        key={i} 
+                                                        onClick={() => setSelectedRate(rate)}
+                                                        className={`p-2 rounded border text-xs flex justify-between items-center cursor-pointer transition-colors ${selectedRate === rate ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-500/10' : 'border-gray-200 dark:border-slate-700'}`}
+                                                    >
+                                                        <div>
+                                                            <span className="font-bold uppercase">{rate.courier_name}</span>
+                                                            <span className="ml-1 text-gray-500">({rate.courier_service_name})</span>
+                                                        </div>
+                                                        <span className="font-bold">Rp {rate.price.toLocaleString()}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
 
                             <Label className="text-slate-900 dark:text-white">Notes</Label>

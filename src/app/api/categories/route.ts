@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, restaurantId } = body
+    const { name, restaurantId, description, displayOrder } = body
 
     const resolvedId = await getRestaurantId(restaurantId)
     if (!resolvedId) return NextResponse.json({ success: false, error: 'Restaurant not found' }, { status: 404 })
@@ -84,8 +84,9 @@ export async function POST(request: NextRequest) {
     const newCategory = await prisma.category.create({
       data: {
         name,
+        description,
         restaurantId: resolvedId,
-        displayOrder: count + 1
+        displayOrder: displayOrder || (count + 1)
       }
     })
 

@@ -227,6 +227,16 @@ model Order {
   adminNotes     String?
   taxAmount      Float         @default(0)
   discountAmount Float         @default(0)
+  
+  // Delivery Fields
+  deliveryAddress    String?
+  deliveryLat        Float?
+  deliveryLng        Float?
+  shippingCost       Float?        @default(0)
+  biteshipOrderId    String?
+  biteshipTrackingId String?
+  shippingStatus     String?       // PENDING, PICKUP, DELIVERED, etc.
+  
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 

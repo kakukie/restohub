@@ -893,7 +893,7 @@ export default function RestaurantAdminDashboard() {
                 loadRestaurantDetails()
             } else {
                 const error = await res.json()
-                toast({ title: "Error", description: error.message || "Failed to save category", variant: "destructive" })
+                toast({ title: "Error", description: error.error || "Failed to save category", variant: "destructive" })
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to save category", variant: "destructive" })
