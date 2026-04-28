@@ -11,6 +11,13 @@ if (BITESHIP_API_KEY && !BITESHIP_API_KEY.startsWith('biteship_')) {
   console.warn('Warning: BITESHIP_API_KEY does not start with "biteship_". Please ensure you are using a valid API Key from Biteship Dashboard.');
 }
 
+console.log(`[BITESHIP] Initialize with Mode: ${BITESHIP_MODE.toUpperCase()}`);
+if (BITESHIP_API_KEY) {
+  console.log(`[BITESHIP] API Key detected: ${BITESHIP_API_KEY.substring(0, 15)}...`);
+} else {
+  console.warn(`[BITESHIP] NO API KEY DETECTED! Mode will default to MOCK.`);
+}
+
 export interface BiteshipRateRequest {
   origin_latitude: number;
   origin_longitude: number;
@@ -103,8 +110,8 @@ export const biteship = {
    * Get shipping rates from Biteship
    */
   async getRates(payload: BiteshipRateRequest) {
-    if (BITESHIP_MODE === 'mock' || !BITESHIP_API_KEY || BITESHIP_API_KEY === 'your_biteship_api_key_here') {
-      console.warn('Biteship MOCK Mode: Returning mock data for testing.');
+    if (BITESHIP_MODE === 'mock' || BITESHIP_MODE === 'hybrid' || !BITESHIP_API_KEY || BITESHIP_API_KEY === 'your_biteship_api_key_here') {
+      console.warn(`Biteship ${BITESHIP_MODE.toUpperCase()} Mode: Returning mock data for testing.`);
       return MOCK_RATES;
     }
 
