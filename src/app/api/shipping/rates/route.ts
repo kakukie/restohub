@@ -27,8 +27,11 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    if (!restaurant || !restaurant.latitude || !restaurant.longitude) {
-      return NextResponse.json({ success: false, error: 'Restaurant location not configured' }, { status: 400 })
+    if (!restaurant || restaurant.latitude === null || restaurant.longitude === null) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Koordinat lokasi restoran belum diatur. Silakan atur di Dashboard Admin (Menu Pengaturan > Tab Lokasi).' 
+      }, { status: 400 })
     }
 
     // 2. Prepare Biteship payload
