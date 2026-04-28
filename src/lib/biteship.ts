@@ -3,7 +3,7 @@
  * Provides methods for shipping rate calculation, order creation, and tracking.
  */
 
-const BITESHIP_API_KEY = process.env.BITESHIP_API_KEY || 'your_biteship_api_key_here';
+const BITESHIP_API_KEY = process.env.BITESHIP_API_KEY;
 const BITESHIP_BASE_URL = 'https://api.biteship.com';
 
 export interface BiteshipRateRequest {
@@ -21,11 +21,35 @@ export interface BiteshipRateRequest {
   }[];
 }
 
+// Mock data for testing when API Key is missing
+const MOCK_RATES = {
+  success: true,
+  pricing: [
+    {
+      courier_name: "gojek",
+      courier_service_name: "Instant",
+      price: 15000,
+      duration: "1 - 2 Hours"
+    },
+    {
+      courier_name: "grab",
+      courier_service_name: "Same Day",
+      price: 20000,
+      duration: "6 - 8 Hours"
+    }
+  ]
+};
+
 export const biteship = {
   /**
    * Get shipping rates from Biteship
    */
   async getRates(payload: BiteshipRateRequest) {
+    if (!BITESHIP_API_KEY || BITESHIP_API_KEY === 'your_biteship_api_key_here') {
+      console.warn('Biteship API Key missing. Returning mock data for testing.');
+      return MOCK_RATES;
+    }
+
     try {
       const response = await fetch(`${BITESHIP_BASE_URL}/v1/rates/couriers`, {
         method: 'POST',
