@@ -61,9 +61,13 @@ export const biteship = {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        console.error('Biteship API Error Response:', data);
+        throw new Error(data.error || 'Biteship API error');
+      }
       return data;
     } catch (error) {
-      console.error('Biteship getRates Error:', error);
+      console.error('Biteship getRates Exception:', error);
       throw error;
     }
   },
