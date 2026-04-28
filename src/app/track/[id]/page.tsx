@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, MapPin, Truck, CheckCircle2, Clock, Package, Phone, ArrowLeft } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
 import Link from 'next/link'
 
 export default function OrderTrackingPage() {
@@ -121,9 +122,43 @@ export default function OrderTrackingPage() {
                                 <p className="text-sm font-bold capitalize">{order.courierCode || 'Biteship'} - {order.courierService || 'Standard'}</p>
                             </div>
                             {order.biteshipTrackingId && (
-                                <div>
-                                    <p className="text-emerald-200 text-[10px] font-bold uppercase mb-1">Nomor Resi</p>
-                                    <p className="text-sm font-mono font-bold tracking-wider">{order.biteshipTrackingId}</p>
+                                <div className="space-y-3">
+                                    <div>
+                                        <p className="text-emerald-200 text-[10px] font-bold uppercase mb-1">Nomor Resi</p>
+                                        <p className="text-sm font-mono font-bold tracking-wider">{order.biteshipTrackingId}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button 
+                                            variant="secondary" 
+                                            size="sm" 
+                                            className="h-7 text-[10px] font-black uppercase bg-white/10 hover:bg-white/20 text-white border-white/20"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(order.biteshipTrackingId)
+                                                toast({ title: "Resi Disalin", description: "Nomor resi telah disalin ke clipboard." })
+                                            }}
+                                        >
+                                            Salin
+                                        </Button>
+                                        <Button 
+                                            variant="secondary" 
+                                            size="sm" 
+                                            className="h-7 text-[10px] font-black uppercase bg-emerald-500 hover:bg-emerald-400 text-white border-none shadow-lg"
+                                            asChild
+                                        >
+                                            <a 
+                                                href={
+                                                    (order.courierCode || '').toLowerCase() === 'jne' ? `https://www.jne.co.id/id/tracking/trace` :
+                                                    (order.courierCode || '').toLowerCase() === 'jnt' ? `https://jet.co.id/track` :
+                                                    (order.courierCode || '').toLowerCase() === 'sicepat' ? `https://www.sicepat.com/check-resi` :
+                                                    `https://cekresi.com/?noresi=${order.biteshipTrackingId}`
+                                                } 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                            >
+                                                Cek Resmi
+                                            </a>
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </div>
