@@ -38,6 +38,7 @@ export interface BiteshipRateRequest {
 const MOCK_RATES = {
   success: true,
   pricing: [
+    // === ON-DEMAND / INSTANT ===
     {
       courier_name: "GoSend",
       courier_code: "gojek",
@@ -80,6 +81,62 @@ const MOCK_RATES = {
       price: 25000,
       duration: "6 - 8 jam",
       service_type: "sameday",
+      shipping_type: "parcel"
+    },
+    // === STANDARD / EKSPEDISI ===
+    {
+      courier_name: "JNE",
+      courier_code: "jne",
+      courier_service_name: "Reguler",
+      courier_service_code: "reg",
+      type: "reg",
+      price: 9000,
+      duration: "2 - 3 hari",
+      service_type: "standard",
+      shipping_type: "parcel"
+    },
+    {
+      courier_name: "SiCepat",
+      courier_code: "sicepat",
+      courier_service_name: "Reguler",
+      courier_service_code: "reg",
+      type: "reg",
+      price: 10000,
+      duration: "1 - 2 hari",
+      service_type: "standard",
+      shipping_type: "parcel"
+    },
+    {
+      courier_name: "SiCepat",
+      courier_code: "sicepat",
+      courier_service_name: "Besok Sampai Tujuan",
+      courier_service_code: "best",
+      type: "best",
+      price: 15000,
+      duration: "1 hari",
+      service_type: "overnight",
+      shipping_type: "parcel"
+    },
+    {
+      courier_name: "J&T Express",
+      courier_code: "jnt",
+      courier_service_name: "Reguler",
+      courier_service_code: "ez",
+      type: "ez",
+      price: 10000,
+      duration: "2 - 3 hari",
+      service_type: "standard",
+      shipping_type: "parcel"
+    },
+    {
+      courier_name: "AnterAja",
+      courier_code: "anteraja",
+      courier_service_name: "Reguler",
+      courier_service_code: "reg",
+      type: "reg",
+      price: 9000,
+      duration: "2 - 3 hari",
+      service_type: "standard",
       shipping_type: "parcel"
     }
   ]

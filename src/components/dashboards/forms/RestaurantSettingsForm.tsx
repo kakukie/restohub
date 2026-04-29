@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAppStore } from '@/store/app-store'
 import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
-import { Trash2, MapPin, Map, Globe, Store, Palette, ImageIcon, Loader2 } from 'lucide-react'
+import { Trash2, MapPin, Map, Globe, Store, Palette, ImageIcon, Loader2, Truck } from 'lucide-react'
 import { compressImage } from '@/lib/image-utils'
 
 export default function RestaurantSettingsForm({ restaurantId, initialData }: { restaurantId: string; initialData?: any }) {
@@ -50,7 +50,8 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
         slug: '',
         theme: 'modern-emerald',
         taxRate: '0',
-        discountRate: '0'
+        discountRate: '0',
+        deliveryCouriers: [] as string[]
     })
 
     useEffect(() => {
@@ -71,7 +72,8 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                 slug: restaurant.slug || '',
                 theme: (restaurant.theme as any) || 'modern-emerald',
                 taxRate: restaurant.taxRate?.toString() || '0',
-                discountRate: restaurant.discountRate?.toString() || '0'
+                discountRate: restaurant.discountRate?.toString() || '0',
+                deliveryCouriers: restaurant.deliveryCouriers || []
             })
         }
     }, [restaurant])
@@ -96,7 +98,8 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                 latitude: lat,
                 longitude: lng,
                 taxRate: tax,
-                discountRate: discount
+                discountRate: discount,
+                deliveryCouriers: form.deliveryCouriers
             }
 
             const res = await fetch(`/api/restaurants/${restaurant.id}`, {
@@ -125,7 +128,7 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="info" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-4">
+                    <TabsList className="grid w-full grid-cols-4 mb-4">
                         <TabsTrigger value="info" className="flex items-center gap-2">
                             <Store className="h-4 w-4" /> Info
                         </TabsTrigger>
@@ -135,6 +138,11 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                         <TabsTrigger value="branding" className="flex items-center gap-2">
                             <Palette className="h-4 w-4" /> Branding
                         </TabsTrigger>
+                        {restaurant.enabledFeatures?.includes('DELIVERY_INTEGRATION') && (
+                            <TabsTrigger value="delivery" className="flex items-center gap-2">
+                                <Truck className="h-4 w-4" /> Delivery
+                            </TabsTrigger>
+                        )}
                     </TabsList>
 
                     {/* Tab: Info */}
@@ -426,6 +434,103 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                             </div>
                         )}
                     </TabsContent>
+
+                    {/* Tab: Delivery Courier Settings */}
+                    {restaurant.enabledFeatures?.includes('DELIVERY_INTEGRATION') && (
+                        <TabsContent value="delivery" className="space-y-4">
+                            <div className="alert bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 p-3 rounded-md text-sm mb-4 flex items-start gap-2">
+                                <Truck className="h-4 w-4 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold">Pengaturan Kurir Pengiriman</p>
+                                    <p>Pilih kurir yang ingin ditampilkan kepada pelanggan saat checkout Delivery. Jika tidak ada yang dipilih, default hanya Gojek & Grab.</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-sm font-bold">Kurir Instan / On-Demand</Label>
+                                <p className="text-xs text-gray-500 mb-2">Cocok untuk pengiriman makanan dan minuman.</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {[
+                                        { code: 'gojek', name: 'GoSend (Gojek)', desc: 'Instant & Same Day' },
+                                        { code: 'grab', name: 'GrabExpress', desc: 'Instant & Same Day' },
+                                        { code: 'lalamove', name: 'Lalamove', desc: 'On-Demand Delivery' },
+                                        { code: 'borzo', name: 'Borzo (Mr Speedy)', desc: 'Same Day Delivery' },
+                                        { code: 'paxel', name: 'Paxel', desc: 'Same Day & Frozen' },
+                                    ].map(courier => {
+                                        const isEnabled = form.deliveryCouriers.includes(courier.code)
+                                        return (
+                                            <button
+                                                key={courier.code}
+                                                type="button"
+                                                onClick={() => {
+                                                    const updated = isEnabled
+                                                        ? form.deliveryCouriers.filter(c => c !== courier.code)
+                                                        : [...form.deliveryCouriers, courier.code]
+                                                    setForm({ ...form, deliveryCouriers: updated })
+                                                }}
+                                                className={`p-3 rounded-xl border-2 text-left transition-all ${
+                                                    isEnabled
+                                                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
+                                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+                                                }`}
+                                            >
+                                                <p className={`text-sm font-bold ${isEnabled ? 'text-emerald-700 dark:text-emerald-400' : ''}`}>{courier.name}</p>
+                                                <p className="text-[10px] text-gray-500">{courier.desc}</p>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 pt-4 border-t">
+                                <Label className="text-sm font-bold">Kurir Ekspedisi / Standard</Label>
+                                <p className="text-xs text-gray-500 mb-2">Cocok untuk toko yang menjual produk retail, frozen food, atau hampers.</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {[
+                                        { code: 'jne', name: 'JNE', desc: 'REG, OKE, YES' },
+                                        { code: 'sicepat', name: 'SiCepat', desc: 'REG, BEST, GOKIL' },
+                                        { code: 'jnt', name: 'J&T Express', desc: 'EZ, Reguler' },
+                                        { code: 'anteraja', name: 'AnterAja', desc: 'Reguler, Next Day' },
+                                        { code: 'ninja', name: 'Ninja Xpress', desc: 'Standard' },
+                                        { code: 'lion', name: 'Lion Parcel', desc: 'REGPACK, ONEPACK' },
+                                    ].map(courier => {
+                                        const isEnabled = form.deliveryCouriers.includes(courier.code)
+                                        return (
+                                            <button
+                                                key={courier.code}
+                                                type="button"
+                                                onClick={() => {
+                                                    const updated = isEnabled
+                                                        ? form.deliveryCouriers.filter(c => c !== courier.code)
+                                                        : [...form.deliveryCouriers, courier.code]
+                                                    setForm({ ...form, deliveryCouriers: updated })
+                                                }}
+                                                className={`p-3 rounded-xl border-2 text-left transition-all ${
+                                                    isEnabled
+                                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10'
+                                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+                                                }`}
+                                            >
+                                                <p className={`text-sm font-bold ${isEnabled ? 'text-blue-700 dark:text-blue-400' : ''}`}>{courier.name}</p>
+                                                <p className="text-[10px] text-gray-500">{courier.desc}</p>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            {form.deliveryCouriers.length > 0 && (
+                                <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg mt-4">
+                                    <p className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Kurir aktif ({form.deliveryCouriers.length}):</p>
+                                    <div className="flex flex-wrap gap-1">
+                                        {form.deliveryCouriers.map(c => (
+                                            <span key={c} className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-full uppercase">{c}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </TabsContent>
+                    )}
                 </Tabs>
 
                 <div className="mt-6 flex justify-end pt-4 border-t">

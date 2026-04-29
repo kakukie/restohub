@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { biteship } from '@/lib/biteship'
 import prisma from '@/lib/prisma'
 
+const DEFAULT_COURIERS = 'gojek,grab'
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -16,14 +18,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Internal database error' }, { status: 500 })
     }
 
-    // 1. Get restaurant location
+    // 1. Get restaurant location AND delivery courier settings
     const restaurant = await prisma.restaurant.findUnique({
       where: { id: restaurantId },
       select: { 
         name: true,
         address: true,
         latitude: true,
-        longitude: true
+        longitude: true,
+        deliveryCouriers: true
       }
     })
 
@@ -34,13 +37,18 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // 2. Prepare Biteship payload
+    // 2. Determine which couriers to query
+    const courierCodes = restaurant.deliveryCouriers && restaurant.deliveryCouriers.length > 0
+      ? restaurant.deliveryCouriers.join(',')
+      : DEFAULT_COURIERS
+
+    // 3. Prepare Biteship payload
     const payload = {
       origin_latitude: restaurant.latitude,
       origin_longitude: restaurant.longitude,
       destination_latitude: destinationLat,
       destination_longitude: destinationLng,
-      couriers: 'grab,gojek,borzo,lalamove,paxel', // On-demand couriers suitable for food delivery
+      couriers: courierCodes,
       items: items.map((item: any) => ({
         name: item.name,
         value: item.price,
@@ -50,6 +58,13 @@ export async function POST(request: NextRequest) {
     }
 
     const rates = await biteship.getRates(payload)
+
+    // 4. Filter mock rates by restaurant's enabled couriers (for mock/hybrid mode)
+    if (rates?.pricing && restaurant.deliveryCouriers && restaurant.deliveryCouriers.length > 0) {
+      rates.pricing = rates.pricing.filter((r: any) => 
+        restaurant.deliveryCouriers.includes(r.courier_code)
+      )
+    }
 
     return NextResponse.json({ success: true, data: rates })
   } catch (error: any) {

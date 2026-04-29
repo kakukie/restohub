@@ -127,7 +127,8 @@ model Restaurant {
   updatedAt     DateTime  @updatedAt
 
   // Feature Management
-  enabledFeatures String[] @default([]) // ["CUSTOM_INVOICE", "ADVANCED_STOCK", "WA_NOTIF"]
+  enabledFeatures  String[] @default([]) // ["CUSTOM_INVOICE", "ADVANCED_STOCK", "WA_NOTIF"]
+  deliveryCouriers String[] @default([]) // ["gojek", "grab", "sicepat", "jne"] — couriers enabled for delivery
 
   // Limits
   maxMenuItems    Int?    @default(15) // Default for Free
