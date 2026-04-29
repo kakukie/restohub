@@ -447,7 +447,7 @@ export default function PublicMenuPage() {
                         {[
                             { id: 'DINE_IN', label: 'Dine In', icon: Utensils, color: 'orange' },
                             { id: 'TAKEAWAY', label: 'Takeaway', icon: ShoppingBag, color: 'blue' },
-                            { id: 'DELIVERY', label: 'Delivery', icon: Truck, color: 'emerald' }
+                            ...(restaurant?.enabledFeatures?.includes('DELIVERY_INTEGRATION') ? [{ id: 'DELIVERY', label: 'Delivery', icon: Truck, color: 'emerald' }] : [])
                         ].map((type) => (
                             <button
                                 key={type.id}

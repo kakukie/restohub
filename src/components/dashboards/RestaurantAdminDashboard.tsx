@@ -1727,6 +1727,12 @@ export default function RestaurantAdminDashboard() {
                                             <span className="text-sm text-slate-600 dark:text-slate-400">{t('paymentMethod')}:</span>
                                             <span className="text-sm font-medium">{order.paymentMethod || 'CASH'}</span>
                                         </div>
+                                        {((order as any).shippingCost > 0) && (
+                                            <div className="flex justify-between items-center text-emerald-600">
+                                                <span className="text-sm">Ongkir:</span>
+                                                <span className="text-sm font-medium">Rp {((order as any).shippingCost).toLocaleString('id-ID')}</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between items-center">
                                             <span className="font-bold">Total:</span>
                                             <span className="font-bold">Rp {order.totalAmount.toLocaleString('id-ID')}</span>
@@ -1740,10 +1746,10 @@ export default function RestaurantAdminDashboard() {
                                                 onClick={() => handleUpdateOrderStatus(order.id, 'CONFIRMED')}
                                                 disabled={updatingOrderId === order.id}
                                             >
-                                                {t('confirm')}
+                                                {order.tableNumber === 'DELIVERY' ? 'Konfirmasi Pesanan' : t('confirm')}
                                             </Button>
                                         )}
-                                        {order.status === 'CONFIRMED' && (
+                                        {order.status === 'CONFIRMED' && order.tableNumber !== 'DELIVERY' && (
                                             <Button
                                                 size="sm"
                                                 onClick={() => handleUpdateOrderStatus(order.id, 'PREPARING')}
@@ -1752,7 +1758,17 @@ export default function RestaurantAdminDashboard() {
                                                 {t('prepare')}
                                             </Button>
                                         )}
-                                        {order.status === 'PREPARING' && (
+                                        {order.status === 'CONFIRMED' && order.tableNumber === 'DELIVERY' && (
+                                            <Button
+                                                size="sm"
+                                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                                                onClick={() => handleUpdateOrderStatus(order.id, 'READY')}
+                                                disabled={updatingOrderId === order.id}
+                                            >
+                                                Pesanan Siap & Panggil Kurir
+                                            </Button>
+                                        )}
+                                        {order.status === 'PREPARING' && order.tableNumber !== 'DELIVERY' && (
                                             <Button
                                                 size="sm"
                                                 onClick={() => handleUpdateOrderStatus(order.id, 'READY')}

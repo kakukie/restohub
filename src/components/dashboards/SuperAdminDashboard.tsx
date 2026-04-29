@@ -2354,6 +2354,28 @@ export default function SuperAdminDashboard() {
                         }}
                       />
                     </div>
+
+                    <div className="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-yellow-500/20 text-yellow-400 rounded-lg">
+                          <CheckCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">Delivery / Biteship</p>
+                          <p className="text-[10px] text-slate-400">Allow delivery orders and real-time shipping rates</p>
+                        </div>
+                      </div>
+                      <Switch 
+                        checked={restaurantForm.enabledFeatures?.includes('DELIVERY_INTEGRATION') || false}
+                        onCheckedChange={(checked) => {
+                          const current = restaurantForm.enabledFeatures || [];
+                          const updated = checked 
+                            ? [...current, 'DELIVERY_INTEGRATION']
+                            : current.filter(f => f !== 'DELIVERY_INTEGRATION');
+                          setRestaurantForm({ ...restaurantForm, enabledFeatures: updated });
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-2">

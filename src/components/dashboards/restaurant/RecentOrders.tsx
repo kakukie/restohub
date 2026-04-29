@@ -90,6 +90,11 @@ export default function RecentOrders({ orders, onViewOrder, onPrintOrder, onRefr
                                     </div>
                                 </div>
                                 <div className="text-right">
+                                    {((order as any).shippingCost > 0) && (
+                                        <p className="text-[10px] text-emerald-600 font-bold -mb-1 mt-1">
+                                            + Ongkir Rp {((order as any).shippingCost).toLocaleString('id-ID')}
+                                        </p>
+                                    )}
                                     <p className="font-bold text-lg text-slate-900 dark:text-white">
                                         Rp {order.totalAmount.toLocaleString('id-ID')}
                                     </p>
