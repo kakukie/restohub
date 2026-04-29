@@ -416,10 +416,24 @@ export async function PUT(request: NextRequest) {
               courier_type: courierType,
               delivery_type: ['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(courierCompany) ? "now" : "later",
               // Add delivery date/time for standard couriers (required by Biteship for 'later' type)
-              ...(!['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(courierCompany) ? {
-                delivery_date: new Date().toISOString().split('T')[0],
-                delivery_time: '12:00' 
-              } : {}),
+              ...(!['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(courierCompany) ? (() => {
+                const now = new Date();
+                let deliveryDate = now.toISOString().split('T')[0];
+                let deliveryTime = '10:00';
+                
+                // If it's already late (past 3 PM), set for tomorrow morning
+                if (now.getHours() >= 15) {
+                    const tomorrow = new Date(now);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    deliveryDate = tomorrow.toISOString().split('T')[0];
+                    deliveryTime = '09:00';
+                } else {
+                    // Set to 1 hour from now
+                    deliveryTime = `${now.getHours() + 1}:00`;
+                }
+
+                return { delivery_date: deliveryDate, delivery_time: deliveryTime };
+              })() : {}),
               items: existingOrder.orderItems.map(i => ({
                 name: i.menuItem?.name || 'Food Item',
                 description: i.notes || '',
