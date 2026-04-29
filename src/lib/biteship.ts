@@ -206,6 +206,28 @@ export const biteship = {
   },
 
   /**
+   * Internal helper to get real rates even in hybrid mode
+   */
+  async getRealRates(payload: BiteshipRateRequest) {
+    if (!BITESHIP_API_KEY || BITESHIP_API_KEY === 'your_biteship_api_key_here') return MOCK_RATES;
+    
+    try {
+      const response = await fetch(`${BITESHIP_BASE_URL}/v1/rates/couriers`, {
+        method: 'POST',
+        headers: {
+          'Authorization': BITESHIP_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Biteship getRealRates error:', error);
+      return { success: false, pricing: [] };
+    }
+  },
+
+  /**
    * Create a shipment order in Biteship
    */
   async createOrder(payload: any) {
@@ -220,6 +242,40 @@ export const biteship = {
         },
         status: "allocated"
       };
+    }
+
+    // AUTO-DISCOVERY for Hybrid Mode or potentially mismatched types
+    // If the courier_type is a generic one like 'reg' or 'instant', verify with real rates
+    try {
+        console.log(`[BITESHIP] Verifying service type for ${payload.courier_company}...`);
+        const realRates = await this.getRealRates({
+            origin_latitude: payload.origin_coordinate.latitude,
+            origin_longitude: payload.origin_coordinate.longitude,
+            destination_latitude: payload.destination_coordinate.latitude,
+            destination_longitude: payload.destination_coordinate.longitude,
+            couriers: payload.courier_company,
+            items: payload.items.map((i: any) => ({
+                name: i.name,
+                value: i.value,
+                quantity: i.quantity,
+                weight: i.weight || 500
+            }))
+        });
+
+        if (realRates.success && realRates.pricing && realRates.pricing.length > 0) {
+            // Find a service that matches the company and is closest to the requested type
+            const matchingService = realRates.pricing.find((p: any) => 
+                p.courier_code === payload.courier_company && 
+                (p.type === payload.courier_type || p.courier_service_code === payload.courier_type)
+            ) || realRates.pricing.find((p: any) => p.courier_code === payload.courier_company); // Fallback to first service of same company
+
+            if (matchingService) {
+                console.log(`[BITESHIP] Auto-discovered valid type for ${payload.courier_company}: ${matchingService.type} (was: ${payload.courier_type})`);
+                payload.courier_type = matchingService.type;
+            }
+        }
+    } catch (e) {
+        console.warn('[BITESHIP] Service discovery failed, proceeding with original payload', e);
     }
 
     try {
