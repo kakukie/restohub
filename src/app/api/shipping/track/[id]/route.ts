@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import biteship from '@/lib/biteship'
+import { biteship } from '@/lib/biteship'
 import prisma from '@/lib/prisma'
 
 export async function GET(

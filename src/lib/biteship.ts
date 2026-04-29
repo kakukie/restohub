@@ -186,7 +186,7 @@ export const biteship = {
    * Get real-time tracking information
    */
   async getTracking(orderId: string) {
-    if (BITESHIP_MODE === 'mock' || orderId.startsWith('mock_')) {
+    if (BITESHIP_MODE === 'mock' || !BITESHIP_API_KEY || orderId.startsWith('mock_')) {
       return MOCK_TRACKING('gojek');
     }
 
