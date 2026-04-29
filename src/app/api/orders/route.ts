@@ -397,8 +397,8 @@ export async function PUT(request: NextRequest) {
                 latitude: existingOrder.deliveryLat,
                 longitude: existingOrder.deliveryLng
               },
-              courier_company: (existingOrder as any).courierCode || 'gojek',
-              courier_type: (existingOrder as any).courierService || 'instant',
+              courier_company: ((existingOrder as any).courierCode || 'gojek').toLowerCase(),
+              courier_type: ((existingOrder as any).courierService || 'instant').toLowerCase().replace('same_day', 'sameday').replace(' ', ''),
               delivery_type: "now",
               items: existingOrder.orderItems.map(i => ({
                 name: i.menuItem?.name || 'Food Item',
@@ -409,6 +409,7 @@ export async function PUT(request: NextRequest) {
               }))
             }
 
+            console.log('[BITESHIP] Sending Create Order Payload:', JSON.stringify(biteshipPayload, null, 2));
             const biteshipRes = await biteship.createOrder(biteshipPayload)
             console.log('[BITESHIP] Create Order Response:', JSON.stringify(biteshipRes, null, 2));
             
