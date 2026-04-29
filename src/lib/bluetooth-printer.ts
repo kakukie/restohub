@@ -395,11 +395,26 @@ export class CapacitorBluetoothPrinterService {
         receipt = receipt.text('-'.repeat(lineWidth)).newline();
 
         // 5. Totals
+        const subtotalLabel = "SUBTOTAL:";
+        const subtotalVal = `Rp ${order.totalAmount.toLocaleString('id-ID')}`;
+        const subtotalPadding = lineWidth - subtotalLabel.length - subtotalVal.length;
+        
+        receipt = receipt.align('left')
+            .text(subtotalLabel + ' '.repeat(Math.max(0, subtotalPadding)) + subtotalVal).newline();
+
+        if (order.shippingCost > 0) {
+            const shippingLabel = "ONGKIR:";
+            const shippingVal = `Rp ${order.shippingCost.toLocaleString('id-ID')}`;
+            const shippingPadding = lineWidth - shippingLabel.length - shippingVal.length;
+            receipt = receipt.text(shippingLabel + ' '.repeat(Math.max(0, shippingPadding)) + shippingVal).newline();
+        }
+
         const totalLabel = "TOTAL:";
-        const totalVal = `Rp ${order.totalAmount.toLocaleString('id-ID')}`;
+        const totalAmount = order.totalAmount + (order.shippingCost || 0);
+        const totalVal = `Rp ${totalAmount.toLocaleString('id-ID')}`;
         const totalPadding = lineWidth - totalLabel.length - totalVal.length;
         
-        receipt = receipt.align('left').bold(true)
+        receipt = receipt.bold(true)
             .text(totalLabel + ' '.repeat(Math.max(0, totalPadding)) + totalVal).newline()
             .bold(false);
 

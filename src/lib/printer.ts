@@ -65,8 +65,17 @@ export const printReceipt = async (characteristic: any, order: any, restaurantNa
     })
 
     text('--------------------------------')
+    
+    if (order.shippingCost > 0) {
+        const subtotal = new Intl.NumberFormat('id-ID').format(order.totalAmount)
+        text(`SUBTOTAL: Rp ${subtotal}`.padStart(32))
+        const shipping = new Intl.NumberFormat('id-ID').format(order.shippingCost)
+        text(`ONGKIR: Rp ${shipping}`.padStart(32))
+    }
+
     boldOn()
-    const total = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.totalAmount)
+    const totalAmount = order.totalAmount + (order.shippingCost || 0)
+    const total = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalAmount)
     text(`TOTAL: ${total}`.padStart(32))
     boldOff()
     text('================================')

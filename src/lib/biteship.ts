@@ -110,9 +110,15 @@ export const biteship = {
    * Get shipping rates from Biteship
    */
   async getRates(payload: BiteshipRateRequest) {
-    if (BITESHIP_MODE === 'mock' || BITESHIP_MODE === 'hybrid' || !BITESHIP_API_KEY || BITESHIP_API_KEY === 'your_biteship_api_key_here') {
-      console.warn(`Biteship ${BITESHIP_MODE.toUpperCase()} Mode: Returning mock data for testing.`);
+    if (BITESHIP_MODE === 'mock' || !BITESHIP_API_KEY || BITESHIP_API_KEY === 'your_biteship_api_key_here') {
+      console.warn(`Biteship MOCK Mode: Returning mock data for testing.`);
       return MOCK_RATES;
+    }
+
+    // If hybrid and no balance, we use mock for rates to prevent checkout failure
+    // But if the user wants real rates and has balance, they can use LIVE mode.
+    if (BITESHIP_MODE === 'hybrid') {
+        return MOCK_RATES;
     }
 
     try {
@@ -145,7 +151,7 @@ export const biteship = {
       console.warn('Biteship MOCK Mode: Returning mock data for order creation.');
       return {
         success: true,
-        id: "mock_biteship_order_" + Date.now(),
+        id: "mock_order_" + Date.now(),
         courier: {
           tracking_id: "BSH-" + Math.random().toString(36).substring(2, 9).toUpperCase(),
           waybill_id: "WB-" + Date.now()
@@ -180,8 +186,8 @@ export const biteship = {
    * Get real-time tracking information
    */
   async getTracking(orderId: string) {
-    if (BITESHIP_MODE === 'mock' || !BITESHIP_API_KEY || BITESHIP_API_KEY === 'your_biteship_api_key_here') {
-      return MOCK_TRACKING("Kurir Simulasi");
+    if (BITESHIP_MODE === 'mock' || orderId.startsWith('mock_')) {
+      return MOCK_TRACKING('gojek');
     }
 
     try {
