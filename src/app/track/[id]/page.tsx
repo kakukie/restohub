@@ -5,17 +5,34 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, MapPin, Truck, CheckCircle2, Clock, Package, Phone, ArrowLeft } from 'lucide-react'
+import { Loader2, MapPin, Truck, CheckCircle2, Clock, Package, Phone, ArrowLeft, Share2 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Link from 'next/link'
 
 export default function OrderTrackingPage() {
     const params = useParams()
     const orderId = params.id as string
+    const [order, setOrder] = useState<any>(null)
     const [tracking, setTracking] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+
+    const handleShare = () => {
+        if (typeof navigator !== 'undefined') {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: `Lacak Pesanan #${order?.orderNumber}`,
+                    text: `Pantau pengiriman pesanan saya di RestoHub`,
+                    url: url
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(url);
+                toast({ title: "Link Disalin", description: "Simpan link ini untuk melacak pesanan Anda nanti." });
+            }
+        }
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -108,7 +125,9 @@ export default function OrderTrackingPage() {
                         <h1 className="font-black text-sm uppercase tracking-tighter">Lacak Pengiriman</h1>
                         <p className="text-[10px] text-slate-500 font-bold">#{order.orderNumber}</p>
                     </div>
-                    <div className="w-10"></div>
+                    <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full">
+                        <Share2 className="h-5 w-5" />
+                    </Button>
                 </div>
             </div>
 

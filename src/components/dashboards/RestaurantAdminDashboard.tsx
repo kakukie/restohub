@@ -2571,11 +2571,11 @@ export default function RestaurantAdminDashboard() {
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-500">{t('type')}:</span>
-                                <Badge variant="outline">
-                                    {(!viewOrder.tableNumber || viewOrder.tableNumber === 'TAKEAWAY') ? t('takeAway') : t('dineIn')}
+                                <Badge variant="outline" className={viewOrder.tableNumber === 'DELIVERY' ? "bg-blue-50 text-blue-600 border-blue-200" : ""}>
+                                    {viewOrder.tableNumber === 'DELIVERY' ? 'Delivery' : (!viewOrder.tableNumber || viewOrder.tableNumber === 'TAKEAWAY') ? t('takeAway') : t('dineIn')}
                                 </Badge>
                             </div>
-                            {viewOrder.tableNumber && viewOrder.tableNumber !== 'TAKEAWAY' && (
+                            {viewOrder.tableNumber && viewOrder.tableNumber !== 'TAKEAWAY' && viewOrder.tableNumber !== 'DELIVERY' && (
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-gray-500">{t('table')}:</span>
                                     <span className="font-medium">{viewOrder.tableNumber}</span>
