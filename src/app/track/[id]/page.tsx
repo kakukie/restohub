@@ -106,6 +106,26 @@ export default function OrderTrackingPage() {
         { key: 'DELIVERED', label: 'Sudah Sampai', icon: CheckCircle2 }
     ]
 
+    const getEstimatedTime = () => {
+        if (!order) return 'Menghitung...';
+        
+        const code = (order.courierCode || '').toLowerCase();
+        const service = (order.courierService || '').toLowerCase();
+
+        if (['gojek', 'grab'].includes(code)) {
+            if (service.includes('instant')) return 'Sekitar 1-2 Jam';
+            if (service.includes('same')) return 'Sekitar 6-8 Jam';
+            return 'Sekitar 20-30 Menit'; // Default fallback for on-demand
+        }
+        
+        if (['jne', 'jnt', 'sicepat', 'anteraja', 'ninja'].includes(code)) {
+            if (service.includes('yes') || service.includes('best') || service.includes('ons')) return '1 Hari Kerja';
+            return '2-3 Hari Kerja';
+        }
+
+        return 'Dalam Pengiriman';
+    };
+
     const displayStatus = getDisplayStatus();
     const activeIndex = statusSteps.findIndex(s => s.key === displayStatus)
     
@@ -185,7 +205,7 @@ export default function OrderTrackingPage() {
                                 <div>
                                     <p className="text-emerald-100 text-[10px] font-black uppercase tracking-widest mb-1 opacity-70">Estimasi Tiba</p>
                                     <h2 className="text-2xl font-black tracking-tight">
-                                        {displayStatus === 'DELIVERED' ? 'Sudah Sampai!' : 'Sekitar 20-30 Menit'}
+                                        {displayStatus === 'DELIVERED' ? 'Sudah Sampai!' : getEstimatedTime()}
                                     </h2>
                                 </div>
                                 <Badge className="bg-white/20 text-white border-none backdrop-blur-md px-3 py-1 font-black text-[10px] uppercase">
