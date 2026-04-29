@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       origin_longitude: restaurant.longitude,
       destination_latitude: destinationLat,
       destination_longitude: destinationLng,
-      couriers: 'grab,gojek,shopee', // Popular on-demand couriers in Indonesia
+      couriers: 'grab,gojek,borzo,lalamove,paxel', // On-demand couriers suitable for food delivery
       items: items.map((item: any) => ({
         name: item.name,
         value: item.price,

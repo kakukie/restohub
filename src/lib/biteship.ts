@@ -34,48 +34,53 @@ export interface BiteshipRateRequest {
 }
 
 // Mock data for testing when API Key is missing or BITESHIP_MODE is 'mock'
+// IMPORTANT: 'type' field must match valid Biteship courier_type values for order creation
 const MOCK_RATES = {
   success: true,
   pricing: [
     {
-      courier_name: "gojek",
+      courier_name: "GoSend",
       courier_code: "gojek",
       courier_service_name: "Instant",
       courier_service_code: "instant",
+      type: "instant",
       price: 15000,
-      duration: "1 - 2 Hours"
+      duration: "30 - 60 min",
+      service_type: "instant",
+      shipping_type: "parcel"
     },
     {
-      courier_name: "grab",
+      courier_name: "GoSend",
+      courier_code: "gojek",
+      courier_service_name: "Same Day",
+      courier_service_code: "sameday",
+      type: "sameday",
+      price: 22000,
+      duration: "6 - 8 jam",
+      service_type: "sameday",
+      shipping_type: "parcel"
+    },
+    {
+      courier_name: "GrabExpress",
+      courier_code: "grab",
+      courier_service_name: "Instant",
+      courier_service_code: "instant",
+      type: "instant",
+      price: 18000,
+      duration: "30 - 60 min",
+      service_type: "instant",
+      shipping_type: "parcel"
+    },
+    {
+      courier_name: "GrabExpress",
       courier_code: "grab",
       courier_service_name: "Same Day",
-      courier_service_code: "same_day",
-      price: 20000,
-      duration: "6 - 8 Hours"
-    },
-    {
-      courier_name: "JNE",
-      courier_code: "jne",
-      courier_service_name: "Reguler",
-      courier_service_code: "reg",
-      price: 9000,
-      duration: "2 - 3 Days"
-    },
-    {
-      courier_name: "SiCepat",
-      courier_code: "sicepat",
-      courier_service_name: "HALU",
-      courier_service_code: "halu",
-      price: 8000,
-      duration: "2 - 4 Days"
-    },
-    {
-      courier_name: "J&T",
-      courier_code: "jnt",
-      courier_service_name: "EZ",
-      courier_service_code: "ez",
-      price: 10000,
-      duration: "2 - 3 Days"
+      courier_service_code: "sameday",
+      type: "sameday",
+      price: 25000,
+      duration: "6 - 8 jam",
+      service_type: "sameday",
+      shipping_type: "parcel"
     }
   ]
 };

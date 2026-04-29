@@ -398,7 +398,7 @@ export async function PUT(request: NextRequest) {
                 longitude: existingOrder.deliveryLng
               },
               courier_company: ((existingOrder as any).courierCode || 'gojek').toLowerCase(),
-              courier_type: ((existingOrder as any).courierService || 'instant').toLowerCase().replace('same_day', 'sameday').replace(' ', ''),
+              courier_type: ((existingOrder as any).courierService || 'instant').toLowerCase(),
               delivery_type: ['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(((existingOrder as any).courierCode || 'gojek').toLowerCase()) ? "now" : "later",
               items: existingOrder.orderItems.map(i => ({
                 name: i.menuItem?.name || 'Food Item',
