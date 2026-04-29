@@ -417,19 +417,31 @@ export async function PUT(request: NextRequest) {
               delivery_type: ['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(courierCompany) ? "now" : "later",
               // Add delivery date/time for standard couriers (required by Biteship for 'later' type)
               ...(!['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(courierCompany) ? (() => {
-                const now = new Date();
-                let deliveryDate = now.toISOString().split('T')[0];
+                // Get current time in Jakarta (WIB)
+                const jakartaTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+                const jakartaHour = jakartaTime.getHours();
+                
+                let deliveryDate = jakartaTime.toISOString().split('T')[0];
                 let deliveryTime = '10:00';
                 
-                // If it's already late (past 3 PM), set for tomorrow morning
-                if (now.getHours() >= 15) {
-                    const tomorrow = new Date(now);
+                // If it's already past 3 PM Jakarta time, schedule for tomorrow
+                if (jakartaHour >= 15) {
+                    const tomorrow = new Date(jakartaTime);
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     deliveryDate = tomorrow.toISOString().split('T')[0];
-                    deliveryTime = '09:00';
+                    deliveryTime = '10:00';
                 } else {
-                    // Set to 1 hour from now
-                    deliveryTime = `${now.getHours() + 1}:00`;
+                    // Set to 2 hours from now to be safe, but at least 10:00 AM
+                    const targetHour = Math.max(10, jakartaHour + 2);
+                    deliveryTime = `${targetHour}:00`;
+                    
+                    // If target hour is too late (e.g. 17:00), push to tomorrow
+                    if (targetHour >= 17) {
+                        const tomorrow = new Date(jakartaTime);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        deliveryDate = tomorrow.toISOString().split('T')[0];
+                        deliveryTime = '09:00';
+                    }
                 }
 
                 return { delivery_date: deliveryDate, delivery_time: deliveryTime };
