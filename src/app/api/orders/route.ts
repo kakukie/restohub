@@ -415,6 +415,11 @@ export async function PUT(request: NextRequest) {
               courier_company: courierCompany,
               courier_type: courierType,
               delivery_type: ['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(courierCompany) ? "now" : "later",
+              // Add delivery date/time for standard couriers (required by Biteship for 'later' type)
+              ...(!['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(courierCompany) ? {
+                delivery_date: new Date().toISOString().split('T')[0],
+                delivery_time: '12:00' 
+              } : {}),
               items: existingOrder.orderItems.map(i => ({
                 name: i.menuItem?.name || 'Food Item',
                 description: i.notes || '',
