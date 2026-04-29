@@ -220,28 +220,71 @@ export default function OrderTrackingPage() {
                                         <Truck className="h-4 w-4" /> {order.courierCode || 'Biteship'} {order.courierService}
                                     </p>
                                 </div>
-                                {order.biteshipTrackingId && (
-                                    <div className="text-right">
-                                        <p className="text-emerald-200 text-[10px] font-black uppercase mb-1 opacity-70">No. Resi</p>
-                                        <div className="flex items-center gap-2 justify-end">
-                                            <p className="text-sm font-mono font-bold">{order.biteshipTrackingId}</p>
-                                            <button 
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(order.biteshipTrackingId)
-                                                    toast({ title: "Berhasil", description: "Nomor resi telah disalin." })
-                                                }}
-                                                className="p-1 hover:bg-white/10 rounded transition-colors"
-                                            >
-                                                <Package className="h-3 w-3" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                                <div className="text-right">
+                                    <p className="text-emerald-200 text-[10px] font-black uppercase mb-1 opacity-70">Status</p>
+                                    <p className="text-sm font-bold uppercase">{displayStatus}</p>
+                                </div>
                             </div>
                         </div>
 
                         <div className="p-6 space-y-4">
-                            <div className="flex items-start gap-3">
+                            {/* Sharing Options */}
+                            <div className="grid grid-cols-2 gap-3 mb-2">
+                                <Button 
+                                    variant="outline" 
+                                    className="rounded-2xl h-12 text-[10px] font-black uppercase border-slate-200 dark:border-slate-800 gap-2"
+                                    onClick={handleShare}
+                                >
+                                    <Share2 className="h-4 w-4 text-emerald-600" /> Share Link
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    className="rounded-2xl h-12 text-[10px] font-black uppercase border-slate-200 dark:border-slate-800 gap-2"
+                                    onClick={() => {
+                                        const url = window.location.href;
+                                        navigator.clipboard.writeText(url);
+                                        toast({ title: "Link Disalin", description: "Bagikan link ini ke pelanggan." });
+                                    }}
+                                >
+                                    <Package className="h-4 w-4 text-emerald-600" /> Salin Link
+                                </Button>
+                            </div>
+
+                            {/* Resi / Tracking ID Section - Always show if available */}
+                            {order.biteshipTrackingId ? (
+                                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <p className="text-[10px] font-black uppercase text-slate-400">Nomor Resi / Waybill</p>
+                                        <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-none text-[10px]">AKTIF</Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <p className="text-xl font-mono font-black tracking-tighter text-slate-900 dark:text-white">
+                                            {order.biteshipTrackingId}
+                                        </p>
+                                        <Button 
+                                            size="sm" 
+                                            variant="ghost"
+                                            className="h-10 px-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold text-xs gap-2"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(order.biteshipTrackingId)
+                                                toast({ title: "Berhasil", description: "Nomor resi telah disalin." })
+                                            }}
+                                        >
+                                            Salin
+                                        </Button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 mt-2 italic font-medium">Gunakan nomor ini untuk melacak di website resmi kurir.</p>
+                                </div>
+                            ) : (
+                                !isOnDemand && displayStatus !== 'PENDING' && (
+                                    <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-3xl border border-amber-100 dark:border-amber-900/30">
+                                        <p className="text-[10px] font-black uppercase text-amber-600 mb-1">Informasi Resi</p>
+                                        <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">Nomor resi akan muncul setelah kurir memproses paket Anda.</p>
+                                    </div>
+                                )
+                            )}
+
+                            <div className="flex items-start gap-3 pt-2">
                                 <div className="mt-1 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
                                     <MapPin className="h-4 w-4 text-emerald-600" />
                                 </div>

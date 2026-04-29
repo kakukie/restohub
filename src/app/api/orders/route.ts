@@ -382,6 +382,21 @@ export async function PUT(request: NextRequest) {
         } else if (status === 'READY' && !existingOrder.biteshipOrderId) {
           // TRIGGER BITESHIP ORDER CREATION
           try {
+            // Robust Normalization for courier_type (Biteship service code)
+            let courierCompany = ((existingOrder as any).courierCode || 'gojek').toLowerCase();
+            let courierType = ((existingOrder as any).courierService || 'instant').toLowerCase();
+
+            // Handle common service name mismatches
+            if (courierType.includes('reguler')) courierType = 'reg';
+            if (courierType.includes('standard')) courierType = 'reg';
+            if (courierType.includes('instant')) courierType = 'instant';
+            if (courierType.includes('same')) courierType = 'sameday';
+            if (courierType.includes('kilat')) courierType = 'yes';
+            if (courierType.includes('next')) courierType = 'best';
+            
+            // Clean up any spaces or special characters
+            courierType = courierType.replace(/\s+/g, '');
+
             const biteshipPayload = {
               origin_contact_name: existingOrder.restaurant.name,
               origin_contact_phone: existingOrder.restaurant.phone,
@@ -397,9 +412,9 @@ export async function PUT(request: NextRequest) {
                 latitude: existingOrder.deliveryLat,
                 longitude: existingOrder.deliveryLng
               },
-              courier_company: ((existingOrder as any).courierCode || 'gojek').toLowerCase(),
-              courier_type: ((existingOrder as any).courierService || 'instant').toLowerCase(),
-              delivery_type: ['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(((existingOrder as any).courierCode || 'gojek').toLowerCase()) ? "now" : "later",
+              courier_company: courierCompany,
+              courier_type: courierType,
+              delivery_type: ['gojek', 'grab', 'lalamove', 'borzo', 'maxim'].includes(courierCompany) ? "now" : "later",
               items: existingOrder.orderItems.map(i => ({
                 name: i.menuItem?.name || 'Food Item',
                 description: i.notes || '',
@@ -415,7 +430,8 @@ export async function PUT(request: NextRequest) {
             
             if (biteshipRes.success || biteshipRes.id) {
               updates.biteshipOrderId = biteshipRes.id
-              updates.biteshipTrackingId = biteshipRes.courier?.tracking_id || biteshipRes.courier?.waybill_id
+              // Waybill ID is often used for standard couriers as the tracking number
+              updates.biteshipTrackingId = biteshipRes.courier?.tracking_id || biteshipRes.courier?.waybill_id || biteshipRes.courier?.id
               updates.shippingStatus = 'ON_THE_WAY'
             } else {
               throw new Error(biteshipRes.error || 'Biteship API failed to create order');
