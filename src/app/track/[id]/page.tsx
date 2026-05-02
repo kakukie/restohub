@@ -408,7 +408,17 @@ export default function OrderTrackingPage() {
                     <p className="text-[10px] text-slate-400 mb-3 font-black uppercase tracking-widest">Butuh bantuan?</p>
                     <div className="flex justify-center gap-3">
                         <Button variant="outline" className="rounded-2xl h-10 px-6 text-xs font-black uppercase border-slate-200 dark:border-slate-800" asChild>
-                            <a href={`https://wa.me/6282111100344?text=Halo, saya ingin tanya status pesanan #${order.orderNumber}`} target="_blank" rel="noopener noreferrer">
+                            <a 
+                                href={`https://wa.me/${(() => {
+                                    const phone = order.restaurant?.phone || '6282111100344';
+                                    let cleaned = phone.replace(/\D/g, '');
+                                    if (cleaned.startsWith('0')) cleaned = '62' + cleaned.substring(1);
+                                    if (cleaned.startsWith('8')) cleaned = '62' + cleaned;
+                                    return cleaned;
+                                })()}?text=Halo ${order.restaurant?.name || 'Resto'}, saya ingin tanya status pesanan #${order.orderNumber}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                            >
                                 Chat Restoran
                             </a>
                         </Button>

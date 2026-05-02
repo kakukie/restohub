@@ -16,6 +16,9 @@ export async function GET(
         },
         customer: {
           select: { name: true, phone: true }
+        },
+        restaurant: {
+          select: { name: true, phone: true, address: true, logo: true }
         }
       }
     })
