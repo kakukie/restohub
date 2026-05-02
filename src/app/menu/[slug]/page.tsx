@@ -236,6 +236,15 @@ export default function PublicMenuPage() {
             return
         }
 
+        if (orderType === 'DELIVERY' && !deliveryAddress) {
+            toast({ title: 'Alamat Diperlukan', description: 'Mohon masukkan alamat pengiriman', variant: 'destructive' })
+            return
+        }
+        if (orderType === 'DELIVERY' && !selectedRate) {
+            toast({ title: 'Kurir Belum Dipilih', description: 'Mohon pilih layanan pengiriman', variant: 'destructive' })
+            return
+        }
+
         setProcessingPayment(true)
 
         try {
@@ -880,10 +889,10 @@ export default function PublicMenuPage() {
                         <p className="text-gray-500 dark:text-gray-400 mb-6">Your order #{completedOrder?.orderNumber} has been received.</p>
                         
                         <div className="flex flex-col gap-2 w-full">
-                            {completedOrder?.deliveryAddress && (
+                            {(completedOrder?.deliveryAddress || completedOrder?.tableNumber === 'DELIVERY') && (
                                 <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" asChild>
                                     <Link href={`/track/${completedOrder.id}`}>
-                                        <Truck className="h-4 w-4 mr-2" /> Pantau Pengiriman
+                                        <Truck className="h-4 w-4 mr-2" /> Lacak Pesanan
                                     </Link>
                                 </Button>
                             )}
