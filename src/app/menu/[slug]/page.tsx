@@ -109,8 +109,23 @@ export default function PublicMenuPage() {
         setMounted(true)
         if (tableFromUrl) {
             setTableNumber(tableFromUrl)
+            setOrderType('DINE_IN')
         }
     }, [tableFromUrl])
+
+    // Auto-select valid order type
+    useEffect(() => {
+        if (restaurant && mounted) {
+            const availableTypes = [
+                ...(restaurant.allowDineIn !== false ? ['DINE_IN'] : []),
+                ...(restaurant.allowTakeaway !== false ? ['TAKEAWAY'] : []),
+                ...(restaurant.enabledFeatures?.includes('DELIVERY_INTEGRATION') ? ['DELIVERY'] : [])
+            ]
+            if (availableTypes.length > 0 && !availableTypes.includes(orderType)) {
+                setOrderType(availableTypes[0] as any)
+            }
+        }
+    }, [restaurant, mounted])
 
     useEffect(() => {
         if (!mounted) return
@@ -454,8 +469,8 @@ export default function PublicMenuPage() {
                     <Label className="text-xs font-bold text-gray-400 uppercase mb-3 block">Pilih Metode Pesanan</Label>
                     <div className="grid grid-cols-3 gap-2">
                         {[
-                            { id: 'DINE_IN', label: 'Dine In', icon: Utensils, color: 'orange' },
-                            { id: 'TAKEAWAY', label: 'Takeaway', icon: ShoppingBag, color: 'blue' },
+                            ...(restaurant?.allowDineIn !== false ? [{ id: 'DINE_IN', label: 'Dine In', icon: Utensils, color: 'orange' }] : []),
+                            ...(restaurant?.allowTakeaway !== false ? [{ id: 'TAKEAWAY', label: 'Takeaway', icon: ShoppingBag, color: 'blue' }] : []),
                             ...(restaurant?.enabledFeatures?.includes('DELIVERY_INTEGRATION') ? [{ id: 'DELIVERY', label: 'Delivery', icon: Truck, color: 'emerald' }] : [])
                         ].map((type) => (
                             <button
@@ -734,12 +749,13 @@ export default function PublicMenuPage() {
                                             <Input 
                                                 placeholder="-6.21..." 
                                                 value={deliveryLat || ''} 
+                                                type="number"
                                                 onChange={e => {
                                                     const val = parseFloat(e.target.value);
                                                     setDeliveryLat(val);
                                                     if (!isNaN(val) && deliveryLng) calculateShipping(val, deliveryLng);
                                                 }}
-                                                className="h-8 text-xs dark:bg-slate-800"
+                                                className="h-10 text-sm dark:bg-slate-800"
                                             />
                                         </div>
                                         <div className="flex-1">
@@ -747,35 +763,39 @@ export default function PublicMenuPage() {
                                             <Input 
                                                 placeholder="106.8..." 
                                                 value={deliveryLng || ''} 
+                                                type="number"
                                                 onChange={e => {
                                                     const val = parseFloat(e.target.value);
                                                     setDeliveryLng(val);
                                                     if (!isNaN(val) && deliveryLat) calculateShipping(deliveryLat, val);
                                                 }}
-                                                className="h-8 text-xs dark:bg-slate-800"
+                                                className="h-10 text-sm dark:bg-slate-800"
                                             />
                                         </div>
-                                        <Button 
-                                            variant="outline" 
-                                            size="icon" 
-                                            className="mt-6 h-8 w-8"
-                                            onClick={() => {
-                                                if (navigator.geolocation) {
-                                                    navigator.geolocation.getCurrentPosition((pos) => {
-                                                        const { latitude, longitude } = pos.coords;
-                                                        setDeliveryLat(latitude);
-                                                        setDeliveryLng(longitude);
-                                                        calculateShipping(latitude, longitude);
-                                                        toast({ title: "Lokasi Berhasil Diambil" });
-                                                    }, () => {
-                                                        toast({ title: "Gagal Mengambil Lokasi", variant: "destructive" });
-                                                    });
-                                                }
-                                            }}
-                                        >
-                                            <MapPin className="h-4 w-4" />
-                                        </Button>
                                     </div>
+                                    <Button 
+                                        variant="secondary" 
+                                        className="w-full h-10 gap-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800"
+                                        onClick={() => {
+                                            if (navigator.geolocation) {
+                                                toast({ title: "Mencari Lokasi...", description: "Mohon tunggu sebentar" });
+                                                navigator.geolocation.getCurrentPosition((pos) => {
+                                                    const { latitude, longitude } = pos.coords;
+                                                    setDeliveryLat(latitude);
+                                                    setDeliveryLng(longitude);
+                                                    calculateShipping(latitude, longitude);
+                                                    toast({ title: "Lokasi Berhasil Diambil" });
+                                                }, (err) => {
+                                                    console.error("Geo error:", err);
+                                                    toast({ title: "Gagal Mengambil Lokasi", description: "Pastikan GPS aktif dan izin diberikan.", variant: "destructive" });
+                                                }, { enableHighAccuracy: true, timeout: 5000 });
+                                            } else {
+                                                toast({ title: "GPS Tidak Didukung", description: "Browser Anda tidak mendukung GPS.", variant: "destructive" });
+                                            }
+                                        }}
+                                    >
+                                        <MapPin className="h-4 w-4" /> Ambil Lokasi Otomatis
+                                    </Button>
                                     {calculatingRates && <div className="text-xs text-blue-500 animate-pulse flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Calculating shipping...</div>}
                                     {shippingRates.length > 0 && (
                                         <div className="space-y-2">

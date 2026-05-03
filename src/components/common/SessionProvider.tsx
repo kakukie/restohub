@@ -10,6 +10,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Determine context based on URL
+        // Skip auth check for public pages (menu and tracking)
+        if (pathname?.startsWith('/menu/') || pathname?.startsWith('/track/')) {
+            useAppStore.setState({ isInitialized: true })
+            return
+        }
+
         let role: string | undefined = undefined
         if (pathname?.startsWith('/admin')) {
             role = 'SUPER_ADMIN'

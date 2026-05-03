@@ -35,6 +35,8 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
         theme: 'modern-emerald' | 'classic-orange' | 'minimal-blue';
         taxRate: string;
         discountRate: string;
+        allowDineIn: boolean;
+        allowTakeaway: boolean;
     }>({
         name: '',
         description: '',
@@ -51,7 +53,9 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
         theme: 'modern-emerald',
         taxRate: '0',
         discountRate: '0',
-        deliveryCouriers: [] as string[]
+        deliveryCouriers: [] as string[],
+        allowDineIn: true,
+        allowTakeaway: true
     })
 
     useEffect(() => {
@@ -73,7 +77,9 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                 theme: (restaurant.theme as any) || 'modern-emerald',
                 taxRate: restaurant.taxRate?.toString() || '0',
                 discountRate: restaurant.discountRate?.toString() || '0',
-                deliveryCouriers: restaurant.deliveryCouriers || []
+                deliveryCouriers: restaurant.deliveryCouriers || [],
+                allowDineIn: restaurant.allowDineIn ?? true,
+                allowTakeaway: restaurant.allowTakeaway ?? true
             })
         }
     }, [restaurant])
@@ -99,7 +105,9 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                 longitude: lng,
                 taxRate: tax,
                 discountRate: discount,
-                deliveryCouriers: form.deliveryCouriers
+                deliveryCouriers: form.deliveryCouriers,
+                allowDineIn: form.allowDineIn,
+                allowTakeaway: form.allowTakeaway
             }
 
             const res = await fetch(`/api/restaurants/${restaurant.id}`, {
@@ -179,6 +187,29 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                             <p className="text-xs text-gray-500">
                                 Public Menu: <span className="font-mono text-emerald-600">/menu/{form.slug || 'your-slug'}</span>
                             </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-bold">Dine In</Label>
+                                    <p className="text-[10px] text-gray-500">Izinkan makan di tempat</p>
+                                </div>
+                                <Switch 
+                                    checked={form.allowDineIn} 
+                                    onCheckedChange={checked => setForm({ ...form, allowDineIn: checked })} 
+                                />
+                            </div>
+                            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-bold">Takeaway</Label>
+                                    <p className="text-[10px] text-gray-500">Izinkan pesan bawa pulang</p>
+                                </div>
+                                <Switch 
+                                    checked={form.allowTakeaway} 
+                                    onCheckedChange={checked => setForm({ ...form, allowTakeaway: checked })} 
+                                />
+                            </div>
                         </div>
                     </TabsContent>
 

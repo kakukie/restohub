@@ -188,7 +188,7 @@ export async function PUT(
             'detailAddress', 'googleMapsUrl', 'latitude', 'longitude',
             'allowMaps', 'enableAnalytics', 'printerSettings',
             'maxCategories', 'maxMenuItems', 'maxBranches', 'maxStaff', 'maxAdmins', 'package', 'allowBranches', 'maxSlugChanges',
-            'activeUntil', 'enabledFeatures', 'qrLogo', 'deliveryCouriers'
+            'activeUntil', 'enabledFeatures', 'qrLogo', 'deliveryCouriers', 'allowDineIn', 'allowTakeaway'
         ]
 
         const cleanUpdates: any = {}
