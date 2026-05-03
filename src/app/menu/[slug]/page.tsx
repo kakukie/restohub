@@ -743,6 +743,12 @@ export default function PublicMenuPage() {
                                         onChange={e => setDeliveryAddress(e.target.value)}
                                         className="dark:bg-slate-800 dark:border-slate-700 dark:text-white"
                                     />
+                                    <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-100 dark:border-amber-900/30 flex gap-2">
+                                        <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                                        <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-tight">
+                                            <strong>PENTING:</strong> Pastikan alamat & titik lokasi sudah benar. Kesalahan alamat berisiko menyebabkan barang terlambat atau pengiriman gagal.
+                                        </p>
+                                    </div>
                                     <div className="flex gap-2">
                                         <div className="flex-1">
                                             <Label className="text-[10px] text-gray-400">Latitude</Label>
@@ -773,29 +779,43 @@ export default function PublicMenuPage() {
                                             />
                                         </div>
                                     </div>
-                                    <Button 
-                                        variant="secondary" 
-                                        className="w-full h-10 gap-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800"
-                                        onClick={() => {
-                                            if (navigator.geolocation) {
-                                                toast({ title: "Mencari Lokasi...", description: "Mohon tunggu sebentar" });
-                                                navigator.geolocation.getCurrentPosition((pos) => {
-                                                    const { latitude, longitude } = pos.coords;
-                                                    setDeliveryLat(latitude);
-                                                    setDeliveryLng(longitude);
-                                                    calculateShipping(latitude, longitude);
-                                                    toast({ title: "Lokasi Berhasil Diambil" });
-                                                }, (err) => {
-                                                    console.error("Geo error:", err);
-                                                    toast({ title: "Gagal Mengambil Lokasi", description: "Pastikan GPS aktif dan izin diberikan.", variant: "destructive" });
-                                                }, { enableHighAccuracy: true, timeout: 5000 });
-                                            } else {
-                                                toast({ title: "GPS Tidak Didukung", description: "Browser Anda tidak mendukung GPS.", variant: "destructive" });
-                                            }
-                                        }}
-                                    >
-                                        <MapPin className="h-4 w-4" /> Ambil Lokasi Otomatis
-                                    </Button>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <Button 
+                                            variant="secondary" 
+                                            className="w-full h-10 gap-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 text-xs font-bold"
+                                            onClick={() => {
+                                                if (navigator.geolocation) {
+                                                    toast({ title: "Mencari Lokasi...", description: "Mohon tunggu sebentar" });
+                                                    navigator.geolocation.getCurrentPosition((pos) => {
+                                                        const { latitude, longitude } = pos.coords;
+                                                        setDeliveryLat(latitude);
+                                                        setDeliveryLng(longitude);
+                                                        calculateShipping(latitude, longitude);
+                                                        toast({ title: "Lokasi Berhasil Diambil" });
+                                                    }, (err) => {
+                                                        console.error("Geo error:", err);
+                                                        toast({ title: "Gagal Mengambil Lokasi", description: "Pastikan GPS aktif dan izin diberikan.", variant: "destructive" });
+                                                    }, { enableHighAccuracy: true, timeout: 5000 });
+                                                } else {
+                                                    toast({ title: "GPS Tidak Didukung", description: "Browser Anda tidak mendukung GPS.", variant: "destructive" });
+                                                }
+                                            }}
+                                        >
+                                            <MapPin className="h-4 w-4" /> Ambil Lokasi
+                                        </Button>
+                                        <Button 
+                                            variant="outline" 
+                                            disabled={!deliveryLat || !deliveryLng}
+                                            className="w-full h-10 gap-2 text-xs font-bold dark:border-slate-700"
+                                            onClick={() => {
+                                                if (deliveryLat && deliveryLng) {
+                                                    window.open(`https://www.google.com/maps?q=${deliveryLat},${deliveryLng}`, '_blank');
+                                                }
+                                            }}
+                                        >
+                                            <Globe className="h-4 w-4" /> Verifikasi Maps
+                                        </Button>
+                                    </div>
                                     {calculatingRates && <div className="text-xs text-blue-500 animate-pulse flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Calculating shipping...</div>}
                                     {shippingRates.length > 0 && (
                                         <div className="space-y-2">
