@@ -59,6 +59,7 @@ export async function middleware(request: NextRequest) {
             '/api/auth/refresh',
             '/api/orders',           // QR Menu order creation (POST only, auth checked in route handler)
             '/api/payment/midtrans', // Midtrans webhook callback
+            '/api/shipping/rates',   // Fetch courier rates (Guest accessible)
         ]
         const isPublicEndpoint = publicPostEndpoints.some(p => pathname.startsWith(p))
 

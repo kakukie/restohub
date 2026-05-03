@@ -100,6 +100,75 @@ public class ThermalPrinter {
         });
     }
 
+    public void printRaw(String base64Data, PrintCallback callback) {
+        executor.execute(() -> {
+            BluetoothSocket socket = null;
+            try {
+                BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+                if (adapter == null) {
+                    if (callback != null) callback.onError("Device tidak support Bluetooth");
+                    return;
+                }
+                if (!adapter.isEnabled()) {
+                    if (callback != null) callback.onError("Bluetooth OFF. Nyalakan Bluetooth.");
+                    return;
+                }
+
+                Set<BluetoothDevice> bonded = null;
+                try {
+                    bonded = adapter.getBondedDevices();
+                } catch (SecurityException e) {
+                    if (callback != null) callback.onError("Izin Bluetooth ditolak. Berikan izin di Pengaturan App.");
+                    return;
+                }
+
+                BluetoothDevice target = pickPrinter(bonded);
+                if (target == null) {
+                    if (callback != null) callback.onError("Printer belum di-pair. Masuk Ke Pengaturan Bluetooth HP, pilih printer thermal lalu 'Pair/Sandingkan'.");
+                    return;
+                }
+
+                Log.d(TAG, "Connecting to printer: " + target.getName());
+                socket = target.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
+
+                adapter.cancelDiscovery();
+                socket.connect();
+
+                OutputStream os = socket.getOutputStream();
+                byte[] payload = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT);
+                
+                // Chunk the payload to avoid overwhelming the printer buffer
+                int chunkSize = 256; // 256 bytes per chunk
+                for (int i = 0; i < payload.length; i += chunkSize) {
+                    int length = Math.min(chunkSize, payload.length - i);
+                    os.write(payload, i, length);
+                    os.flush();
+                    try {
+                        Thread.sleep(50); // 50ms delay between chunks
+                    } catch (InterruptedException ignored) {}
+                }
+
+                Log.d(TAG, "Print success: " + payload.length + " bytes sent in chunks");
+                if (callback != null) callback.onSuccess();
+
+            } catch (IOException e) {
+                Log.e(TAG, "Bluetooth connect/write error", e);
+                if (callback != null) callback.onError("Gagal koneksi: " + e.getMessage());
+            } catch (Exception e) {
+                Log.e(TAG, "Print error", e);
+                if (callback != null) callback.onError("Error: " + e.getMessage());
+            } finally {
+                if (socket != null) {
+                    try { 
+                        // Small delay to ensure hardware buffer clears
+                        Thread.sleep(500); 
+                    } catch (Exception ignored) {}
+                    try { socket.close(); } catch (IOException ignored) {}
+                }
+            }
+        });
+    }
+
     private BluetoothDevice pickPrinter(Set<BluetoothDevice> bonded) {
         if (bonded == null || bonded.isEmpty()) return null;
 
@@ -203,8 +272,15 @@ public class ThermalPrinter {
 
             writeln(out, "--------------------------------");
             out.write(ALIGN_RIGHT);
+            double totalAmount = order.optDouble("totalAmount", 0);
+            double shippingCost = order.optDouble("shippingCost", 0);
+            double subtotal = totalAmount - shippingCost;
+            writeln(out, "Subtotal: Rp " + String.format("%,.0f", subtotal));
+            if (shippingCost > 0) {
+                writeln(out, "Ongkir: Rp " + String.format("%,.0f", shippingCost));
+            }
             out.write(BOLD_ON);
-            writeln(out, "TOTAL: Rp " + String.format("%,.0f", order.optDouble("totalAmount", 0)));
+            writeln(out, "TOTAL: Rp " + String.format("%,.0f", totalAmount));
             out.write(BOLD_OFF);
             out.write(ALIGN_CTR);
             writeln(out, "--------------------------------");

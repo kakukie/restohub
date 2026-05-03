@@ -39,6 +39,21 @@ public class PrinterBridge {
     }
 
     @JavascriptInterface
+    public void printRawReceipt(final String base64Data, final String callbackId) {
+        printer.printRaw(base64Data, new ThermalPrinter.PrintCallback() {
+            @Override
+            public void onSuccess() {
+                invokeJsCallback(callbackId, true, "Cetak Berhasil");
+            }
+
+            @Override
+            public void onError(String message) {
+                invokeJsCallback(callbackId, false, message);
+            }
+        });
+    }
+
+    @JavascriptInterface
     public String checkPrinterAvailable() {
         try {
             android.bluetooth.BluetoothAdapter adapter = android.bluetooth.BluetoothAdapter.getDefaultAdapter();

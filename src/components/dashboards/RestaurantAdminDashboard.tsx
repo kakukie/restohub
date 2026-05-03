@@ -48,6 +48,7 @@ declare global {
         Android?: {
             /** New bridge: accepts callbackId for async response */
             printReceipt: (orderData: string, restaurantData: string, callbackId?: string) => void;
+            printRawReceipt?: (base64Data: string, callbackId: string) => void;
             /** Returns JSON string: {available, printerName?, reason?} */
             checkPrinterAvailable: () => string;
         };
@@ -707,7 +708,24 @@ export default function RestaurantAdminDashboard() {
                     }, 15000);
 
                     try {
-                        window.Android!.printReceipt(JSON.stringify(orderData), JSON.stringify(restaurantData), cbId);
+                        if (window.Android!.printRawReceipt) {
+                            // Convert to raw bytes first (this includes the logo and shipping cost)
+                            printerService.buildReceipt(orderData, restaurantData).then(rawBytes => {
+                                // Efficient byte to base64 conversion
+                                let binary = '';
+                                const len = rawBytes.byteLength;
+                                for (let i = 0; i < len; i++) {
+                                    binary += String.fromCharCode(rawBytes[i]);
+                                }
+                                const base64Data = window.btoa(binary);
+                                window.Android!.printRawReceipt!(base64Data, cbId);
+                            }).catch(err => {
+                                console.error("Error building raw receipt, falling back to JSON print", err);
+                                window.Android!.printReceipt(JSON.stringify(orderData), JSON.stringify(restaurantData), cbId);
+                            });
+                        } else {
+                            window.Android!.printReceipt(JSON.stringify(orderData), JSON.stringify(restaurantData), cbId);
+                        }
                     } catch {
                         // Fallback: old bridge without callbackId (silent)
                         window.Android!.printReceipt(JSON.stringify(orderData), JSON.stringify(restaurantData));
