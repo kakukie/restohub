@@ -13,6 +13,7 @@ import { toast } from '@/hooks/use-toast'
 import Image from 'next/image'
 import { Trash2, MapPin, Map, Globe, Store, Palette, ImageIcon, Loader2, Truck } from 'lucide-react'
 import { compressImage } from '@/lib/image-utils'
+import { Switch } from '@/components/ui/switch'
 
 export default function RestaurantSettingsForm({ restaurantId, initialData }: { restaurantId: string; initialData?: any }) {
     const { restaurants, updateRestaurant } = useAppStore()

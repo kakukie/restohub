@@ -637,14 +637,20 @@ export default function RestaurantAdminDashboard() {
                     notes: item.notes || ''
                 })),
                 totalAmount: order.totalAmount,
+                shippingCost: order.shippingCost || 0,
                 paymentMethod: order.paymentMethod || '-'
             };
+
+            const logoUrl = currentRestaurant?.logo || currentRestaurant?.logoUrl;
+            const absoluteLogoUrl = logoUrl 
+                ? (logoUrl.startsWith('http') ? logoUrl : `${window.location.origin}${logoUrl}`)
+                : null;
 
             const restaurantData = {
                 name: currentRestaurant?.name || 'Restaurant',
                 address: currentRestaurant?.address || '',
                 phone: currentRestaurant?.phone || '',
-                logo: currentRestaurant?.logo || currentRestaurant?.logoUrl || null
+                logo: absoluteLogoUrl
             };
 
             // === Path 1: Native Android bridge (PrinterBridge.java via WebView) ===
@@ -734,8 +740,12 @@ export default function RestaurantAdminDashboard() {
             const printWindow = window.open('', '_blank')
             if (printWindow) {
                 const logoUrl = currentRestaurant?.logo || currentRestaurant?.logoUrl;
-                const logoHtml = logoUrl
-                    ? `<div style="text-align: center; margin-bottom: 12px;"><img id="receipt-logo" src="${logoUrl}" style="max-height: 60px; max-width: 100%; object-fit: contain;" /></div>`
+                const absoluteLogoUrl = logoUrl 
+                    ? (logoUrl.startsWith('http') ? logoUrl : `${window.location.origin}${logoUrl}`)
+                    : null;
+                
+                const logoHtml = absoluteLogoUrl
+                    ? `<div style="text-align: center; margin-bottom: 12px;"><img id="receipt-logo" src="${absoluteLogoUrl}" style="max-height: 60px; max-width: 100%; object-fit: contain;" /></div>`
                     : '';
 
                 printWindow.document.write(`
@@ -802,6 +812,16 @@ export default function RestaurantAdminDashboard() {
 
                         <div class="dashed-line"></div>
 
+                        <div class="item-row" style="margin-top: 10px;">
+                            <span>Subtotal</span>
+                            <span>Rp${(order.totalAmount - (order.shippingCost || 0)).toLocaleString('id-ID')}</span>
+                        </div>
+                        ${order.shippingCost ? `
+                        <div class="item-row">
+                            <span>Ongkir</span>
+                            <span>Rp${order.shippingCost.toLocaleString('id-ID')}</span>
+                        </div>
+                        ` : ''}
                         <div class="total">
                             <span>TOTAL</span>
                             <span>Rp${order.totalAmount.toLocaleString('id-ID')}</span>

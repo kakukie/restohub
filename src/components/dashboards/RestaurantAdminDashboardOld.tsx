@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
@@ -118,6 +118,7 @@ export default function RestaurantAdminDashboard() {
         </head>
         <body>
           <div class="header">
+            ${currentRestaurant?.logo ? `<img src="${currentRestaurant.logo.startsWith('http') ? currentRestaurant.logo : window.location.origin + currentRestaurant.logo}" style="max-height: 50px; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;" />` : ''}
             <h1>${currentRestaurant?.name || 'MEENUIN'}</h1>
             <p>${currentRestaurant?.address || ''}</p>
           </div>
@@ -141,6 +142,18 @@ export default function RestaurantAdminDashboard() {
                 </div>
               </div>
             `).join('')}
+          </div>
+          <div class="total" style="border-bottom: none; margin-bottom: 0;">
+            <div class="item-row" style="display:flex; justify-content:space-between; font-weight: normal;">
+              <span>Subtotal</span>
+              <span>Rp ${(order.totalAmount - (order.shippingCost || 0)).toLocaleString('id-ID')}</span>
+            </div>
+            ${order.shippingCost ? `
+            <div class="item-row" style="display:flex; justify-content:space-between; font-weight: normal;">
+              <span>Ongkir</span>
+              <span>Rp ${order.shippingCost.toLocaleString('id-ID')}</span>
+            </div>
+            ` : ''}
           </div>
           <div class="total">
             <div class="item-row" style="display:flex; justify-content:space-between">
