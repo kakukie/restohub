@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Minus, Plus, ShoppingCart, ShoppingBag, Search, Info, Clock, MapPin, Phone, Star, User, Home, LayoutGrid, CheckCircle, CreditCard, ChevronDown, ChevronUp, Loader2, ArrowLeft, Trash2, QrCode, Download, Flame, ThumbsUp, Utensils, Coffee, Cake, Cookie, Truck } from 'lucide-react'
+import { Minus, Plus, ShoppingCart, ShoppingBag, Search, Info, Clock, MapPin, Phone, Star, User, Home, LayoutGrid, CheckCircle, CreditCard, ChevronDown, ChevronUp, Loader2, ArrowLeft, Trash2, QrCode, Download, Flame, ThumbsUp, Utensils, Coffee, Cake, Cookie, Truck, AlertTriangle, Globe } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import Link from 'next/link'
 
