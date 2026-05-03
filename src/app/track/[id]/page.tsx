@@ -258,7 +258,7 @@ export default function OrderTrackingPage() {
                                         <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-none text-[10px]">AKTIF</Badge>
                                     </div>
                                     <div className="flex items-center justify-between gap-4">
-                                        <p className="text-xl font-mono font-black tracking-tighter text-slate-900 dark:text-white">
+                                        <p className="text-xl font-mono font-black tracking-tighter text-slate-900 dark:text-white break-all">
                                             {order.biteshipTrackingId}
                                         </p>
                                         <Button 

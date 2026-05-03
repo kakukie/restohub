@@ -223,13 +223,21 @@ export async function POST(request: NextRequest) {
 
     const taxAmount = totalTax
     const discountAmount = 0 // Global discount removed as per user request
-    const calculatedTotalAmount = calculatedSubtotal + taxAmount - discountAmount + (shippingCost || 0)
+    let calculatedTotalAmount = calculatedSubtotal + taxAmount - discountAmount + (shippingCost || 0)
 
     // Sanitize text inputs
     const sanitizedNotes = sanitizeString(notes, 500)
-    const sanitizedAdminNotes = sanitizeString(adminNotes, 1000)
+    let sanitizedAdminNotes = sanitizeString(adminNotes, 1000)
     const sanitizedCustomerName = sanitizeString(customerName, 100) || 'Guest'
     const sanitizedTableNumber = sanitizeString(tableNumber, 20)
+
+    // Generate unique code for manual transfers (assuming anything other than CASH might be e-wallet/transfer)
+    if (paymentMethod && paymentMethod !== 'CASH') {
+        const uniqueCode = Math.floor(Math.random() * 900) + 100; // 100-999
+        calculatedTotalAmount += uniqueCode;
+        const codeMsg = `[SISTEM] Kode Unik Transfer: ${uniqueCode}`;
+        sanitizedAdminNotes = sanitizedAdminNotes ? `${sanitizedAdminNotes}\n${codeMsg}` : codeMsg;
+    }
 
     // Retry loop for orderNumber collision (P2002 unique constraint)
     let attempts = 0
@@ -421,14 +429,16 @@ export async function PUT(request: NextRequest) {
                 const jakartaTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
                 const jakartaHour = jakartaTime.getHours();
                 
-                let deliveryDate = jakartaTime.toISOString().split('T')[0];
+                // Format directly to YYYY-MM-DD using local time to avoid UTC shift
+                const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' });
+                let deliveryDate = formatter.format(new Date());
                 let deliveryTime = '10:00';
                 
                 // If it's already past 3 PM Jakarta time, schedule for tomorrow
                 if (jakartaHour >= 15) {
-                    const tomorrow = new Date(jakartaTime);
+                    const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 1);
-                    deliveryDate = tomorrow.toISOString().split('T')[0];
+                    deliveryDate = formatter.format(tomorrow);
                     deliveryTime = '10:00';
                 } else {
                     // Set to 2 hours from now to be safe, but at least 10:00 AM

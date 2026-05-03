@@ -341,7 +341,7 @@ export class CapacitorBluetoothPrinterService {
                 const imageData = await this.getImageData(logoUrl, 160); // Smaller logo for reliability
                 if (imageData) {
                     receipt = receipt.image(imageData, imageData.width, imageData.height, 'threshold', 128);
-                    receipt = receipt.newline();
+                    receipt = receipt.newline().align('center');
                 }
             } catch (e) {}
         }
