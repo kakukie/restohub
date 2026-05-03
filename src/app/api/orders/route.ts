@@ -108,6 +108,8 @@ export async function GET(request: NextRequest) {
       deliveryLng: (o as any).deliveryLng,
       shippingCost: (o as any).shippingCost,
       shippingStatus: (o as any).shippingStatus,
+      biteshipTrackingId: (o as any).biteshipTrackingId,
+      biteshipOrderId: (o as any).biteshipOrderId,
       createdAt: o.createdAt.toISOString()
     }))
 

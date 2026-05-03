@@ -2655,6 +2655,12 @@ export default function RestaurantAdminDashboard() {
                                     <span className="font-medium text-right max-w-[60%]">{(viewOrder as any).adminNotes}</span>
                                 </div>
                             )}
+                            {(viewOrder as any)?.biteshipTrackingId && (
+                                <div className="flex justify-between items-center text-sm p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800">
+                                    <span className="text-emerald-700 dark:text-emerald-400 font-bold">Resi Kurir:</span>
+                                    <span className="font-mono font-bold tracking-tight bg-white dark:bg-slate-900 px-2 py-1 rounded select-all">{(viewOrder as any).biteshipTrackingId}</span>
+                                </div>
+                            )}
                             <div className="border-t border-b py-2 my-2 space-y-2">
                                 {viewOrder.items.map((item: any, idx: number) => (
                                     <div key={idx} className="flex justify-between text-sm">

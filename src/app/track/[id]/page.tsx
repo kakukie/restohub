@@ -182,7 +182,7 @@ export default function OrderTrackingPage() {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-                                        {order.courierCode?.charAt(0).toUpperCase()}
+                                        {(order.courierCode || 'B').charAt(0).toUpperCase()}
                                     </div>
                                     <div>
                                         <p className="text-xs font-black uppercase">{courierInfo.name || 'Driver ' + (order.courierCode || 'Biteship')}</p>
