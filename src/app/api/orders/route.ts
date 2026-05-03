@@ -461,8 +461,8 @@ export async function PUT(request: NextRequest) {
             
             if (biteshipRes.success || biteshipRes.id) {
               updates.biteshipOrderId = biteshipRes.id
-              // Waybill ID is often used for standard couriers as the tracking number
-              updates.biteshipTrackingId = biteshipRes.courier?.tracking_id || biteshipRes.courier?.waybill_id || biteshipRes.courier?.id
+              // Waybill ID is the actual airway bill (Resi), tracking_id is Biteship's internal ID
+              updates.biteshipTrackingId = biteshipRes.courier?.waybill_id || biteshipRes.courier?.tracking_id || biteshipRes.id
               updates.shippingStatus = 'ON_THE_WAY'
             } else {
               throw new Error(biteshipRes.error || 'Biteship API failed to create order');

@@ -481,7 +481,7 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                             <div className="space-y-2">
                                 <Label className="text-sm font-bold">Kurir Instan / On-Demand</Label>
                                 <p className="text-xs text-gray-500 mb-2">Cocok untuk pengiriman makanan dan minuman.</p>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {[
                                         { code: 'gojek', name: 'GoSend (Gojek)', desc: 'Instant & Same Day' },
                                         { code: 'grab', name: 'GrabExpress', desc: 'Instant & Same Day' },
@@ -517,7 +517,7 @@ export default function RestaurantSettingsForm({ restaurantId, initialData }: { 
                             <div className="space-y-2 pt-4 border-t">
                                 <Label className="text-sm font-bold">Kurir Ekspedisi / Standard</Label>
                                 <p className="text-xs text-gray-500 mb-2">Cocok untuk toko yang menjual produk retail, frozen food, atau hampers.</p>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {[
                                         { code: 'jne', name: 'JNE', desc: 'REG, OKE, YES' },
                                         { code: 'sicepat', name: 'SiCepat', desc: 'REG, BEST, GOKIL' },
