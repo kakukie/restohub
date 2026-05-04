@@ -20,6 +20,8 @@ services:
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Meenuin}
       - UPLOAD_DIR=/app/public/uploads
+      - BITESHIP_API_KEY=${BITESHIP_API_KEY}
+      - BITESHIP_MODE=${BITESHIP_MODE:-live}
     volumes:
       - app-db:/app/db
       - app-uploads:/app/public/uploads
