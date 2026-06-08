@@ -206,12 +206,18 @@ export async function sendPaymentSuccessEmail(
     restoName: string,
     planName: string,
     amount: number,
-    loginEmail?: string
+    loginEmail?: string,
+    activeUntil?: Date | string | null
 ) {
     const loginLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login`
+    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/forgot-password`
     const apiKey = process.env.BREVO_API_KEY
     const formattedAmount = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)
     const accessEmail = loginEmail || to
+    const activeUntilText = activeUntil ? new Intl.DateTimeFormat('id-ID', {
+        dateStyle: 'full',
+        timeStyle: 'short'
+    }).format(new Date(activeUntil)) : 'Sesuai periode paket aktif'
 
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
@@ -237,8 +243,9 @@ export async function sendPaymentSuccessEmail(
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr><td style="padding: 6px 0; color: #6b7280;">Email Login</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${accessEmail}</td></tr>
                         <tr><td style="padding: 6px 0; color: #6b7280;">Portal Login</td><td style="padding: 6px 0; font-weight: bold; text-align: right;"><a href="${loginLink}" style="color: #00a669; text-decoration: none;">${loginLink}</a></td></tr>
+                        <tr><td style="padding: 6px 0; color: #6b7280;">Masa Aktif</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${activeUntilText}</td></tr>
                     </table>
-                    <p style="margin: 12px 0 0 0; font-size: 13px; color: #475569;">Gunakan password yang dibuat saat registrasi. Jika lupa, gunakan fitur reset password pada halaman login.</p>
+                    <p style="margin: 12px 0 0 0; font-size: 13px; color: #475569;">Gunakan password yang dibuat saat registrasi. Jika lupa, gunakan fitur reset password pada halaman login atau klik tautan berikut: <a href="${resetLink}" style="color: #00a669; text-decoration: none;">${resetLink}</a>.</p>
                 </div>
 
                 <div style="text-align: center; margin: 28px 0;">
@@ -248,7 +255,7 @@ export async function sendPaymentSuccessEmail(
                 <p style="color: #6b7280; font-size: 14px;">Jika Anda memiliki pertanyaan, hubungi support kami atau balas email ini.</p>
                 <p>Salam sukses,<br><strong>Tim Meenuin</strong></p>
             </div>
-            <p style="text-align: center; font-size: 12px; color: #9ca3af; margin-top: 16px;">(c) ${new Date().getFullYear()} Meenuin Technology. All rights reserved.</p>
+            <p style="text-align: center; font-size: 12px; color: #9ca3af; margin-top: 16px;">© ${new Date().getFullYear()} Meenuin Technology. All rights reserved.</p>
         </div>
     `
 

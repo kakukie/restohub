@@ -83,7 +83,13 @@ export async function POST(
                     payment.restaurant.name,
                     payment.planName,
                     payment.amount,
-                    ownerEmail
+                    ownerEmail,
+                    addMonths(
+                        payment.restaurant?.activeUntil && new Date(payment.restaurant.activeUntil) > new Date()
+                            ? new Date(payment.restaurant.activeUntil)
+                            : new Date(),
+                        payment.cycleMonths || 1
+                    )
                 )
             }
 

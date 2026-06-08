@@ -89,7 +89,8 @@ export async function POST(request: NextRequest) {
                         payment.restaurant?.name || 'Restoran',
                         payment.planName,
                         payment.amount,
-                        ownerEmail
+                        ownerEmail,
+                        nextActiveUntil
                     )
                 }
             }
