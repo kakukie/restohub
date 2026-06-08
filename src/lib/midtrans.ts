@@ -1,6 +1,17 @@
 import midtransClient from 'midtrans-client'
 import crypto from 'crypto'
 
+function normalizeSecret(value?: string | null) {
+    if (!value) return ''
+    const trimmed = value.toString().trim()
+    const unquoted =
+        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))
+            ? trimmed.slice(1, -1)
+            : trimmed
+    return unquoted.trim()
+}
+
 function normalizeBoolean(value?: string | null) {
     if (value == null) return undefined
     const normalized = value.toString().trim().toLowerCase()
@@ -17,8 +28,8 @@ function inferProductionMode(serverKey: string) {
 }
 
 export function getMidtransConfig() {
-    const serverKey = (process.env.MIDTRANS_SERVER_KEY || process.env.NEXT_PUBLIC_MIDTRANS_SERVER_KEY || '').trim()
-    const clientKey = (process.env.MIDTRANS_CLIENT_KEY || process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '').trim()
+    const serverKey = normalizeSecret(process.env.MIDTRANS_SERVER_KEY || process.env.NEXT_PUBLIC_MIDTRANS_SERVER_KEY)
+    const clientKey = normalizeSecret(process.env.MIDTRANS_CLIENT_KEY || process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY)
     const explicitMode = normalizeBoolean(process.env.MIDTRANS_IS_PRODUCTION ?? process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION)
     const inferredMode = inferProductionMode(serverKey)
     const isProduction = explicitMode ?? inferredMode ?? false
