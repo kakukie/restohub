@@ -1818,7 +1818,7 @@ export default function SuperAdminDashboard() {
           </div>
         </section>
 
-        {/* Payment Configuration */}
+        {/* Payment Configuration - Hidden (Midtrans Only)
         <section className="glass rounded-3xl overflow-hidden border border-white/5">
           <div className="p-6 border-b border-white/5 flex items-center gap-3">
             <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl">
@@ -1830,7 +1830,6 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
           <div className="p-8 space-y-6">
-            {/* Bank Transfer */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
@@ -1939,6 +1938,8 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
         </section>
+        */}
+
 
         <div className="mt-8 p-6 bg-red-500/5 border border-red-500/20 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
