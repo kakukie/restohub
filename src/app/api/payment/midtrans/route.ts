@@ -98,6 +98,19 @@ export async function POST(request: NextRequest) {
         })
     } catch (error: any) {
         console.error('Midtrans charge error', error)
-        return NextResponse.json({ success: false, error: 'Gagal membuat transaksi Midtrans' }, { status: 500 })
+        const statusCode = error?.httpStatusCode || error?.statusCode
+        const rawMessage = error?.ApiResponse?.error_messages?.[0] || error?.message || 'Gagal membuat transaksi Midtrans'
+
+        if (statusCode === 401 || /unauthorized transaction/i.test(rawMessage)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Midtrans menolak transaksi. Periksa pasangan server key/client key dan pastikan mode production/sandbox sudah sesuai.',
+                },
+                { status: 401 }
+            )
+        }
+
+        return NextResponse.json({ success: false, error: rawMessage }, { status: 500 })
     }
 }

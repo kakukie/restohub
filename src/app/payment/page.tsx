@@ -16,6 +16,11 @@ interface SystemSettings {
     platformName?: string
 }
 
+interface MidtransConfig {
+    clientKey?: string
+    isProduction?: boolean
+}
+
 function PaymentContent() {
     const searchParams = useSearchParams()
     const { helpdeskSettings } = useAppStore()
@@ -26,12 +31,14 @@ function PaymentContent() {
     const [submitted, setSubmitted] = useState(false)
     const [amount, setAmount] = useState<number>(0)
     const [settings, setSettings] = useState<SystemSettings>({})
+    const [midtransConfig, setMidtransConfig] = useState<MidtransConfig>({})
     const [snapReady, setSnapReady] = useState(false)
     const [midtransLoading, setMidtransLoading] = useState(false)
 
     const platformName = helpdeskSettings?.platformName || settings.platformName || 'Meenuin'
-    const snapClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY
-    const isProdSnap = (process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION || '').toString() === 'true'
+    const snapClientKey = midtransConfig.clientKey || ''
+    const inferredProdMode = snapClientKey?.trim()?.startsWith('SB-') ? false : (snapClientKey ? true : undefined)
+    const isProdSnap = midtransConfig.isProduction ?? inferredProdMode ?? false
     const snapUrl = isProdSnap
         ? 'https://app.midtrans.com/snap/snap.js'
         : 'https://app.sandbox.midtrans.com/snap/snap.js'
@@ -72,8 +79,22 @@ function PaymentContent() {
             } catch { /* ignore */ }
         }
 
+        const fetchMidtransConfig = async () => {
+            try {
+                const res = await fetch('/api/payment/midtrans/config')
+                const data = await res.json()
+                if (data.success && data.data) {
+                    setMidtransConfig({
+                        clientKey: data.data.clientKey || '',
+                        isProduction: typeof data.data.isProduction === 'boolean' ? data.data.isProduction : undefined,
+                    })
+                }
+            } catch { /* ignore */ }
+        }
+
         fetchSettings()
         fetchPlanPrice()
+        fetchMidtransConfig()
     }, [plan, cycle])
 
     // Load Midtrans Snap script (client-side only)
