@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getSnapClient, isMidtransConfigured } from '@/lib/midtrans'
+import { getMidtransConfig, getSnapClient, isMidtransConfigured } from '@/lib/midtrans'
 
 export const dynamic = 'force-dynamic'
 
@@ -98,6 +98,12 @@ export async function POST(request: NextRequest) {
         })
     } catch (error: any) {
         console.error('Midtrans charge error', error)
+        const midtransConfig = getMidtransConfig()
+        console.error('Midtrans config snapshot', {
+            isProduction: midtransConfig.isProduction,
+            serverKeyPrefix: midtransConfig.serverKey.slice(0, 12),
+            clientKeyPrefix: midtransConfig.clientKey.slice(0, 12),
+        })
         const statusCode = error?.httpStatusCode || error?.statusCode
         const rawMessage = error?.ApiResponse?.error_messages?.[0] || error?.message || 'Gagal membuat transaksi Midtrans'
 

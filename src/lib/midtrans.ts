@@ -20,6 +20,14 @@ function normalizeBoolean(value?: string | null) {
     return undefined
 }
 
+function normalizeMode(value?: string | null) {
+    if (value == null) return undefined
+    const normalized = value.toString().trim().toLowerCase()
+    if (normalized === 'production' || normalized === 'prod' || normalized === 'live') return true
+    if (normalized === 'sandbox' || normalized === 'test' || normalized === 'development' || normalized === 'dev') return false
+    return undefined
+}
+
 function inferProductionMode(serverKey: string) {
     const key = serverKey.trim()
     if (!key) return undefined
@@ -30,7 +38,9 @@ function inferProductionMode(serverKey: string) {
 export function getMidtransConfig() {
     const serverKey = normalizeSecret(process.env.MIDTRANS_SERVER_KEY || process.env.NEXT_PUBLIC_MIDTRANS_SERVER_KEY)
     const clientKey = normalizeSecret(process.env.MIDTRANS_CLIENT_KEY || process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY)
-    const explicitMode = normalizeBoolean(process.env.MIDTRANS_IS_PRODUCTION ?? process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION)
+    const explicitMode =
+        normalizeMode(process.env.MIDTRANS_ENVIRONMENT ?? process.env.NEXT_PUBLIC_MIDTRANS_ENVIRONMENT) ??
+        normalizeBoolean(process.env.MIDTRANS_IS_PRODUCTION ?? process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION)
     const inferredMode = inferProductionMode(serverKey)
     const isProduction = explicitMode ?? inferredMode ?? false
 
@@ -54,7 +64,6 @@ export function getSnapClient() {
         snapInstance = new midtransClient.Snap({
             isProduction,
             serverKey,
-            clientKey
         })
     }
     return snapInstance

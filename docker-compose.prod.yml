@@ -16,6 +16,7 @@ x-app-base: &app-base
     MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY}
     MIDTRANS_CLIENT_KEY: ${MIDTRANS_CLIENT_KEY}
     MIDTRANS_IS_PRODUCTION: ${MIDTRANS_IS_PRODUCTION:-true}
+    MIDTRANS_ENVIRONMENT: ${MIDTRANS_ENVIRONMENT:-production}
     UPLOAD_DIR: /app/public/uploads
     REDIS_URL: redis://meenuin-redis:6379
   volumes:
