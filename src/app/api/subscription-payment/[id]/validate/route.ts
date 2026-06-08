@@ -3,6 +3,12 @@ import prisma from '@/lib/prisma'
 import { verifyJwt } from '@/lib/jwt'
 import { sendPaymentSuccessEmail } from '@/lib/mail'
 
+function addMonths(baseDate: Date, months: number) {
+    const result = new Date(baseDate)
+    result.setMonth(result.getMonth() + months)
+    return result
+}
+
 // POST /api/subscription-payment/[id]/validate
 export async function POST(
     request: NextRequest,
@@ -58,6 +64,12 @@ export async function POST(
                     status: 'ACTIVE',
                     isActive: true,
                     package: payment.planName,
+                    activeUntil: addMonths(
+                        payment.restaurant?.activeUntil && new Date(payment.restaurant.activeUntil) > new Date()
+                            ? new Date(payment.restaurant.activeUntil)
+                            : new Date(),
+                        payment.cycleMonths || 1
+                    )
                 }
             })
 
@@ -70,7 +82,8 @@ export async function POST(
                     ownerName,
                     payment.restaurant.name,
                     payment.planName,
-                    payment.amount
+                    payment.amount,
+                    ownerEmail
                 )
             }
 

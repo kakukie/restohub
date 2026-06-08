@@ -205,29 +205,40 @@ export async function sendPaymentSuccessEmail(
     ownerName: string,
     restoName: string,
     planName: string,
-    amount: number
+    amount: number,
+    loginEmail?: string
 ) {
     const loginLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login`
     const apiKey = process.env.BREVO_API_KEY
     const formattedAmount = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)
+    const accessEmail = loginEmail || to
 
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #00a669 0%, #059669 100%); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">✅ Pembayaran Berhasil!</h1>
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Pembayaran Berhasil!</h1>
                 <p style="color: #d1fae5; margin: 8px 0 0 0;">Akun restoran Anda sudah aktif</p>
             </div>
             <div style="background: #ffffff; padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
                 <p>Halo <strong>${ownerName}</strong>,</p>
-                <p>Pembayaran subscription untuk restoran <strong>${restoName}</strong> telah berhasil divalidasi oleh tim kami. Akun Anda sekarang sudah <strong style="color: #00a669;">AKTIF</strong>!</p>
+                <p>Pembayaran subscription untuk restoran <strong>${restoName}</strong> telah berhasil divalidasi oleh sistem pembayaran. Akun Anda sekarang sudah <strong style="color: #00a669;">AKTIF</strong>!</p>
 
                 <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 24px 0;">
                     <h3 style="color: #065f46; margin: 0 0 12px 0;">Ringkasan Pembayaran</h3>
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr><td style="padding: 6px 0; color: #6b7280;">Paket</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${planName}</td></tr>
                         <tr><td style="padding: 6px 0; color: #6b7280;">Total Dibayar</td><td style="padding: 6px 0; font-weight: bold; color: #00a669; text-align: right;">${formattedAmount}</td></tr>
-                        <tr><td style="padding: 6px 0; color: #6b7280;">Status</td><td style="padding: 6px 0; font-weight: bold; color: #00a669; text-align: right;">✅ LUNAS</td></tr>
+                        <tr><td style="padding: 6px 0; color: #6b7280;">Status</td><td style="padding: 6px 0; font-weight: bold; color: #00a669; text-align: right;">LUNAS</td></tr>
                     </table>
+                </div>
+
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px; margin: 24px 0;">
+                    <h3 style="color: #1d4ed8; margin: 0 0 12px 0;">Detail Akses Login</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr><td style="padding: 6px 0; color: #6b7280;">Email Login</td><td style="padding: 6px 0; font-weight: bold; text-align: right;">${accessEmail}</td></tr>
+                        <tr><td style="padding: 6px 0; color: #6b7280;">Portal Login</td><td style="padding: 6px 0; font-weight: bold; text-align: right;"><a href="${loginLink}" style="color: #00a669; text-decoration: none;">${loginLink}</a></td></tr>
+                    </table>
+                    <p style="margin: 12px 0 0 0; font-size: 13px; color: #475569;">Gunakan password yang dibuat saat registrasi. Jika lupa, gunakan fitur reset password pada halaman login.</p>
                 </div>
 
                 <div style="text-align: center; margin: 28px 0;">
@@ -237,7 +248,7 @@ export async function sendPaymentSuccessEmail(
                 <p style="color: #6b7280; font-size: 14px;">Jika Anda memiliki pertanyaan, hubungi support kami atau balas email ini.</p>
                 <p>Salam sukses,<br><strong>Tim Meenuin</strong></p>
             </div>
-            <p style="text-align: center; font-size: 12px; color: #9ca3af; margin-top: 16px;">© ${new Date().getFullYear()} Meenuin Technology. All rights reserved.</p>
+            <p style="text-align: center; font-size: 12px; color: #9ca3af; margin-top: 16px;">(c) ${new Date().getFullYear()} Meenuin Technology. All rights reserved.</p>
         </div>
     `
 
@@ -255,7 +266,7 @@ export async function sendPaymentSuccessEmail(
                     email: process.env.SMTP_FROM || 'noreply@meenuin.biz.id'
                 },
                 to: [{ email: to }],
-                subject: `✅ Pembayaran Berhasil – Akun ${restoName} Kini Aktif!`,
+                subject: `Pembayaran Berhasil - Akun ${restoName} Kini Aktif!`,
                 htmlContent: htmlContent
             })
         })

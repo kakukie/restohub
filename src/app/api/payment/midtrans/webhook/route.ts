@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { verifyMidtransSignature } from '@/lib/midtrans'
+import { sendPaymentSuccessEmail } from '@/lib/mail'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,13 +30,29 @@ export async function POST(request: NextRequest) {
         }
 
         const db = prisma as any
-        const payment = await db.subscriptionPayment.findFirst({ where: { orderId: order_id } })
+        const payment = await db.subscriptionPayment.findFirst({
+            where: { orderId: order_id },
+            include: {
+                restaurant: {
+                    include: {
+                        admin: { select: { name: true, email: true } }
+                    }
+                }
+            }
+        })
         if (!payment) {
             return NextResponse.json({ success: false, error: 'Payment tidak ditemukan' }, { status: 404 })
         }
 
         const isSuccess = ['settlement', 'capture', 'success'].includes(transaction_status)
         const isFailed = ['cancel', 'deny', 'expire', 'failure'].includes(transaction_status)
+        const previousStatus = payment.status
+        const cycleMonths = payment.cycleMonths || 1
+        const baseDate = payment.restaurant?.activeUntil && new Date(payment.restaurant.activeUntil) > new Date()
+            ? new Date(payment.restaurant.activeUntil)
+            : new Date()
+        const nextActiveUntil = new Date(baseDate)
+        nextActiveUntil.setMonth(nextActiveUntil.getMonth() + cycleMonths)
 
         const updated = await db.subscriptionPayment.update({
             where: { id: payment.id },
@@ -46,6 +63,7 @@ export async function POST(request: NextRequest) {
                 status: isSuccess ? 'PAID' : isFailed ? 'REJECTED' : 'PENDING',
                 paidAt: isSuccess ? new Date(settlement_time || Date.now()) : null,
                 expiredAt: expiry_time ? new Date(expiry_time) : payment.expiredAt,
+                validatedAt: isSuccess ? new Date() : payment.validatedAt,
                 updatedAt: new Date()
             }
         })
@@ -57,8 +75,24 @@ export async function POST(request: NextRequest) {
                     status: 'ACTIVE',
                     isActive: true,
                     package: payment.planName,
+                    activeUntil: nextActiveUntil,
                 }
             })
+
+            if (previousStatus !== 'PAID') {
+                const ownerEmail = payment.restaurant?.admin?.email || payment.restaurant?.email
+                const ownerName = payment.restaurant?.admin?.name || payment.restaurant?.name || 'Pemilik'
+                if (ownerEmail) {
+                    await sendPaymentSuccessEmail(
+                        ownerEmail,
+                        ownerName,
+                        payment.restaurant?.name || 'Restoran',
+                        payment.planName,
+                        payment.amount,
+                        ownerEmail
+                    )
+                }
+            }
         }
 
         return NextResponse.json({ success: true, data: updated })
